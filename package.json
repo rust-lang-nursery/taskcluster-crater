@@ -1,0 +1,29 @@
+{
+  "name": "taskcluster-crater",
+  "version": "0.0.1",
+  "description": "A collection of tools to test Rust Crates",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jhford/taskcluster-crater.git"
+  },
+  "keywords": [
+    "rust",
+    "ci",
+    "crate",
+    "taskcluster"
+  ],
+  "author": "John Ford <jhford.mozilla@com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jhford/taskcluster-crater/issues"
+  },
+  "homepage": "https://github.com/jhford/taskcluster-crater",
+  "dependencies": {
+    "debug": "^2.1.1",
+    "promise": "^6.1.0"
+  }
+}
