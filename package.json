@@ -24,6 +24,8 @@
   "homepage": "https://github.com/jhford/taskcluster-crater",
   "dependencies": {
     "debug": "^2.1.1",
-    "promise": "^6.1.0"
+    "promise": "^6.1.0",
+    "walkdir": "*",
+    "graceful-fs": "*"
   }
 }

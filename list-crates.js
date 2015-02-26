@@ -3,7 +3,7 @@
 var debug = require('debug')(__filename.slice(__dirname.length + 1));
 var Promise = require('promise');
 var exec = require('child_process').exec;
-var _fs = require('fs');
+var _fs = require('graceful-fs'); // Need to parse many files at once
 var fs = {
   existsSync: _fs.existsSync,
   readFile: Promise.denodeify(_fs.readFile),
@@ -93,16 +93,12 @@ function readFile(dir, filename) {
 }
 
 /**
- * Filter out known-unstable packages.  For now, this is just to remove
- * files which have something in their features dict.
+ * Filter out known-unstable packages.
  */
 function removeUnstable(nuggets) {
-  return nuggets.filter(function(nugget) {
-    if (Object.keys(nugget).length !== 0) {
-      return true;
-    }
-    return false;
-  });
+  // TODO: best way to do this is probably to grep for '#.*[.*feature.*]' in the source
+  // and all its deps.
+  return nuggets;
 }
 
 /**
@@ -169,6 +165,7 @@ function removeBrokenDeps(nuggets) {
 
       if (!satisfies) {
         isValid = false;
+        debug(nugget.name + " dep " + dep.name + " " + dep.req + " not satisfied");
       }
     });
 
