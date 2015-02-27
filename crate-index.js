@@ -14,7 +14,8 @@ var path = require('path');
 var semver = require('semver');
 
 var defaultIndexAddr = "https://github.com/rust-lang/crates.io-index"
-var defaultLocalIndex = "./crate-index"
+var defaultCacheDir = "./cache"
+var defaultLocalIndex = defaultCacheDir + "/crate-index"
 
 function runCmd(command, options) {
   return new Promise(function(resolve, reject) {
@@ -35,6 +36,7 @@ function assertRepo(indexAddr, localIndex) {
   if (fs.existsSync(localIndex)) {
     p = runCmd('git pull origin master', {cwd: localIndex}); 
   } else {
+    p = runCmd('mkdir -p ' + localIndex);
     p = runCmd('git clone ' + indexAddr + ' ' + localIndex);
   }
 
