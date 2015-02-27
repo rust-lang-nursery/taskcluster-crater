@@ -13,6 +13,9 @@ var walk = require('walkdir');
 var path = require('path');
 var semver = require('semver');
 
+var defaultIndexAddr = "https://github.com/rust-lang/crates.io-index"
+var defaultLocalIndex = "./crate-index"
+
 function runCmd(command, options) {
   return new Promise(function(resolve, reject) {
     exec(command, options, function(err, sout, serr) {
@@ -27,12 +30,12 @@ function runCmd(command, options) {
 /**
  * Ensure that the crate-index repository is either present or created
  */
-function assertRepo(gitBranch) {
+function assertRepo(indexAddr, localIndex) {
   var p; 
-  if (fs.existsSync('crate-index')) {
-    p = runCmd('git pull origin ' + (gitBranch||'master'), {cwd: './crate-index'}); 
+  if (fs.existsSync(localIndex)) {
+    p = runCmd('git pull origin master', {cwd: localIndex}); 
   } else {
-    p = runCmd('git clone https://github.com/rust-lang/crates.io-index crate-index');
+    p = runCmd('git clone ' + indexAddr + ' ' + localIndex);
   }
 
   p = p.then(function(x) {
@@ -182,37 +185,50 @@ function removeBrokenDeps(nuggets) {
 
 }
 
-var p = assertRepo();
+function loadCrates(indexAddr, localIndex) {
+  if (indexAddr == null) {
+    indexAddr = defaultIndexAddr
+  }
 
-p = p.then(function() {
-  debug('repos asserted');
-  return findFiles('./crate-index')
-});
+  if (localIndex == null) {
+    localIndex = defaultLocalIndex
+  }
 
-p = p.then(function(filenames) {
-  debug('files found');
-  return Promise.all(filenames.map(function(filename) {
-    return readFile('./crate-index', filename);
-  }));
-});
+  var p = assertRepo(indexAddr, localIndex);
 
-p = p.then(function(res) {
-  debug('files read');
-  var flat = [];
-  res.forEach(function(r) {
-    Array.prototype.push.apply(flat, r);
+  p = p.then(function() {
+    debug('repos asserted');
+    return findFiles(localIndex)
   });
-  var onlyStable = removeUnstable(flat);
-  var classified = classifyNuggets(onlyStable);
-  var withoutBrokenDeps = removeBrokenDeps(classified);
-  return withoutBrokenDeps;
-});
 
-p = p.then(function(files) {
-  debug('classified nuggets: %d with valid dependencies, %d with broken and %d without',
-    files.hasdeps.length, files.broken.length, files.nodeps.length);
-  fs.writeFile('out', JSON.stringify(files, null, 2)).done();
-  return files;
-});
+  p = p.then(function(filenames) {
+    debug('files found');
+    return Promise.all(filenames.map(function(filename) {
+      return readFile(localIndex, filename);
+    }));
+  });
 
-p.done()
+  p = p.then(function(res) {
+    debug('files read');
+    var flat = [];
+    res.forEach(function(r) {
+      Array.prototype.push.apply(flat, r);
+    });
+    var onlyStable = removeUnstable(flat);
+    var classified = classifyNuggets(onlyStable);
+    var withoutBrokenDeps = removeBrokenDeps(classified);
+    return withoutBrokenDeps;
+  });
+
+  p = p.then(function(files) {
+    debug('classified nuggets: %d with valid dependencies, %d with broken and %d without',
+          files.hasdeps.length, files.broken.length, files.nodeps.length);
+    fs.writeFile('out', JSON.stringify(files, null, 2)).done();
+    return files;
+  });
+
+  return p;
+}
+
+exports.defaultIndexAddr = defaultIndexAddr;
+exports.loadCrates = loadCrates;

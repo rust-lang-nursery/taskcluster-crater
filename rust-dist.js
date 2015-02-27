@@ -90,4 +90,4 @@ function getAvailableToolchains(index) {
 
 exports.defaultDistAddr = defaultDistAddr;
 exports.downloadIndex = downloadIndex;
-exports.getAvailableToolchains = getAvailableToolchains
+exports.getAvailableToolchains = getAvailableToolchains;

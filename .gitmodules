@@ -1,0 +1,3 @@
+[submodule "test/crates.io-index"]
+	path = test/crates.io-index
+	url = https://github.com/rust-lang/crates.io-index
