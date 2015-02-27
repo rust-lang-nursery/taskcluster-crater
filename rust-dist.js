@@ -48,7 +48,7 @@ function downloadIndex(distAddr) {
  *
  *     { nightly: [dates], beta: [dates], stable: [dates] }
  */
-function getAvailableToolchains(index) {
+function getAvailableToolchainsFromIndex(index) {
   // The index is kinda hacky and has an extra level of directory indirection.
   // Peel it off here.
   assert(index.ds.length == 1);
@@ -88,6 +88,23 @@ function getAvailableToolchains(index) {
   return toolchains;
 }
 
+/**
+ * Downloads the Rust channel index and pulls out the available toolchains
+ * into an object with the shape:
+ *
+ *     { nightly: [dates], beta: [dates], stable: [dates] }
+ *
+ * Returns a promise.
+ */
+function getAvailableToolchains(distAddr) {
+  var p = downloadIndex(distAddr);
+  p = p.then(function(index) {
+    return getAvailableToolchainsFromIndex(index);
+  });
+  return p;
+}
+
 exports.defaultDistAddr = defaultDistAddr;
 exports.downloadIndex = downloadIndex;
+exports.getAvailableToolchainsFromIndex = getAvailableToolchainsFromIndex;
 exports.getAvailableToolchains = getAvailableToolchains;

@@ -55,7 +55,18 @@ suite("local", function() {
   test("get available toolchains", function(done) {
     var p = dist.downloadIndex("./test");
     p = p.then(function(index) {
-      var toolchains = dist.getAvailableToolchains(index);
+      var toolchains = dist.getAvailableToolchainsFromIndex(index);
+      assert(toolchains.nightly.indexOf("2015-02-20") != -1);
+      assert(toolchains.beta.indexOf("2015-02-20") != -1);
+      assert(toolchains.stable.indexOf("2015-02-20") == -1);
+      done();
+    });
+    p = p.catch(function(e) { done(e) });
+  });
+
+  test("get available toolchains without separate download", function(done) {
+    var p = dist.getAvailableToolchains(testDataDir);
+    p = p.then(function(toolchains) {
       assert(toolchains.nightly.indexOf("2015-02-20") != -1);
       assert(toolchains.beta.indexOf("2015-02-20") != -1);
       assert(toolchains.stable.indexOf("2015-02-20") == -1);
