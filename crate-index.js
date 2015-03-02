@@ -187,6 +187,9 @@ function removeBrokenDeps(nuggets) {
 
 }
 
+/**
+ * Load the crate index from the remote address.
+ */
 function loadCrates(indexAddr, localIndex) {
   if (indexAddr == null) {
     indexAddr = defaultIndexAddr
