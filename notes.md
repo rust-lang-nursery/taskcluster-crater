@@ -69,3 +69,6 @@ An example of the paylod we need to create
 15:41 <@lightsofapollo> brson: from what I can see you probably have everything you need by default unless you need to rely on exit codes other then 0/1 ?
 15:41 <@jonasfj> listening for task-completed for example:
 15:41 <@jonasfj> http://docs.taskcluster.net/queue/exchanges/#taskCompleted
+
+
+Get credentials at https://auth.taskcluster.net/
