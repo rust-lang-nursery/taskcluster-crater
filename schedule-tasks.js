@@ -34,27 +34,27 @@ function scheduleTasks(toolchain, credentials) {
   });
 
   // Get the task descriptors for calling taskcluster's createTask
-  var payloads = getTaskPayloads(toolchain);
-  payloads.forEach(function (payload) {
-    debug("payload: " + JSON.stringify(payload));
+  var taskDescriptors = getTaskDescriptors(toolchain);
+  taskDescriptors.forEach(function (task) {
+    debug("createTask payload: " + JSON.stringify(task));
 
     var taskId = slugid.v4();
 
     debug("using taskId " + taskId);
 
-    var p = queue.createTask(taskId, payload);
+    var p = queue.createTask(taskId, task);
 
     var p = p.catch(function (e) {
       debug("error creating task: " + e);
     });
     var p = p.then(function (result) {
-      debug("createTask finished");
       debug("createTask returned status: ", result.status);
+      debug("inspector link: https://tools.taskcluster.net/task-inspector/#" + taskId);
     });
   });
 }
 
-function getTaskPayloads(toolchain) {
+function getTaskDescriptors(toolchain) {
   // TODO
 
   var crate = "toml-0.1.18";
@@ -76,11 +76,14 @@ function getTaskPayloads(toolchain) {
   };
   var cmd = "apt-get update && apt-get install curl -y && (curl -sf https://raw.githubusercontent.com/brson/taskcluster-crater/master/run-crater-task.sh | sh)";
 
-  var payload = {
+  var task = {
     "provisionerId": "aws-provisioner",
     "workerType": workerType,
     "created": createTime.toISOString(),
     "deadline": deadlineTime.toISOString(),
+    "routes": [
+      "crater"
+    ],
     "payload": {
       "image": "ubuntu:13.10",
       "command": [ "/bin/bash", "-c", cmd ],
@@ -94,7 +97,7 @@ function getTaskPayloads(toolchain) {
       "source": "http://github.com/jhford/taskcluster-crater"
     }
   };
-  return [payload];
+  return [task];
 }
 
 main();
