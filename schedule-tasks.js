@@ -5,7 +5,6 @@ var fs = require('fs');
 var util = require('./crater-util');
 var tc = require('taskcluster-client');
 var Promise = require('promise');
-var crypto = require('crypto');
 var slugid = require('slugid');
 var defaultCredentialsFile = "./credentials.json";
 
@@ -39,23 +38,18 @@ function scheduleTasks(toolchain, credentials) {
   payloads.forEach(function (payload) {
     debug("payload: " + JSON.stringify(payload));
 
-    // Randomly generate a task id
-    var taskId = generateTaskId();
-    var p = taskId.then(function (taskId) {
+    var taskId = slugid.v4();
 
-      var taskId = slugid.v4();
+    debug("using taskId " + taskId);
 
-      debug("using taskId " + taskId);
+    var p = queue.createTask(taskId, payload);
 
-      var p = queue.createTask(taskId, payload);
-
-      var p = p.catch(function (e) {
-	debug("error creating task: " + e);
-      });
-      var p = p.then(function (result) {
-	debug("createTask finished");
-	debug("createTask returned status: ", result.status);
-      });
+    var p = p.catch(function (e) {
+      debug("error creating task: " + e);
+    });
+    var p = p.then(function (result) {
+      debug("createTask finished");
+      debug("createTask returned status: ", result.status);
     });
   });
 }
@@ -101,16 +95,6 @@ function getTaskPayloads(toolchain) {
     }
   };
   return [payload];
-}
-
-/**
- * Returns a promise of a unique string.
- */
-function generateTaskId() {
-  var randomBytes = Promise.denodeify(crypto.randomBytes);
-  return randomBytes(24).then(function(buf) {
-    return buf.toString('hex');
-  });
 }
 
 main();
