@@ -73,6 +73,9 @@ function getTaskPayloads(toolchain) {
   var createTime = new Date(Date.now());
   var deadlineTime = new Date(createTime.getTime() + deadlineInMinutes * 60000);
 
+  // Using b2gtest because they have active works available
+  var workerType = "b2gtest";
+
   var env = {
     "CRATER_RUST_INSTALLER": rustInstallerUrl,
     "CRATER_CRATE_FILE": crateUrl
@@ -81,7 +84,7 @@ function getTaskPayloads(toolchain) {
 
   var payload = {
     "provisionerId": "aws-provisioner",
-    "workerType": "cli",
+    "workerType": workerType,
     "created": createTime.toISOString(),
     "deadline": deadlineTime.toISOString(),
     "payload": {
