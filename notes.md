@@ -77,3 +77,9 @@ Get credentials at https://auth.taskcluster.net/
 10:48 < brson> lightsofapollo: because they already have workers running?
 10:48 <@lightsofapollo> brson: yeah
 10:48 <@lightsofapollo> we only really use cli for internal testing so usually nothing is running 
+
+12:17 <@jonasfj> brson, did a quick a example illustrating use of custom routes, as opposed to storing the taskIds: https://gist.github.com/jonasfj/c7648158a561eb95c426
+12:17 <@jonasfj> in case you're interested. Basically we allow you add custom routing keys to tasks...
+12:17 <@jonasfj> which will be used when we publish messages about the task.
+12:18 <@jonasfj> so you just listen for your messages on task-completed exchange with a routingkey that matches your custom one.
+12:19 <@jonasfj> (right now nothing is locked down, everybody gets '*' scope, but custom routing keys are scopes so in future you can make an exclusive claim to one)

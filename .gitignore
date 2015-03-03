@@ -2,4 +2,5 @@
 cache
 node_modules
 out
-credentials.json
+tc-credentials.json
+pulse-credentials.json

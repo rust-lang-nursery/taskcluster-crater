@@ -6,7 +6,8 @@ var util = require('./crater-util');
 var tc = require('taskcluster-client');
 var Promise = require('promise');
 var slugid = require('slugid');
-var defaultCredentialsFile = "./credentials.json";
+
+var defaultCredentialsFile = "./tc-credentials.json";
 
 function main() {
   var toolchain = util.parseToolchain(process.argv[2])
@@ -45,11 +46,12 @@ function scheduleTasks(toolchain, credentials) {
     var p = queue.createTask(taskId, task);
 
     var p = p.catch(function (e) {
-      debug("error creating task: " + e);
+      console.log("error creating task: " + e);
+      process.exit(1)
     });
     var p = p.then(function (result) {
-      debug("createTask returned status: ", result.status);
-      debug("inspector link: https://tools.taskcluster.net/task-inspector/#" + taskId);
+      console.log("createTask returned status: ", result.status);
+      console.log("inspector link: https://tools.taskcluster.net/task-inspector/#" + taskId);
     });
   });
 }
@@ -82,7 +84,7 @@ function getTaskDescriptors(toolchain) {
     "created": createTime.toISOString(),
     "deadline": deadlineTime.toISOString(),
     "routes": [
-      "crater"
+      "crater.#"
     ],
     "payload": {
       "image": "ubuntu:13.10",
