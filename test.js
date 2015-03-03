@@ -29,7 +29,7 @@ function cleanTempDir(cb) {
   });
 }
 
-suite("local", function() {
+suite("local rust-dist tests", function() {
 
   beforeEach(function(done) {
     cleanTempDir(function() {
@@ -74,6 +74,21 @@ suite("local", function() {
     });
     p = p.catch(function(e) { done(e) });
   });
+});
+
+suite("local crate-index tests", function() {
+
+  beforeEach(function(done) {
+    cleanTempDir(function() {
+      done();
+    });
+  });
+
+  afterEach(function(done) {
+    rmTempDir(function() {
+      done();
+    });
+  });
 
   test("load crates", function(done) {
     var p = crates.loadCrates(testCrateIndexAddr, testLocalCrateIndex);
@@ -87,7 +102,7 @@ suite("local", function() {
 
 });
 
-suite("live", function() {
+suite("live network tests", function() {
 
   beforeEach(function(done) {
     cleanTempDir(function() {
@@ -120,3 +135,4 @@ suite("live", function() {
   });
 
 });
+
