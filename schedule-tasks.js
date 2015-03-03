@@ -6,6 +6,7 @@ var util = require('./crater-util');
 var tc = require('taskcluster-client');
 var Promise = require('promise');
 var crypto = require('crypto');
+var slugid = require('slugid');
 var defaultCredentialsFile = "./credentials.json";
 
 function main() {
@@ -41,6 +42,8 @@ function scheduleTasks(toolchain, credentials) {
     // Randomly generate a task id
     var taskId = generateTaskId();
     var p = taskId.then(function (taskId) {
+
+      var taskId = slugid.v4();
 
       debug("using taskId " + taskId);
 

@@ -72,3 +72,8 @@ An example of the paylod we need to create
 
 
 Get credentials at https://auth.taskcluster.net/
+
+10:47 <@lightsofapollo> brson: nice... If you want stuff to move faster try using b2gtest or gaia worker type
+10:48 < brson> lightsofapollo: because they already have workers running?
+10:48 <@lightsofapollo> brson: yeah
+10:48 <@lightsofapollo> we only really use cli for internal testing so usually nothing is running 

@@ -27,6 +27,7 @@
     "promise": "^6.1.0",
     "walkdir": "*",
     "graceful-fs": "*",
-    "taskcluster-client": "0.20.0"
+    "taskcluster-client": "0.20.0",
+    "slugid": "*"
   }
 }
