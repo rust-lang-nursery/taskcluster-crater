@@ -26,6 +26,7 @@
     "debug": "^2.1.1",
     "promise": "^6.1.0",
     "walkdir": "*",
-    "graceful-fs": "*"
+    "graceful-fs": "*",
+    "taskcluster-client": "0.20.0"
   }
 }
