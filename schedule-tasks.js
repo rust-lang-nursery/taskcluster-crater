@@ -59,10 +59,15 @@ function scheduleTasks(toolchain, credentials) {
 function getTaskDescriptors(toolchain) {
   // TODO
 
-  var crate = "toml-0.1.18";
+
+  var channel = toolchain.channel;
+  var archiveDate = toolchain.date;
+  var crateName = "toml";
+  var crateVers = "0.1.18";
+
   var deadlineInMinutes = 60;
-  var rustInstallerUrl = "http://static-rust-lang-org.s3-us-west-1.amazonaws.com/dist/rust-nightly-x86_64-unknown-linux-gnu.tar.gz";
-  var crateUrl = "https://crates.io/api/v1/crates/toml/0.1.18/download";
+  var rustInstallerUrl = installerUrlForToolchain(toolchain);
+  var crateUrl = "https://crates.io/api/v1/crates/" + crateName + "/" + crateVers + "/download";
 
   var taskName = "nightly-2015-03-01-vs-toml-0.1.18";
 
@@ -97,9 +102,24 @@ function getTaskDescriptors(toolchain) {
       "description": "Testing Rust crates for Rust language regressions",
       "owner": "banderson@mozilla.com",
       "source": "http://github.com/jhford/taskcluster-crater"
+    },
+    "extra": {
+      "crater": {
+	"channel": channel,
+	"archiveDate": archiveDate,
+	"crateName": crateName,
+	"crateVers": crateVers
+      }
     }
   };
   return [task];
+}
+
+function installerUrlForToolchain(toolchain) {
+  // FIXME
+  var url = "http://static-rust-lang-org.s3-us-west-1.amazonaws.com/dist/";
+  var url = url + toolchain.date + "/rust-" + toolchain.channel + "-x86_64-unknown-linux-gnu.tar.gz";
+  return url;
 }
 
 main();
