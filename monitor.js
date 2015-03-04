@@ -8,13 +8,16 @@ var debug = require('debug')(__filename.slice(__dirname.length + 1));
 var Promise = require('promise');
 var tc = require('taskcluster-client');
 var fs = require('fs');
+var db = require('crater-db');
 
-var defaultCredentialsFile = "./pulse-credentials.json";
+var defaultPulseCredentialsFile = "./pulse-credentials.json";
 
 function main() {
+  var dbCredentials = loadDbCredentials(db.defaultDbCredentialsFile);
+
   var queueEvents = new tc.QueueEvents();
 
-  var credentials = loadCredentials(defaultCredentialsFile);
+  var pulseCredentials = loadPulseCredentials(defaultPulseCredentialsFile);
 
   var listener = new tc.PulseListener({
     credentials: credentials
@@ -37,7 +40,11 @@ function main() {
   });
 }
 
-function loadCredentials(credentialsFile) {
+function loadDbCredentials(credentialsFile) {
+  return JSON.parse(fs.readFileSync(credentialsFile, "utf8"));
+}
+
+function loadPulseCredentials(credentialsFile) {
   return JSON.parse(fs.readFileSync(credentialsFile, "utf8"));
 }
 

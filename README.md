@@ -34,3 +34,28 @@ monitor.js expects a file called pulse-credentials.json to be in the cwd which l
 ```
 
 The values can be obtained from https://pulse.mozilla.org.
+
+# PostgreSQL setup
+
+monitor.js and test.js needs a PostgreSQL user, which can be set up
+with
+
+    sudo -u postgres createuser $USER
+
+You'll need a test database and a production database.
+
+    sudo -u postgres createdb crater-test -O $USER
+    sudo -u postgres createdb crater -O $USER
+
+And create a password for the user
+
+    psql -c "\password" -U $USER -d crater
+
+The credentials need to be in pg-credentials.js.
+
+```
+{
+  "username": "...",
+  "password": "..."
+}
+```

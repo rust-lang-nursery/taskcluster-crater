@@ -11,7 +11,7 @@ var defaultCredentialsFile = "./tc-credentials.json";
 
 function main() {
   var toolchain = util.parseToolchain(process.argv[2])
-  if (toolchain == null) {
+  if (!toolchain) {
     console.log("can't parse toolchain");
     process.exit(1);
   }

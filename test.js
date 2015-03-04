@@ -1,16 +1,21 @@
 var debug = require('debug')(__filename.slice(__dirname.length + 1));
 var assert = require('assert');
 var spawn = require('child_process').spawn;
+var fs = require('fs');
 
 var crates = require('./crate-index');
 var dist = require('./rust-dist');
 var util = require('./crater-util');
+var db = require('./crater-db');
 
-var testDataDir = "./test"
-var testCrateIndexAddr = testDataDir + "/crates.io-index"
+var testDataDir = "./test";
+var testCrateIndexAddr = testDataDir + "/crates.io-index";
 
-var tmpDir = "./testtmp"
-var testLocalCrateIndex = tmpDir + "/crate-index"
+var tmpDir = "./testtmp";
+var testLocalCrateIndex = tmpDir + "/crate-index";
+
+var testDbName = "crater-test";
+var testDbCredentials = JSON.parse(fs.readFileSync(db.defaultDbCredentialsFile, "utf8"));
 
 function rmTempDir(cb) {
   var child = spawn("rm", ["-Rf", tmpDir]);
@@ -30,18 +35,25 @@ function cleanTempDir(cb) {
   });
 }
 
+function cleanTempDb(cb) {
+  var dbctx = db.connect(testDbCredentials, testDbName);
+  var p = db.depopulate(dbctx);
+  var p = p.then(function() { db.disconnect(dbctx); cb(); });
+  var p = p.catch(function(e) { assert(false); });
+}
+
 suite("local rust-dist tests", function() {
 
   beforeEach(function(done) {
     cleanTempDir(function() {
-      done();
+      cleanTempDb(function() {
+	done();
+      });
     });
   });
 
   afterEach(function(done) {
-    rmTempDir(function() {
-      done();
-    });
+    rmTempDir(function() { done(); });
   });
 
   test("download dist index", function(done) {
@@ -80,15 +92,11 @@ suite("local rust-dist tests", function() {
 suite("local crate-index tests", function() {
 
   beforeEach(function(done) {
-    cleanTempDir(function() {
-      done();
-    });
+    cleanTempDir(function() { done(); });
   });
 
   afterEach(function(done) {
-    rmTempDir(function() {
-      done();
-    });
+    rmTempDir(function() { done(); });
   });
 
   test("load crates", function(done) {
@@ -106,15 +114,11 @@ suite("local crate-index tests", function() {
 suite("local rust-dist tests", function() {
 
   beforeEach(function(done) {
-    cleanTempDir(function() {
-      done();
-    });
+    cleanTempDir(function() { done(); });
   });
 
   afterEach(function(done) {
-    rmTempDir(function() {
-      done();
-    });
+    rmTempDir(function() { done(); });
   });
 
   test("download dist index", function(done) {
@@ -153,15 +157,11 @@ suite("local rust-dist tests", function() {
 suite("local utility tests", function() {
 
   beforeEach(function(done) {
-    cleanTempDir(function() {
-      done();
-    });
+    cleanTempDir(function() { done(); });
   });
 
   afterEach(function(done) {
-    rmTempDir(function() {
-      done();
-    });
+    rmTempDir(function() { done(); });
   });
 
   test("parse toolchain", function() {
@@ -180,18 +180,33 @@ suite("local utility tests", function() {
 
 });
 
-suite("live network tests", function() {
-
+suite("database tests", function() {
   beforeEach(function(done) {
-    cleanTempDir(function() {
-      done();
-    });
+    cleanTempDir(function() { done(); });
   });
 
   afterEach(function(done) {
-    rmTempDir(function() {
-      done();
-    });
+    rmTempDir(function() { done(); });
+    
+  });
+
+  test("populate and depopulate", function(done) {
+    var dbctx = db.connect(testDbCredentials, testDbName);
+    var p = db.populate(dbctx);
+    var p = p.then(db.depopulate(dbctx));
+    var p = p.then(function() { db.disconnect(dbctx); done(); });
+    var p = p.catch(function(e) { done(e); });
+  });
+});
+
+suite("live network tests", function() {
+
+  beforeEach(function(done) {
+    cleanTempDir(function() { done(); });
+  });
+
+  afterEach(function(done) {
+    rmTempDir(function() { done(); });
   });
 
   test("download dist index", function(done) {

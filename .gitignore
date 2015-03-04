@@ -4,3 +4,4 @@ node_modules
 out
 tc-credentials.json
 pulse-credentials.json
+pg-credentials.json

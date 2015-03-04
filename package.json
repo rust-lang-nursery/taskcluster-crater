@@ -25,9 +25,10 @@
   "dependencies": {
     "debug": "^2.1.1",
     "promise": "^6.1.0",
-    "walkdir": "*",
-    "graceful-fs": "*",
+    "walkdir": "0.0.7",
+    "graceful-fs": "3.0.5",
     "taskcluster-client": "0.20.0",
-    "slugid": "*"
+    "slugid": "1.0.3",
+    "pg": "4.3.0"
   }
 }
