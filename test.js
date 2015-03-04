@@ -2,6 +2,7 @@ var debug = require('debug')(__filename.slice(__dirname.length + 1));
 var assert = require('assert');
 var spawn = require('child_process').spawn;
 var fs = require('fs');
+var Promise = require('promise');
 
 var crates = require('./crate-index');
 var dist = require('./rust-dist');
@@ -36,10 +37,11 @@ function cleanTempDir(cb) {
 }
 
 function cleanTempDb(cb) {
-  var dbctx = db.connect(testDbCredentials, testDbName);
-  var p = db.depopulate(dbctx);
-  var p = p.then(function() { db.disconnect(dbctx); cb(); });
-  var p = p.catch(function(e) { assert(false); });
+  db.connect(testDbCredentials, testDbName).then(function(dbctx) {
+    var p = db.depopulate(dbctx);
+    var p = p.then(function() { db.disconnect(dbctx); cb(); });
+    return p;
+  }).catch(function (e) { console.log(e); assert(false); });
 }
 
 suite("local rust-dist tests", function() {
@@ -182,7 +184,11 @@ suite("local utility tests", function() {
 
 suite("database tests", function() {
   beforeEach(function(done) {
-    cleanTempDir(function() { done(); });
+    cleanTempDir(function() {
+      cleanTempDb(function() {
+	done();
+      });
+    });
   });
 
   afterEach(function(done) {
@@ -191,12 +197,72 @@ suite("database tests", function() {
   });
 
   test("populate and depopulate", function(done) {
-    var dbctx = db.connect(testDbCredentials, testDbName);
-    var p = db.populate(dbctx);
-    var p = p.then(db.depopulate(dbctx));
-    var p = p.then(function() { db.disconnect(dbctx); done(); });
-    var p = p.catch(function(e) { done(e); });
+    db.connect(testDbCredentials, testDbName).then(function(dbctx) {
+      var p = db.populate(dbctx);
+      var p = p.then(function() { return db.depopulate(dbctx); });
+      var p = p.then(function() { return db.disconnect(dbctx); });
+      var p = p.then(function() { done(); });
+      return p;
+    }).catch(function(e) { done(e); });
   });
+
+  test("add build result", function(done) {
+    db.connect(testDbCredentials, testDbName).then(function(dbctx) {
+      var actual = {
+	channel: "nightly",
+	archiveDate: "2015-03-01",
+	crateName: "toml",
+	crateVers: "1.0",
+	success: true
+      };
+      var p = Promise.resolve();
+      var p = p.then(function() { return db.addBuildResult(dbctx, actual); });
+      var p = p.then(function() { return db.getBuildResult(dbctx, actual); });
+      var p = p.then(function(br) { assert(JSON.stringify(br) == JSON.stringify(actual)); });
+      var p = p.then(function() { return db.disconnect(dbctx); });
+      var p = p.then(function() { done(); });
+      return p;
+    }).catch(function(e) { done(e); });
+  });
+
+  test("upsert build result", function(done) {
+    db.connect(testDbCredentials, testDbName).then(function(dbctx) {
+      var actual = {
+	channel: "nightly",
+	archiveDate: "2015-03-01",
+	crateName: "toml",
+	crateVers: "1.0",
+	success: true
+      };
+      var p = Promise.resolve();
+      // Call addBuildResult twice, an insert then an update
+      var p = p.then(function() { return db.addBuildResult(dbctx, actual); });
+      var p = p.then(function() { return db.addBuildResult(dbctx, actual); });
+      var p = p.then(function() { return db.getBuildResult(dbctx, actual); });
+      var p = p.then(function(br) { assert(JSON.stringify(br) == JSON.stringify(actual)); });
+      var p = p.then(function() { return db.disconnect(dbctx); });
+      var p = p.then(function() { done(); });
+      return p;
+    }).catch(function(e) { done(e); });
+  });
+
+  test("get null build result", function(done) {
+    db.connect(testDbCredentials, testDbName).then(function(dbctx) {
+      var req = {
+	channel: "nightly",
+	archiveDate: "2015-03-01",
+	crateName: "toml",
+	crateVers: "1.0"
+      };
+      var p = Promise.resolve();
+      var p = p.then(function() { return db.getBuildResult(dbctx, req); });
+      var p = p.then(function(br) { assert(br == null); });
+      var p = p.then(function() { return db.disconnect(dbctx); });
+      var p = p.then(function() { done(); });
+      return p;
+    }).catch(function(e) { done(e); });
+  });
+
 });
 
 suite("live network tests", function() {
