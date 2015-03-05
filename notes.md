@@ -83,3 +83,11 @@ Get credentials at https://auth.taskcluster.net/
 12:17 <@jonasfj> which will be used when we publish messages about the task.
 12:18 <@jonasfj> so you just listen for your messages on task-completed exchange with a routingkey that matches your custom one.
 12:19 <@jonasfj> (right now nothing is locked down, everybody gets '*' scope, but custom routing keys are scopes so in future you can make an exclusive claim to one)
+
+
+13:13 <@jonasfj> brson, reposting from when it off yester day..
+13:13 <@jonasfj> <jonasfj> brson, for the record (as you're nolonger around) no... task.extra is not available in pulse messages (pulse messages documented here: http://docs.taskcluster.net/queue/exchanges/)
+13:13 <@jonasfj> <jonasfj> brson, but you can load the task definition from the queue, using queue.getTask(taskId) and then read the extra part back from there...
+13:13 <@jonasfj> <jonasfj> (we include as little as possible in the pulse messages to keep pulse fast)
+13:13 <@jonasfj> <jonasfj> as a hack one  can insert an extra key in the custom routing key... but this is very limited.. and has character restrictings on "."; it's mostly useful if you're injecting a revision number.
+13:13 <@jonasfj> <jonasfj> if you're looking at injecting repository + revision task.extra is a better place to store it... or task.tags (but that strictly strings)

@@ -83,7 +83,7 @@ function depopulate(dbctx) {
 
 /**
  * Adds a build result and returns a promise of nothing. buildResult should
- * look like `{ channel: ..., archive_date: ..., crate: ..., crate_vers: ..., succees: ... }`.
+ * look like `{ channel: ..., archiveDate: ..., crateName: ..., crateVers: ..., success: ... }`.
  */
 function addBuildResult(dbctx, buildResult) {
   return new Promise(function (resolve, reject) {
@@ -125,8 +125,8 @@ function addBuildResult(dbctx, buildResult) {
 
 /**
  * Adds a build result and returns a promise of a build
- * result. buildResultKey should look like `{ channel: ..., date: ...,
- * crate: ..., crate_vers: ... }`.
+ * result. buildResultKey should look like `{ channel: ..., archiveDate: ...,
+ * crateName: ..., crateVers: ... }`.
  *
  * Returns a promised null if there is no build result for the key.
  */
