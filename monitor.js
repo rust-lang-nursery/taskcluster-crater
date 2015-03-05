@@ -16,7 +16,7 @@ var defaultPulseCredentialsFile = "./pulse-credentials.json";
 function main() {
   var dbCredentials = loadDbCredentials(db.defaultDbCredentialsFile);
 
-  var db.connect(dbCredentials).then(function(dbctx) {
+  db.connect(dbCredentials).then(function(dbctx) {
 
     var queueEvents = new tc.QueueEvents();
 
