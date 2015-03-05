@@ -72,6 +72,7 @@ function populate(dbctx) {
  */
 function depopulate(dbctx) {
   var q = "drop table if exists build_results";
+  debug(q);
   return new Promise(function (resolve, reject) {
     dbctx.client.query(q, function(e, r) {
       if (e) { reject(e); }
@@ -98,6 +99,7 @@ function addBuildResult(dbctx, buildResult) {
       p.then(function(r) {
 	if (r == null) {
 	  var q = "insert into build_results values ($1, $2, $3, $4, $5)";
+	  debug(q);
 	  dbctx.client.query(q, [buildResult.channel,
 				 buildResult.archiveDate,
 				 buildResult.crateName,
@@ -107,6 +109,7 @@ function addBuildResult(dbctx, buildResult) {
 	} else {
 	  var q = "update build_results set success = $5 where \
                    channel = $1 and archive_date = $2 and crate_name = $3 and crate_vers = $4";
+	  debug(q);
 	  dbctx.client.query(q, [buildResult.channel,
 				 buildResult.archiveDate,
 				 buildResult.crateName,
@@ -130,6 +133,7 @@ function addBuildResult(dbctx, buildResult) {
 function getBuildResult(dbctx, buildResultKey) {
   var q = "select * from build_results where \
            channel = $1 and archive_date = $2 and crate_name = $3 and crate_vers = $4";
+  debug(q);
   return new Promise(function (resolve, reject) {
     var f = function(e, r) {
       if (e) { reject(e); }
