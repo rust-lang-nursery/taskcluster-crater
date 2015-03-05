@@ -1,6 +1,6 @@
 var debug = require('debug')(__filename.slice(__dirname.length + 1));
 var assert = require('assert');
-var spawn = require('child_process').spawn;
+var exec = require('child_process').exec;
 var fs = require('fs');
 var Promise = require('promise');
 
@@ -18,45 +18,59 @@ var testLocalCrateIndex = tmpDir + "/crate-index";
 var testDbName = "crater-test";
 var testDbCredentials = JSON.parse(fs.readFileSync(db.defaultDbCredentialsFile, "utf8"));
 
-function rmTempDir(cb) {
-  var child = spawn("rm", ["-Rf", tmpDir]);
-  child.on('close', function(code) {
-    assert(code == 0);
-    cb();
-  });
-}
-
-function cleanTempDir(cb) {
-  rmTempDir(function() {
-    var child = spawn("mkdir", ["-p", tmpDir]);
-    child.on('close', function(code) {
-      assert(code == 0);
-      cb();
+function runCmd(command, options) {
+  return new Promise(function(resolve, reject) {
+    exec(command, function(err, sout, serr) {
+      if (err) {
+        reject(err);
+      }
+      resolve({stdout: sout, stderr: serr});
     });
   });
 }
 
-function cleanTempDb(cb) {
-  db.connect(testDbCredentials, testDbName).then(function(dbctx) {
+function rmTempDir() {
+  return runCmd("rm -Rf '" + tmpDir + "'");
+}
+
+function cleanTempDir() {
+  return rmTempDir().then(function() {
+    return runCmd("mkdir -p '" + tmpDir + "'");
+  });
+}
+
+function cleanTempDb() {
+  return db.connect(testDbCredentials, testDbName).then(function(dbctx) {
+    debug("a");
     var p = db.depopulate(dbctx);
-    var p = p.then(function() { db.disconnect(dbctx); cb(); });
+    var p = p.then(function() { db.disconnect(dbctx); });
     return p;
-  }).catch(function (e) { console.log(e); assert(false); });
+  });
+}
+
+function runBeforeEach(done) {
+  cleanTempDir()
+    .then(function() { done(); })
+    .catch(function(e) { done(e); });
+}
+
+function runAfterEach(done) {
+  rmTempDir()
+    .then(function() { done(); })
+    .catch(function(e) { done(e); });
+}
+
+function runBeforeEachDb(done) {
+  cleanTempDir()
+    .then(function() { return cleanTempDb(); })
+    .then(function() { done(); })
+    .catch(function(e) { done(e); });
 }
 
 suite("local rust-dist tests", function() {
 
-  beforeEach(function(done) {
-    cleanTempDir(function() {
-      cleanTempDb(function() {
-	done();
-      });
-    });
-  });
-
-  afterEach(function(done) {
-    rmTempDir(function() { done(); });
-  });
+  beforeEach(runBeforeEach);
+  afterEach(runAfterEach);
 
   test("download dist index", function(done) {
     var p = dist.downloadIndex(testDataDir);
@@ -93,13 +107,8 @@ suite("local rust-dist tests", function() {
 
 suite("local crate-index tests", function() {
 
-  beforeEach(function(done) {
-    cleanTempDir(function() { done(); });
-  });
-
-  afterEach(function(done) {
-    rmTempDir(function() { done(); });
-  });
+  beforeEach(runBeforeEach);
+  afterEach(runAfterEach);
 
   test("load crates", function(done) {
     var p = crates.loadCrates(testCrateIndexAddr, testLocalCrateIndex);
@@ -115,13 +124,8 @@ suite("local crate-index tests", function() {
 
 suite("local rust-dist tests", function() {
 
-  beforeEach(function(done) {
-    cleanTempDir(function() { done(); });
-  });
-
-  afterEach(function(done) {
-    rmTempDir(function() { done(); });
-  });
+  beforeEach(runBeforeEach);
+  afterEach(runAfterEach);
 
   test("download dist index", function(done) {
     var p = dist.downloadIndex(testDataDir);
@@ -158,13 +162,8 @@ suite("local rust-dist tests", function() {
 
 suite("local utility tests", function() {
 
-  beforeEach(function(done) {
-    cleanTempDir(function() { done(); });
-  });
-
-  afterEach(function(done) {
-    rmTempDir(function() { done(); });
-  });
+  beforeEach(runBeforeEach);
+  afterEach(runAfterEach);
 
   test("parse toolchain", function() {
     assert(util.parseToolchain(null) == null);
@@ -183,18 +182,8 @@ suite("local utility tests", function() {
 });
 
 suite("database tests", function() {
-  beforeEach(function(done) {
-    cleanTempDir(function() {
-      cleanTempDb(function() {
-	done();
-      });
-    });
-  });
-
-  afterEach(function(done) {
-    rmTempDir(function() { done(); });
-    
-  });
+  beforeEach(runBeforeEachDb);
+  afterEach(runAfterEach);
 
   test("populate and depopulate", function(done) {
     db.connect(testDbCredentials, testDbName).then(function(dbctx) {
@@ -267,13 +256,8 @@ suite("database tests", function() {
 
 suite("live network tests", function() {
 
-  beforeEach(function(done) {
-    cleanTempDir(function() { done(); });
-  });
-
-  afterEach(function(done) {
-    rmTempDir(function() { done(); });
-  });
+  beforeEach(runBeforeEach);
+  afterEach(runAfterEach);
 
   test("download dist index", function(done) {
     var p = dist.downloadIndex();
