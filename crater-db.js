@@ -7,7 +7,7 @@
 var debug = require('debug')(__filename.slice(__dirname.length + 1));
 var Promise = require('promise');
 var pg = require('pg');
-var exec = require('child_process').exec;
+var util = require('./crater-util');
 
 var defaultDbCredentialsFile = "./pg-credentials.json";
 var defaultDbName = "crater";
@@ -158,17 +158,6 @@ function getBuildResult(dbctx, buildResultKey) {
 			   buildResultKey.crateName,
 			   buildResultKey.crateVers],
 		       f);
-  });
-}
-
-function runCmd(command, options) {
-  return new Promise(function(resolve, reject) {
-    exec(command, options, function(err, sout, serr) {
-      if (err) {
-        reject(err);
-      }
-      resolve({stdout: sout, stderr: serr});
-    });
   });
 }
 

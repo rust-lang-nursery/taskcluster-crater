@@ -5,6 +5,7 @@ var Promise = require('promise');
 var http = require('http');
 var fs = require('fs');
 var assert = require('assert');
+var util = require('./crater-util');
 
 var defaultDistAddr = "http://static-rust-lang-org.s3-website-us-west-1.amazonaws.com/dist";
 
@@ -13,34 +14,13 @@ var defaultDistAddr = "http://static-rust-lang-org.s3-website-us-west-1.amazonaw
  * `distAddr` is null the default remote address is used.
  */
 function downloadIndex(distAddr) {
-  if (distAddr == null) {
-    distAddr = defaultDistAddr;
-  }
+  distAddr = distAddr || defaultDistAddr;
 
   var index = distAddr + "/index.json";
 
-  if (index.lastIndexOf("http", 0) === 0) {
-    return new Promise(function(resolve, reject) {
-      http.get(index, function(res) {
-	var data = '';
-
-	res.on('error', function(e) { reject(e); });
-	res.on('data', function(d) { data += d; });
-	res.on('end', function() {
-	  var json = JSON.parse(data);
-	  resolve(json);
-	});
-      });
-    });
-  } else {
-    var p = Promise.denodeify(fs.readFile)(index, 'utf-8');
-
-    p = p.then(function(data) {
-      return JSON.parse(data);
-    });
-
-    return p;
-  }
+  return util.downloadToMem(index).then(function(data) {
+    return JSON.parse(data);
+  });
 }
 
 /**

@@ -1,6 +1,5 @@
 var debug = require('debug')(__filename.slice(__dirname.length + 1));
 var assert = require('assert');
-var exec = require('child_process').exec;
 var fs = require('fs');
 var Promise = require('promise');
 
@@ -11,31 +10,21 @@ var db = require('./crater-db');
 
 var testDataDir = "./test";
 var testCrateIndexAddr = testDataDir + "/crates.io-index";
+var testDlRootAddrForVersions = testDataDir + "/versions";
 
 var tmpDir = "./testtmp";
-var testLocalCrateIndex = tmpDir + "/crate-index";
+var tmpCrateCache = tmpDir + "/cache";
 
 var testDbName = "crater-test";
 var testDbCredentials = JSON.parse(fs.readFileSync(db.defaultDbCredentialsFile, "utf8"));
 
-function runCmd(command, options) {
-  return new Promise(function(resolve, reject) {
-    exec(command, function(err, sout, serr) {
-      if (err) {
-        reject(err);
-      }
-      resolve({stdout: sout, stderr: serr});
-    });
-  });
-}
-
 function rmTempDir() {
-  return runCmd("rm -Rf '" + tmpDir + "'");
+  return util.runCmd("rm -Rf '" + tmpDir + "'");
 }
 
 function cleanTempDir() {
   return rmTempDir().then(function() {
-    return runCmd("mkdir -p '" + tmpDir + "'");
+    return util.runCmd("mkdir -p '" + tmpDir + "'");
   });
 }
 
@@ -111,10 +100,46 @@ suite("local crate-index tests", function() {
   afterEach(runAfterEach);
 
   test("load crates", function(done) {
-    var p = crates.loadCrates(testCrateIndexAddr, testLocalCrateIndex);
+    var p = crates.loadCrates(testCrateIndexAddr, tmpCrateCache);
     p = p.then(function(crates) {
       assert(crates.nodeps.length > 0);
       assert(crates.hasdeps.length > 0);
+      done();
+    });
+    p = p.catch(function(e) { done(e) });
+  });
+
+  test("get dl addr from index", function(done) {
+    var p = crates.cloneIndex(testCrateIndexAddr, tmpCrateCache);
+    p = p.then(function() {
+      return crates.getDlRootAddrFromIndex(tmpCrateCache);
+    });
+    p = p.then(function(addr) {
+      assert(addr == "https://crates.io/api/v1/crates");
+      done();
+    });
+    p = p.catch(function(e) { done(e) });
+  });
+
+  test("get version metadata", function(done) {
+    var p = crates.getVersionMetadata("toml", "0.1.18", testDlRootAddrForVersions, tmpCrateCache);
+    p = p.then(function(meta) {
+      assert(meta.version.created_at == "2015-02-25T22:53:39Z");
+      done();
+    });
+    p = p.catch(function(e) { done(e) });
+  });
+
+  test("get cached version metadata", function(done) {
+    var p = crates.getVersionMetadata("toml", "0.1.18", testDlRootAddrForVersions, tmpCrateCache);
+    p = p.then(function(meta) {
+      assert(meta.version.created_at == "2015-02-25T22:53:39Z");
+    });
+    p = p.then(function() {
+      return crates.getVersionMetadata("toml", "0.1.18", testDlRootAddrForVersions, tmpCrateCache);
+    });
+    p = p.then(function(meta) {
+      assert(meta.version.created_at == "2015-02-25T22:53:39Z");
       done();
     });
     p = p.catch(function(e) { done(e) });
@@ -272,6 +297,17 @@ suite("live network tests", function() {
     p = p.then(function(crates) {
       assert(crates.nodeps.length > 0);
       assert(crates.hasdeps.length > 0);
+      done();
+    });
+    p = p.catch(function(e) { done(e) });
+  });
+
+  test("get version metadata", function(done) {
+    var p = crates.cloneIndex();
+    p = p.then(function() { return crates.getDlRootAddrFromIndex(); });
+    p = p.then(function(addr) { return crates.getVersionMetadata("toml", "0.1.18", addr); });
+    p = p.then(function(meta) {
+      assert(meta.version.created_at == "2015-02-25T22:53:39Z");
       done();
     });
     p = p.catch(function(e) { done(e) });

@@ -91,3 +91,5 @@ Get credentials at https://auth.taskcluster.net/
 13:13 <@jonasfj> <jonasfj> (we include as little as possible in the pulse messages to keep pulse fast)
 13:13 <@jonasfj> <jonasfj> as a hack one  can insert an extra key in the custom routing key... but this is very limited.. and has character restrictings on "."; it's mostly useful if you're injecting a revision number.
 13:13 <@jonasfj> <jonasfj> if you're looking at injecting repository + revision task.extra is a better place to store it... or task.tags (but that strictly strings)
+
+dl https://crates.io/api/v1/crates/toml/0.1.0 to get metadata

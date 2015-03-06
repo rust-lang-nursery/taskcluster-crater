@@ -2,42 +2,40 @@
 
 var debug = require('debug')(__filename.slice(__dirname.length + 1));
 var Promise = require('promise');
-var exec = require('child_process').exec;
 var _fs = require('graceful-fs'); // Need to parse many files at once
 var fs = {
   existsSync: _fs.existsSync,
   readFile: Promise.denodeify(_fs.readFile),
   writeFile: Promise.denodeify(_fs.writeFile),
-}
+};
 var walk = require('walkdir');
 var path = require('path');
 var semver = require('semver');
+var util = require('./crater-util');
 
 var defaultIndexAddr = "https://github.com/rust-lang/crates.io-index"
 var defaultCacheDir = "./cache"
-var defaultLocalIndex = defaultCacheDir + "/crate-index"
 
-function runCmd(command, options) {
-  return new Promise(function(resolve, reject) {
-    exec(command, options, function(err, sout, serr) {
-      if (err) {
-        reject(err);
-      }
-      resolve({stdout: sout, stderr: serr});
-    });
-  });
-}
+var localIndexName = "crate-index"
+var crateCacheName = "crate-cache"
+var sourceCacheName = "source-cache"
+var versionCacheName = "version-cache"
 
 /**
  * Ensure that the crate-index repository is either present or created
  */
-function assertRepo(indexAddr, localIndex) {
+function cloneIndex(indexAddr, cacheDir) {
+  indexAddr = indexAddr || defaultIndexAddr;
+  cacheDir = cacheDir || defaultCacheDir;
+
+  var localIndex = path.join(cacheDir, localIndexName);
+
   var p; 
   if (fs.existsSync(localIndex)) {
-    p = runCmd('git pull origin master', {cwd: localIndex}); 
+    p = util.runCmd('git pull origin master', {cwd: localIndex});
   } else {
-    p = runCmd('mkdir -p ' + localIndex);
-    p = runCmd('git clone ' + indexAddr + ' ' + localIndex);
+    p = util.runCmd('mkdir -p ' + localIndex);
+    p = util.runCmd('git clone ' + indexAddr + ' ' + localIndex);
   }
 
   p = p.then(function(x) {
@@ -190,16 +188,13 @@ function removeBrokenDeps(nuggets) {
 /**
  * Load the crate index from the remote address.
  */
-function loadCrates(indexAddr, localIndex) {
-  if (indexAddr == null) {
-    indexAddr = defaultIndexAddr
-  }
+function loadCrates(indexAddr, cacheDir) {
+  indexAddr = indexAddr || defaultIndexAddr;
+  cacheDir = cacheDir || defaultCacheDir;
 
-  if (localIndex == null) {
-    localIndex = defaultLocalIndex
-  }
+  var localIndex = path.join(cacheDir, localIndexName);
 
-  var p = assertRepo(indexAddr, localIndex);
+  var p = cloneIndex(indexAddr, cacheDir);
 
   p = p.then(function() {
     debug('repos asserted');
@@ -235,5 +230,67 @@ function loadCrates(indexAddr, localIndex) {
   return p;
 }
 
+/**
+ * Gets the 'dl' field from config.json in the index.
+ */
+function getDlRootAddrFromIndex(cacheDir) {
+  cacheDir = cacheDir || defaultCacheDir;
+
+  var localIndex = path.join(cacheDir, localIndexName);
+
+  return fs.readFile(path.join(localIndex, "config.json"), 'utf-8').then(function(filedata) {
+    return JSON.parse(filedata);
+  }).then(function(data) {
+    return data.dl;
+  });
+}
+
+/**
+ * Downloads the version metadata from crates.io and returns it.
+ */
+function getVersionMetadata(crateName, crateVers, dlRootAddr, cacheDir) {
+  cacheDir = cacheDir || defaultCacheDir;
+
+  var versionCache = path.join(cacheDir, versionCacheName);
+
+  var url = dlRootAddr + "/" + crateName + "/" + crateVers;
+  var cacheDir = versionCache + "/" + crateName;
+  var cacheFile = cacheDir + "/" + crateVers;
+
+  if (fs.existsSync(cacheFile)) {
+    return fs.readFile(cacheFile, 'utf-8').then(function(filedata) {
+      return JSON.parse(filedata);
+    });
+  } else {
+    var json = null;
+    var p = util.runCmd('mkdir -p ' + cacheDir);
+    p = p.then(function() { return util.downloadToMem(url); });
+    p = p.then(function(data) {
+      json = JSON.parse(data);
+      return json;
+    });
+    p = p.then(function(json) {
+      return fs.writeFile(cacheFile, JSON.stringify(json));
+    });
+    p = p.then(function() { return json; });
+    return p;
+  }
+}
+
+function getCrateFile(crateName, crateVers, dlRootAddr, cacheDir) {
+  cacheDir = cacheDir || defaultCacheDir;
+  assert(false); // TODO
+}
+
+function getCrateSource(crateName, crateVers, dlRootAddr, cacheDir) {
+  cacheDir = cacheDir || defaultCacheDir;
+  assert(false); // TODO
+}
+
 exports.defaultIndexAddr = defaultIndexAddr;
+exports.cloneIndex = cloneIndex;
 exports.loadCrates = loadCrates;
+exports.getDlRootAddrFromIndex = getDlRootAddrFromIndex;
+exports.getCrateFile = getCrateFile;
+exports.getCrateSource = getCrateSource;
+exports.getVersionMetadata = getVersionMetadata;
