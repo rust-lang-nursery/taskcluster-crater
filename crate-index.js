@@ -96,15 +96,6 @@ function readFile(dir, filename) {
 }
 
 /**
- * Filter out known-unstable packages.
- */
-function removeUnstable(nuggets) {
-  // TODO: best way to do this is probably to grep for '#.*[.*feature.*]' in the source
-  // and all its deps.
-  return nuggets;
-}
-
-/**
  * Classify nuggets into those which are leafnodes on a dependency tree
  * and those which are dependencies
  */
@@ -214,8 +205,7 @@ function loadCrates(indexAddr, cacheDir) {
     res.forEach(function(r) {
       Array.prototype.push.apply(flat, r);
     });
-    var onlyStable = removeUnstable(flat);
-    var classified = classifyNuggets(onlyStable);
+    var classified = classifyNuggets(flat);
     var withoutBrokenDeps = removeBrokenDeps(classified);
     return withoutBrokenDeps;
   });
@@ -223,7 +213,6 @@ function loadCrates(indexAddr, cacheDir) {
   p = p.then(function(files) {
     debug('classified nuggets: %d with valid dependencies, %d with broken and %d without',
           files.hasdeps.length, files.broken.length, files.nodeps.length);
-    fs.writeFile('out', JSON.stringify(files, null, 2)).done();
     return files;
   });
 
