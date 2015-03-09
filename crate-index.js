@@ -95,86 +95,6 @@ function readFile(dir, filename) {
   });
 }
 
-/**
- * Classify nuggets into those which are leafnodes on a dependency tree
- * and those which are dependencies
- */
-function classifyNuggets(nuggets) {
-  var result = {
-    nodeps: [],
-    hasdeps: [],
-  };
-  nuggets.forEach(function(nugget) {
-    if (nugget.deps.length === 0) {
-      result.nodeps.push(nugget);
-    } else {
-      result.hasdeps.push(nugget);
-    }
-  });
-  return result;
-}
-
-/**
- * Find all nuggets with broken dependencies... ignore them
- * Broken dependencies are considered to be those package which
- * do not have all of their dependencies met by 'stable' packages
- */
-function removeBrokenDeps(nuggets) {
-  var result = {
-    nodeps: nuggets.nodeps,
-    hasdeps: [],
-    broken: [],
-  };
-
-  
-  // Let's make a mapping between name and versions
-  var vermap = {};
-  nuggets.hasdeps.forEach(function(nugget) {
-    if (!vermap[nugget.name]) {
-      vermap[nugget.name] = [nugget.vers];
-    } else {
-      vermap[nugget.name].push(nugget.vers)
-    }
-  });
-  nuggets.nodeps.forEach(function(nugget) {
-    if (!vermap[nugget.name]) {
-      vermap[nugget.name] = [nugget.vers];
-    } else {
-      vermap[nugget.name].push(nugget.vers)
-    }
-  });
-
-  nuggets.hasdeps.forEach(function(nugget) {
-    var isValid = true;
-    // Well, let's see if *any* package satisifies the dep
-    nugget.deps.forEach(function(dep) {
-      var satisfies = false;
-      if (vermap[dep.name]) {
-        vermap[dep.name].forEach(function(depver) {
-          if (!satisfies && semver.satisfies(depver, dep.req)) {
-            satisfies = true;
-          }
-        });
-      }
-
-      if (!satisfies) {
-        isValid = false;
-        debug(nugget.name + " dep " + dep.name + " " + dep.req + " not satisfied");
-      }
-    });
-
-
-    if (isValid) {
-      result.hasdeps.push(nugget);
-    } else {
-      result.broken.push(nugget);
-    }
-  });
-
-  return result;
-
-
-}
 
 /**
  * Load the crate index from the remote address.
@@ -205,15 +125,7 @@ function loadCrates(indexAddr, cacheDir) {
     res.forEach(function(r) {
       Array.prototype.push.apply(flat, r);
     });
-    var classified = classifyNuggets(flat);
-    var withoutBrokenDeps = removeBrokenDeps(classified);
-    return withoutBrokenDeps;
-  });
-
-  p = p.then(function(files) {
-    debug('classified nuggets: %d with valid dependencies, %d with broken and %d without',
-          files.hasdeps.length, files.broken.length, files.nodeps.length);
-    return files;
+    return flat;
   });
 
   return p;

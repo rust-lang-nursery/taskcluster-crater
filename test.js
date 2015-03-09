@@ -102,8 +102,7 @@ suite("local crate-index tests", function() {
   test("load crates", function(done) {
     var p = crates.loadCrates(testCrateIndexAddr, tmpCrateCache);
     p = p.then(function(crates) {
-      assert(crates.nodeps.length > 0);
-      assert(crates.hasdeps.length > 0);
+      assert(crates.length > 0);
       done();
     });
     p = p.catch(function(e) { done(e) });
@@ -295,8 +294,7 @@ suite("live network tests", function() {
   test("load crates", function(done) {
     var p = crates.loadCrates();
     p = p.then(function(crates) {
-      assert(crates.nodeps.length > 0);
-      assert(crates.hasdeps.length > 0);
+      assert(crates.length > 0);
       done();
     });
     p = p.catch(function(e) { done(e) });
