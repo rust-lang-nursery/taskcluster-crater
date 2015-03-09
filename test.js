@@ -7,13 +7,14 @@ var crates = require('./crate-index');
 var dist = require('./rust-dist');
 var util = require('./crater-util');
 var db = require('./crater-db');
+var scheduler = require('./scheduler');
 
 var testDataDir = "./test";
 var testCrateIndexAddr = testDataDir + "/crates.io-index";
 var testDlRootAddrForVersions = testDataDir + "/versions";
 
 var tmpDir = "./testtmp";
-var tmpCrateCache = tmpDir + "/cache";
+var tmpCacheDir = tmpDir + "/cache";
 
 var testDbName = "crater-test";
 var testDbCredentials = JSON.parse(fs.readFileSync(db.defaultDbCredentialsFile, "utf8"));
@@ -100,7 +101,7 @@ suite("local crate-index tests", function() {
   afterEach(runAfterEach);
 
   test("load crates", function(done) {
-    var p = crates.loadCrates(testCrateIndexAddr, tmpCrateCache);
+    var p = crates.loadCrates(testCrateIndexAddr, tmpCacheDir);
     p = p.then(function(crates) {
       assert(crates.length > 0);
       done();
@@ -109,9 +110,9 @@ suite("local crate-index tests", function() {
   });
 
   test("get dl addr from index", function(done) {
-    var p = crates.cloneIndex(testCrateIndexAddr, tmpCrateCache);
+    var p = crates.cloneIndex(testCrateIndexAddr, tmpCacheDir);
     p = p.then(function() {
-      return crates.getDlRootAddrFromIndex(tmpCrateCache);
+      return crates.getDlRootAddrFromIndex(tmpCacheDir);
     });
     p = p.then(function(addr) {
       assert(addr == "https://crates.io/api/v1/crates");
@@ -121,7 +122,7 @@ suite("local crate-index tests", function() {
   });
 
   test("get version metadata", function(done) {
-    var p = crates.getVersionMetadata("toml", "0.1.18", testDlRootAddrForVersions, tmpCrateCache);
+    var p = crates.getVersionMetadata("toml", "0.1.18", testDlRootAddrForVersions, tmpCacheDir);
     p = p.then(function(meta) {
       assert(meta.version.created_at == "2015-02-25T22:53:39Z");
       done();
@@ -130,12 +131,12 @@ suite("local crate-index tests", function() {
   });
 
   test("get cached version metadata", function(done) {
-    var p = crates.getVersionMetadata("toml", "0.1.18", testDlRootAddrForVersions, tmpCrateCache);
+    var p = crates.getVersionMetadata("toml", "0.1.18", testDlRootAddrForVersions, tmpCacheDir);
     p = p.then(function(meta) {
       assert(meta.version.created_at == "2015-02-25T22:53:39Z");
     });
     p = p.then(function() {
-      return crates.getVersionMetadata("toml", "0.1.18", testDlRootAddrForVersions, tmpCrateCache);
+      return crates.getVersionMetadata("toml", "0.1.18", testDlRootAddrForVersions, tmpCacheDir);
     });
     p = p.then(function(meta) {
       assert(meta.version.created_at == "2015-02-25T22:53:39Z");
@@ -276,6 +277,32 @@ suite("database tests", function() {
     }).catch(function(e) { done(e); });
   });
 
+});
+
+suite("scheduler tests", function() {
+
+  beforeEach(runBeforeEach);
+  afterEach(runAfterEach);
+
+  test("schedule all crates", function(done) {
+    var tc = { channel: "nightly", date: "2015-03-03" };
+    var p = scheduler.createScheduleForAllCratesForToolchain(tc, testDlRootAddrForVersions, testCrateIndexAddr, tmpCacheDir);
+    p = p.then(function(schedule) {
+      var errors = false;
+      schedule.forEach(function(build) {
+	// In test/versions/toml/0.1.7 this has an old created_at date
+	if (build.crateName == "toml" && build.crateVers == "0.1.7") {
+	  errors = true;
+	}
+      });
+      if (errors) {
+	done("error");
+      } else {
+	done();
+      }
+    });
+    p.done();
+  });
 });
 
 suite("live network tests", function() {

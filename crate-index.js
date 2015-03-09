@@ -159,18 +159,20 @@ function getVersionMetadata(crateName, crateVers, dlRootAddr, cacheDir) {
   var cacheFile = cacheDir + "/" + crateVers;
 
   if (fs.existsSync(cacheFile)) {
+    debug("using cache for metadata " + crateName + " " + crateVers);
     return fs.readFile(cacheFile, 'utf-8').then(function(filedata) {
       return JSON.parse(filedata);
     });
   } else {
     var json = null;
-    var p = util.runCmd('mkdir -p ' + cacheDir);
-    p = p.then(function() { return util.downloadToMem(url); });
+    var p = util.downloadToMem(url);
     p = p.then(function(data) {
       json = JSON.parse(data);
-      return json;
     });
-    p = p.then(function(json) {
+    p = p.then(function() {
+      return util.runCmd('mkdir -p ' + cacheDir);
+    });
+    p = p.then(function() {
       return fs.writeFile(cacheFile, JSON.stringify(json));
     });
     p = p.then(function() { return json; });
