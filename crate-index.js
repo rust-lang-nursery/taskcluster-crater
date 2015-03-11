@@ -164,6 +164,7 @@ function getVersionMetadata(crateName, crateVers, dlRootAddr, cacheDir) {
       return JSON.parse(filedata);
     });
   } else {
+    debug("downloading metadata " + crateName + " " + crateVers);
     var json = null;
     var p = util.downloadToMem(url);
     p = p.then(function(data) {

@@ -24,7 +24,10 @@ function main() {
 
     var tcQueue = new tc.Queue({ credentials: tcCredentials });
 
-    var pulseListener = new tc.PulseListener({ credentials: pulseCredentials });
+    var pulseListener = new tc.PulseListener({
+      credentials: pulseCredentials,
+      queueName: "crater-monitor" // create a durable queue
+    });
 
     var queueEvents = new tc.QueueEvents();
 

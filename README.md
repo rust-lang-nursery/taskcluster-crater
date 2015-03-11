@@ -59,3 +59,8 @@ The credentials need to be in pg-credentials.js.
   "password": "..."
 }
 ```
+
+# Future work
+
+* Only test the most recent revisions of crates for now.
+* Use task graphs that mirror the crate dependency structure.

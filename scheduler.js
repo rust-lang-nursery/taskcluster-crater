@@ -5,6 +5,9 @@ var util = require('./crater-util');
 var crateIndex = require('./crate-index');
 var Promise = require('promise');
 var async = require('async');
+var slugid = require('slugid');
+var tc = require('taskcluster-client');
+var assert = require('assert');
 
 function createScheduleForAllCratesForToolchain(toolchain, dlRootAddr, indexAddr, cacheDir) {
   var p = crateIndex.loadCrates(indexAddr, cacheDir)
@@ -52,6 +55,7 @@ function filterOutOld(crates, dlRootAddr, cacheDir) {
     var remaining = crates.filter(function(crate) { return crate != null; });
     var final_length = remaining.length
     debug("filtered out " + (original_length - final_length) + " old crates");
+    debug("remaining crates " + final_length);
     return remaining;
   });
   return p;
@@ -72,8 +76,108 @@ function createScheduleForCratesForToolchain(crates, toolchain, indexAddr, cache
   return tasks;
 }
 
-function scheduleBuilds(schedule) {
+function scheduleBuilds(schedule, dlRootAddr, rustDistAddr, tcCredentials) {
+  assert(dlRootAddr != null);
+  assert(rustDistAddr != null);
+  assert(tcCredentials != null);
+
+  // FIXME: For testing, just schedule five builds instead of thousands
+  if (schedule.length > 5) {
+    schedule = schedule.slice(0, 5)
+  }
+
+  var queue = new tc.Queue({
+    credentials: tcCredentials
+  });
+
+  var p = Promise.all(schedule.map(function(schedule) {
+    var taskDesc = createTaskDescriptor(schedule, dlRootAddr, rustDistAddr);
+    debug("createTask payload: " + JSON.stringify(taskDesc));
+
+    var taskId = slugid.v4();
+
+    return queue.createTask(taskId, taskDesc)
+      .catch(function(e) {
+	// TODO: How to handle a single failure here?
+	console.log("error creating task for " + JSON.stringify(schedule));
+	console.log("error is " + e);
+      }).then(function(result) {
+	console.log("createTask returned status: ", result.status);
+	console.log("inspector link: https://tools.taskcluster.net/task-inspector/#" + taskId);
+	return result;
+      });
+  }));
+
+  return p;
 }
+
+function createTaskDescriptor(schedule, dlRootAddr, rustDistAddr) {
+  var channel = schedule.channel;
+  var archiveDate = schedule.archiveDate;
+  var crateName = schedule.crateName;
+  var crateVers = schedule.crateVers;
+
+  assert(channel != null);
+  assert(archiveDate != null);
+  assert(crateName != null);
+  assert(crateVers != null);
+
+  var deadlineInMinutes = 60;
+  var rustInstallerUrl = installerUrlForToolchain(schedule);
+  var crateUrl = dlRootAddr + "/" + crateName + "/" + crateVers + "/download";
+
+  var taskName = channel + "-" + archiveDate + "-vs-" + crateName + "-" + crateVers;
+
+  var createTime = new Date(Date.now());
+  var deadlineTime = new Date(createTime.getTime() + deadlineInMinutes * 60000);
+
+  // Using b2gtest because they have active works available
+  var workerType = "b2gtest";
+
+  var env = {
+    "CRATER_RUST_INSTALLER": rustInstallerUrl,
+    "CRATER_CRATE_FILE": crateUrl
+  };
+  var cmd = "apt-get update && apt-get install curl -y && (curl -sf https://raw.githubusercontent.com/brson/taskcluster-crater/master/run-crater-task.sh | sh)";
+
+  var task = {
+    "provisionerId": "aws-provisioner",
+    "workerType": workerType,
+    "created": createTime.toISOString(),
+    "deadline": deadlineTime.toISOString(),
+    "routes": [
+      "crater.#"
+    ],
+    "payload": {
+      "image": "ubuntu:13.10",
+      "command": [ "/bin/bash", "-c", cmd ],
+      "env": env,
+      "maxRunTime": 600
+    },
+    "metadata": {
+      "name": "Crater task " + taskName,
+      "description": "Testing Rust crates for Rust language regressions",
+      "owner": "banderson@mozilla.com",
+      "source": "http://github.com/brson/taskcluster-crater"
+    },
+    "extra": {
+      "crater": {
+	"channel": channel,
+	"archiveDate": archiveDate,
+	"crateName": crateName,
+	"crateVers": crateVers
+      }
+    }
+  };
+  return task;
+}
+
+function installerUrlForToolchain(toolchain, rustDistAddr) {
+  // FIXME
+  var url = rustDistAddr + "/" + toolchain.date + "/rust-" + toolchain.channel + "-x86_64-unknown-linux-gnu.tar.gz";
+  return url;
+}
+
 
 exports.createScheduleForAllCratesForToolchain = createScheduleForAllCratesForToolchain
 exports.scheduleBuilds = scheduleBuilds
