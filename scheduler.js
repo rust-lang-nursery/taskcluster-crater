@@ -174,7 +174,7 @@ function createTaskDescriptor(schedule, dlRootAddr, rustDistAddr) {
 
 function installerUrlForToolchain(toolchain, rustDistAddr) {
   // FIXME
-  var url = rustDistAddr + "/" + toolchain.archiveDate + "/rust-" + toolchain.channel + "-x86_64-unknown-linux-gnu.tar.gz";
+  var url = rustDistAddr + toolchain.archiveDate + "/rust-" + toolchain.channel + "-x86_64-unknown-linux-gnu.tar.gz";
   return url;
 }
 
