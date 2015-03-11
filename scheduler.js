@@ -123,7 +123,7 @@ function createTaskDescriptor(schedule, dlRootAddr, rustDistAddr) {
   assert(crateVers != null);
 
   var deadlineInMinutes = 60;
-  var rustInstallerUrl = installerUrlForToolchain(schedule);
+  var rustInstallerUrl = installerUrlForToolchain(schedule, rustDistAddr);
   var crateUrl = dlRootAddr + "/" + crateName + "/" + crateVers + "/download";
 
   var taskName = channel + "-" + archiveDate + "-vs-" + crateName + "-" + crateVers;
@@ -174,7 +174,7 @@ function createTaskDescriptor(schedule, dlRootAddr, rustDistAddr) {
 
 function installerUrlForToolchain(toolchain, rustDistAddr) {
   // FIXME
-  var url = rustDistAddr + "/" + toolchain.date + "/rust-" + toolchain.channel + "-x86_64-unknown-linux-gnu.tar.gz";
+  var url = rustDistAddr + "/" + toolchain.archiveDate + "/rust-" + toolchain.channel + "-x86_64-unknown-linux-gnu.tar.gz";
   return url;
 }
 
