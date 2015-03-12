@@ -74,6 +74,7 @@ function getAvailableToolchainsFromIndex(index) {
  *
  *     { nightly: [dates], beta: [dates], stable: [dates] }
  *
+ * Each is sorted from most recent to oldest.
  * Returns a promise.
  */
 function getAvailableToolchains(distAddr) {

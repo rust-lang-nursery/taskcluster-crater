@@ -42,6 +42,9 @@ function main() {
       var dlRootAddr = scheduleAndRootAddr.dlRootAddr;
       return scheduler.scheduleBuilds(schedule, dlRootAddr, rustDistAddr, tcCredentials);
     })
+    .then(function(tasks) {
+      console.log("created " + tasks.length + " tasks");
+    })
     .done();
 }
 

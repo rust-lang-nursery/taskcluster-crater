@@ -25,31 +25,26 @@ function filterOutOld(crates, dlRootAddr, cacheDir) {
   var original_length = crates.length;
 
   // Convert any old crates to nulls
-  var p = new Promise(function(resolve, reject) {
-    var map = function(crate, cb) {
-      var name = crate.name;
-      var vers = crate.vers;
-      var p = crateIndex.getVersionMetadata(name, vers, dlRootAddr, cacheDir);
-      p = p.then(function(data) {
-	var date = new Date(data.version.created_at);
-	var earlyDate = new Date("2015-02-01");
-	if (date < earlyDate) {
-	  cb(null, null);
-	} else {
-	  cb(null, crate);
-	}
-      });
-      p = p.catch(function(e) {
-	// If we can't get the date then assume we should test this one
+  var p = Promise.denodeify(async.mapLimit)(crates, 100, function(crate, cb) {
+    var name = crate.name;
+    var vers = crate.vers;
+    var p = crateIndex.getVersionMetadata(name, vers, dlRootAddr, cacheDir);
+    p = p.then(function(data) {
+      var date = new Date(data.version.created_at);
+      var earlyDate = new Date("2015-02-01");
+      if (date < earlyDate) {
+	cb(null, null);
+      } else {
 	cb(null, crate);
-      });
-      p.done();
-    };
-    async.mapLimit(crates, 100, map, function(err, succ) {
-      if (err) { reject(err); }
-      else { resolve(succ); }
+      }
     });
+    p = p.catch(function(e) {
+      // If we can't get the date then assume we should test this one
+      cb(null, crate);
+    });
+    p.done();
   });
+
   // Filter out the nulls
   p = p.then(function(crates) {
     var remaining = crates.filter(function(crate) { return crate != null; });
@@ -82,31 +77,38 @@ function scheduleBuilds(schedule, dlRootAddr, rustDistAddr, tcCredentials) {
   assert(tcCredentials != null);
 
   // FIXME: For testing, just schedule five builds instead of thousands
-  if (schedule.length > 5) {
-    schedule = schedule.slice(0, 5)
-  }
+  //if (schedule.length > 5) {
+  //  schedule = schedule.slice(0, 5)
+  //}
 
   var queue = new tc.Queue({
     credentials: tcCredentials
   });
 
-  var p = Promise.all(schedule.map(function(schedule) {
+  var total = schedule.length;
+  var i = 1;
+
+  return Promise.denodeify(async.mapLimit)(schedule, 100, function(schedule, cb) {
     var taskDesc = createTaskDescriptor(schedule, dlRootAddr, rustDistAddr);
     debug("createTask payload: " + JSON.stringify(taskDesc));
 
     var taskId = slugid.v4();
 
-    return queue.createTask(taskId, taskDesc)
+    debug("creating task " + i + " of " + total + " for " + schedule.crateName + "-" + schedule.crateVers);
+    i = i + 1;
+
+    queue.createTask(taskId, taskDesc)
       .catch(function(e) {
 	// TODO: How to handle a single failure here?
 	console.log("error creating task for " + JSON.stringify(schedule));
 	console.log("error is " + e);
+	cb(e, null);
       }).then(function(result) {
 	console.log("createTask returned status: ", result.status);
 	console.log("inspector link: https://tools.taskcluster.net/task-inspector/#" + taskId);
-	return result;
+	cb(null, result);
       });
-  }));
+  });
 
   return p;
 }
