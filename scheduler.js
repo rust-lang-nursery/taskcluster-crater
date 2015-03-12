@@ -90,31 +90,34 @@ function scheduleBuilds(schedule, dlRootAddr, rustDistAddr, tcCredentials) {
   var i = 1;
 
   return Promise.denodeify(async.mapLimit)(schedule, 100, function(schedule, cb) {
-    var taskDesc = createTaskDescriptor(schedule, dlRootAddr, rustDistAddr);
-    debug("createTask payload: " + JSON.stringify(taskDesc));
+    createTaskDescriptor(schedule, dlRootAddr, rustDistAddr).then(function(taskDesc) {
+      debug("createTask payload: " + JSON.stringify(taskDesc));
 
-    var taskId = slugid.v4();
+      var taskId = slugid.v4();
 
-    debug("creating task " + i + " of " + total + " for " + schedule.crateName + "-" + schedule.crateVers);
-    i = i + 1;
+      debug("creating task " + i + " of " + total + " for " + schedule.crateName + "-" + schedule.crateVers);
+      i = i + 1;
 
-    queue.createTask(taskId, taskDesc)
-      .catch(function(e) {
-	// TODO: How to handle a single failure here?
-	console.log("error creating task for " + JSON.stringify(schedule));
-	console.log("error is " + e);
-	cb(e, null);
-      }).then(function(result) {
-	console.log("createTask returned status: ", result.status);
-	console.log("inspector link: https://tools.taskcluster.net/task-inspector/#" + taskId);
-	cb(null, result);
-      });
+      queue.createTask(taskId, taskDesc)
+	.catch(function(e) {
+	  // TODO: How to handle a single failure here?
+	  console.log("error creating task for " + JSON.stringify(schedule));
+	  console.log("error is " + e);
+	  cb(e, null);
+	}).then(function(result) {
+	  console.log("createTask returned status: ", result.status);
+	  console.log("inspector link: https://tools.taskcluster.net/task-inspector/#" + taskId);
+	  cb(null, result);
+	});
+    }).done();
   });
 
   return p;
 }
 
 function createTaskDescriptor(schedule, dlRootAddr, rustDistAddr) {
+  debug("creating task descriptor for " + JSON.stringify(schedule));
+
   var channel = schedule.channel;
   var archiveDate = schedule.archiveDate;
   var crateName = schedule.crateName;
@@ -125,54 +128,56 @@ function createTaskDescriptor(schedule, dlRootAddr, rustDistAddr) {
   assert(crateName != null);
   assert(crateVers != null);
 
-  var deadlineInMinutes = 60;
-  var rustInstallerUrl = installerUrlForToolchain(schedule, rustDistAddr);
-  var crateUrl = dlRootAddr + "/" + crateName + "/" + crateVers + "/download";
+  var p = installerUrlForToolchain(schedule, rustDistAddr)
+  return p.then(function(rustInstallerUrl) {
+    var deadlineInMinutes = 60;
+    var crateUrl = dlRootAddr + "/" + crateName + "/" + crateVers + "/download";
 
-  var taskName = channel + "-" + archiveDate + "-vs-" + crateName + "-" + crateVers;
+    var taskName = channel + "-" + archiveDate + "-vs-" + crateName + "-" + crateVers;
 
-  var createTime = new Date(Date.now());
-  var deadlineTime = new Date(createTime.getTime() + deadlineInMinutes * 60000);
+    var createTime = new Date(Date.now());
+    var deadlineTime = new Date(createTime.getTime() + deadlineInMinutes * 60000);
 
-  // Using b2gtest because they have active works available
-  var workerType = "b2gtest";
+    // Using b2gtest because they have active works available
+    var workerType = "b2gtest";
 
-  var env = {
-    "CRATER_RUST_INSTALLER": rustInstallerUrl,
-    "CRATER_CRATE_FILE": crateUrl
-  };
-  var cmd = "apt-get update && apt-get install curl -y && (curl -sf https://raw.githubusercontent.com/brson/taskcluster-crater/master/run-crater-task.sh | sh)";
+    var env = {
+      "CRATER_RUST_INSTALLER": rustInstallerUrl,
+      "CRATER_CRATE_FILE": crateUrl
+    };
+    var cmd = "apt-get update && apt-get install curl -y && (curl -sf https://raw.githubusercontent.com/brson/taskcluster-crater/master/run-crater-task.sh | sh)";
 
-  var task = {
-    "provisionerId": "aws-provisioner",
-    "workerType": workerType,
-    "created": createTime.toISOString(),
-    "deadline": deadlineTime.toISOString(),
-    "routes": [
-      "crater.#"
-    ],
-    "payload": {
-      "image": "ubuntu:13.10",
-      "command": [ "/bin/bash", "-c", cmd ],
-      "env": env,
-      "maxRunTime": 600
-    },
-    "metadata": {
-      "name": "Crater task " + taskName,
-      "description": "Testing Rust crates for Rust language regressions",
-      "owner": "banderson@mozilla.com",
-      "source": "http://github.com/brson/taskcluster-crater"
-    },
-    "extra": {
-      "crater": {
-	"channel": channel,
-	"archiveDate": archiveDate,
-	"crateName": crateName,
-	"crateVers": crateVers
+    var task = {
+      "provisionerId": "aws-provisioner",
+      "workerType": workerType,
+      "created": createTime.toISOString(),
+      "deadline": deadlineTime.toISOString(),
+      "routes": [
+	"crater.#"
+      ],
+      "payload": {
+	"image": "ubuntu:13.10",
+	"command": [ "/bin/bash", "-c", cmd ],
+	"env": env,
+	"maxRunTime": 600
+      },
+      "metadata": {
+	"name": "Crater task " + taskName,
+	"description": "Testing Rust crates for Rust language regressions",
+	"owner": "banderson@mozilla.com",
+	"source": "http://github.com/brson/taskcluster-crater"
+      },
+      "extra": {
+	"crater": {
+	  "channel": channel,
+	  "archiveDate": archiveDate,
+	  "crateName": crateName,
+	  "crateVers": crateVers
+	}
       }
-    }
-  };
-  return task;
+    };
+    return task;
+  });
 }
 
 function installerUrlForToolchain(toolchain, rustDistAddr) {

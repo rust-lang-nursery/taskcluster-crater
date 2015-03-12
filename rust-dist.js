@@ -92,6 +92,8 @@ function installerUrlForToolchain(toolchain, triple, rustDistAddr) {
 
   var manifest = rustDistAddr + "/" + toolchain.archiveDate + "/channel-rust-" + toolchain.channel;
 
+  debug("manifest addr: " + manifest);
+
   return util.downloadToMem(manifest).then(function(data) {
     var lines = data.match(/^.*([\n\r]+|$)/gm);
     var res = null;
