@@ -8,8 +8,10 @@ var dist = require('./rust-dist');
 var util = require('./crater-util');
 var db = require('./crater-db');
 var scheduler = require('./scheduler');
+var reports = require('./reports');
 
 var testDataDir = "./test";
+var testDistDir = testDataDir + "/dist";
 var testCrateIndexAddr = testDataDir + "/crates.io-index";
 var testDlRootAddrForVersions = testDataDir + "/versions";
 
@@ -63,7 +65,7 @@ suite("local rust-dist tests", function() {
   afterEach(runAfterEach);
 
   test("download dist index", function(done) {
-    var p = dist.downloadIndex(testDataDir);
+    var p = dist.downloadIndex(testDistDir);
     p = p.then(function(index) {
       assert(index.ds[0].children.fs[1].name == "channel-rust-beta");
       done();
@@ -72,7 +74,7 @@ suite("local rust-dist tests", function() {
   });
 
   test("get available toolchains", function(done) {
-    var p = dist.downloadIndex("./test");
+    var p = dist.downloadIndex(testDistDir);
     p = p.then(function(index) {
       var toolchains = dist.getAvailableToolchainsFromIndex(index);
       assert(toolchains.nightly.indexOf("2015-02-20") != -1);
@@ -84,7 +86,7 @@ suite("local rust-dist tests", function() {
   });
 
   test("get available toolchains without separate download", function(done) {
-    var p = dist.getAvailableToolchains(testDataDir);
+    var p = dist.getAvailableToolchains(testDistDir);
     p = p.then(function(toolchains) {
       assert(toolchains.nightly.indexOf("2015-02-20") != -1);
       assert(toolchains.beta.indexOf("2015-02-20") != -1);
@@ -153,7 +155,7 @@ suite("local rust-dist tests", function() {
   afterEach(runAfterEach);
 
   test("download dist index", function(done) {
-    var p = dist.downloadIndex(testDataDir);
+    var p = dist.downloadIndex(testDistDir);
     p = p.then(function(index) {
       assert(index.ds[0].children.fs[1].name == "channel-rust-beta");
       done();
@@ -162,7 +164,19 @@ suite("local rust-dist tests", function() {
   });
 
   test("get available toolchains", function(done) {
-    var p = dist.downloadIndex("./test");
+    var p = dist.downloadIndex(testDistDir);
+    p = p.then(function(index) {
+      var toolchains = dist.getAvailableToolchainsFromIndex(index);
+      assert(toolchains.nightly.indexOf("2015-02-20") != -1);
+      assert(toolchains.beta.indexOf("2015-02-20") != -1);
+      assert(toolchains.stable.indexOf("2015-02-20") == -1);
+      done();
+    });
+    p = p.catch(function(e) { done(e) });
+  });
+
+  test("get available toolchains sorted", function(done) {
+    var p = dist.downloadIndex(testDistDir);
     p = p.then(function(index) {
       var toolchains = dist.getAvailableToolchainsFromIndex(index);
       assert(toolchains.nightly.indexOf("2015-02-20") != -1);
@@ -174,7 +188,7 @@ suite("local rust-dist tests", function() {
   });
 
   test("get available toolchains without separate download", function(done) {
-    var p = dist.getAvailableToolchains(testDataDir);
+    var p = dist.getAvailableToolchains(testDistDir);
     p = p.then(function(toolchains) {
       assert(toolchains.nightly.indexOf("2015-02-20") != -1);
       assert(toolchains.beta.indexOf("2015-02-20") != -1);
@@ -182,6 +196,15 @@ suite("local rust-dist tests", function() {
       done();
     });
     p = p.catch(function(e) { done(e) });
+  });
+
+  test("get installer url", function(done) {
+    var toolchain = { channel: "beta", archiveDate: "2015-03-03" };
+    dist.installerUrlForToolchain(toolchain, "x86_64-unknown-linux-gnu", testDistDir)
+      .then(function(url) {
+	assert(url == testDistDir + "/2015-03-03/rust-1.0.0-alpha.2-x86_64-unknown-linux-gnu.tar.gz");
+	done();
+      }).catch(function(e) { done(e) });
   });
 });
 
@@ -303,6 +326,22 @@ suite("scheduler tests", function() {
     });
     p.done();
   });
+});
+
+suite("report tests", function() {
+
+  beforeEach(runBeforeEach);
+  afterEach(runAfterEach);
+
+  test("current report", function(done) {
+    reports.createCurrentReport("2015-03-03", testDistDir).then(function(report) {
+      assert(report.nightly == "2015-02-26");
+      assert(report.beta == "2015-02-20");
+      assert(report.stable == null);
+      done();
+    }).catch(function(e) { done(e); });
+  });
+
 });
 
 suite("live network tests", function() {

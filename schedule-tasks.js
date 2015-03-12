@@ -11,7 +11,7 @@ var crateIndex = require('./crate-index');
 
 var defaultTcCredentialsFile = "./tc-credentials.json";
 
-var rustDistAddr = "http://static-rust-lang-org.s3-us-west-1.amazonaws.com/dist/";
+var rustDistAddr = "http://static-rust-lang-org.s3-us-west-1.amazonaws.com/dist";
 
 function main() {
   var toolchain = util.parseToolchain(process.argv[2])

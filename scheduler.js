@@ -8,6 +8,7 @@ var async = require('async');
 var slugid = require('slugid');
 var tc = require('taskcluster-client');
 var assert = require('assert');
+var dist = require('./rust-dist');
 
 function createScheduleForAllCratesForToolchain(toolchain, dlRootAddr, indexAddr, cacheDir) {
   var p = crateIndex.loadCrates(indexAddr, cacheDir)
@@ -175,9 +176,7 @@ function createTaskDescriptor(schedule, dlRootAddr, rustDistAddr) {
 }
 
 function installerUrlForToolchain(toolchain, rustDistAddr) {
-  // FIXME
-  var url = rustDistAddr + toolchain.archiveDate + "/rust-" + toolchain.channel + "-x86_64-unknown-linux-gnu.tar.gz";
-  return url;
+  return dist.installerUrlForToolchain(toolchain, "x86_64-unknown-linux-gnu", rustDistAddr);
 }
 
 

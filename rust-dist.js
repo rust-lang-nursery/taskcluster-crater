@@ -27,6 +27,8 @@ function downloadIndex(distAddr) {
  * Converts the object returned by `downloadIndex` to a more concise form:
  *
  *     { nightly: [dates], beta: [dates], stable: [dates] }
+ *
+ * Each is sorted from most recent to oldest.
  */
 function getAvailableToolchainsFromIndex(index) {
   // The index is kinda hacky and has an extra level of directory indirection.
@@ -85,7 +87,31 @@ function getAvailableToolchains(distAddr) {
   return p;
 }
 
+function installerUrlForToolchain(toolchain, triple, rustDistAddr) {
+  rustDistAddr = rustDistAddr || defaultDistAddr;
+
+  var manifest = rustDistAddr + "/" + toolchain.archiveDate + "/channel-rust-" + toolchain.channel;
+
+  return util.downloadToMem(manifest).then(function(data) {
+    var lines = data.match(/^.*([\n\r]+|$)/gm);
+    var res = null;
+    lines.forEach(function(line) {
+      if (line.indexOf(triple) != -1) {
+	res = line.trim();
+      }
+    });
+
+    if (res) {
+      var url = rustDistAddr + "/" + toolchain.archiveDate + "/" + res;
+      return url;
+    } else {
+      return Promise.reject("no installer found for triple " + triple);
+    }
+  });
+}
+
 exports.defaultDistAddr = defaultDistAddr;
 exports.downloadIndex = downloadIndex;
 exports.getAvailableToolchainsFromIndex = getAvailableToolchainsFromIndex;
 exports.getAvailableToolchains = getAvailableToolchains;
+exports.installerUrlForToolchain = installerUrlForToolchain;
