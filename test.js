@@ -300,6 +300,66 @@ suite("database tests", function() {
     }).catch(function(e) { done(e); });
   });
 
+  test("get result pairs", function(done) {
+    db.connect(testDbCredentials, testDbName).then(function(dbctx) {
+      var oldResult1 = {
+	channel: "beta",
+	archiveDate: "2015-03-01",
+	crateName: "num",
+	crateVers: "1.0",
+	success: true
+      };
+      var oldResult2 = {
+	channel: "beta",
+	archiveDate: "2015-03-01",
+	crateName: "toml",
+	crateVers: "1.1",
+	success: true
+      };
+      var newResult1 = {
+	channel: "nightly",
+	archiveDate: "2015-03-02",
+	crateName: "num",
+	crateVers: "1.0",
+	success: false
+      };
+      var newResult2 = {
+	channel: "nightly",
+	archiveDate: "2015-03-02",
+	crateName: "toml",
+	crateVers: "1.1",
+	success: true
+      };
+      var fromToolchain = {
+	channel: "beta",
+	archiveDate: "2015-03-01"
+      };
+      var toToolchain = {
+	channel: "nightly",
+	archiveDate: "2015-03-02"
+      };
+      var p = Promise.resolve();
+      var p = p.then(function() { return db.addBuildResult(dbctx, oldResult1); });
+      var p = p.then(function() { return db.addBuildResult(dbctx, oldResult2); });
+      var p = p.then(function() { return db.addBuildResult(dbctx, newResult1); });
+      var p = p.then(function() { return db.addBuildResult(dbctx, newResult2); });
+      var p = p.then(function() { return db.getResultPairs(dbctx, fromToolchain, toToolchain); });
+      var p = p.then(function(results) {
+	assert(results[0].crateName == "num");
+	assert(results[0].crateVers == "1.0");
+	assert(results[0].from.success == true);
+	assert(results[0].to.success == false);
+	assert(results[1].crateName == "toml");
+	assert(results[1].crateVers == "1.1");
+	assert(results[1].from.success == true);
+	assert(results[1].to.success == true);
+      });
+      var p = p.then(function() { return db.disconnect(dbctx); });
+      var p = p.then(function() { done(); });
+      return p;
+    }).catch(function(e) { done(e); });
+  });
+
 });
 
 suite("scheduler tests", function() {

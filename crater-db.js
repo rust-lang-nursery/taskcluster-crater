@@ -161,11 +161,57 @@ function getBuildResult(dbctx, buildResultKey) {
   });
 }
 
+/**
+ * Returns a promise of an array of pairs of build results for a given
+ * pair of toolchains. Each element of the array looks like
+ * `{ crateName: ..., crateVers: ..., from: ..., to: ... }`,
+ * and `from` and `to` look like `{ succes: bool }`.
+ */
+function getResultPairs(dbctx, fromToolchain, toToolchain) {
+  // select * from build_results a, build_results b
+  // where a.channel = 'beta' and a.archive_date = '2015-02-20'
+  // and b.channel = 'nightly' and b.archive_date = '2015-03-11'
+  // and a.crate_name = b.crate_name and a.crate_vers = b.crate_vers;
+
+  var q = "select a.crate_name, a.crate_vers, a.success as from_success, b.success as to_success \
+           from build_results a, build_results b \
+           where a.channel = $1 and a.archive_date = $2 \
+           and b.channel = $3 and b.archive_date = $4 \
+           and a.crate_name = b.crate_name and a.crate_vers = b.crate_vers \
+           order by a.crate_name, a.crate_vers";
+  debug(q);
+  return new Promise(function(resolve, reject) {
+    var f = function(e, r) {
+      if (e) { reject(e); }
+      else {
+	var results = []
+	r.rows.forEach(function(row) {
+	  debug("result row: " + JSON.stringify(row));
+	  results.push({
+	    crateName: row.crate_name,
+	    crateVers: row.crate_vers,
+	    from: { success: row.from_success },
+	    to: { success: row.to_success }
+	  });
+	});
+	resolve(results);
+      }
+    };
+
+    dbctx.client.query(q, [fromToolchain.channel,
+			   fromToolchain.archiveDate,
+			   toToolchain.channel,
+			   toToolchain.archiveDate],
+		       f);
+  });
+}
+
+exports.defaultDbCredentialsFile = defaultDbCredentialsFile;
+exports.defaultDbName = defaultDbName;
 exports.connect = connect;
 exports.disconnect = disconnect;
 exports.populate = populate;
 exports.depopulate = depopulate;
 exports.addBuildResult = addBuildResult;
 exports.getBuildResult = getBuildResult;
-exports.defaultDbCredentialsFile = defaultDbCredentialsFile;
-exports.defaultDbName = defaultDbName;
+exports.getResultPairs = getResultPairs;

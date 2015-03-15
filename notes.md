@@ -108,10 +108,26 @@ There are currently X regressions from beta to nightly.
 There are currently X root regressions from stable to beta.
 There are currently X root regressions from beta to nightly.
 
-Root regressions:
+From stable to beta:
+* X crates tested: X working / X not working / X regressed
+* X crates not tested: X old / X exception / X no-data
+
+From beta to nightly:
+* X crates tested: X working / X not working / X regressed
+* X crates not tested: X old / X exception / X no-data
+
+## Beta root regressions, by popularity:
 
 * [toml-0.1.18](link)
 
-Non-root regressions:
+## Nightly root regressions, by popularity:
+
+* [toml-0.1.18](link)
+
+## Beta non-root regressions, by popularity:
+
+* [toml-0.1.18](link)
+
+## Nightly non-root regressions, by popularity:
 
 * [toml-0.1.18](link)
