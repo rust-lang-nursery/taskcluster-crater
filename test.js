@@ -402,6 +402,90 @@ suite("report tests", function() {
     }).catch(function(e) { done(e); });
   });
 
+  test("weekly report", function(done) {
+    var oldResultWorking = {
+      channel: "beta",
+      archiveDate: "2015-02-20",
+      crateName: "num",
+      crateVers: "1.0",
+      success: true
+    };
+    var newResultWorking = {
+      channel: "nightly",
+      archiveDate: "2015-02-26",
+      crateName: "num",
+      crateVers: "1.0",
+      success: true
+    };
+    var oldResultNotWorking = {
+      channel: "beta",
+      archiveDate: "2015-02-20",
+      crateName: "op",
+      crateVers: "1.0",
+      success: false
+    };
+    var newResultNotWorking = {
+      channel: "nightly",
+      archiveDate: "2015-02-26",
+      crateName: "op",
+      crateVers: "1.0",
+      success: false
+    };
+    var oldResultRegressed = {
+      channel: "beta",
+      archiveDate: "2015-02-20",
+      crateName: "plot",
+      crateVers: "1.0",
+      success: true
+    };
+    var newResultRegressed = {
+      channel: "nightly",
+      archiveDate: "2015-02-26",
+      crateName: "plot",
+      crateVers: "1.0",
+      success: false
+    };
+    var oldResultFixed = {
+      channel: "beta",
+      archiveDate: "2015-02-20",
+      crateName: "quux",
+      crateVers: "1.0",
+      success: false
+    };
+    var newResultFixed = {
+      channel: "nightly",
+      archiveDate: "2015-02-26",
+      crateName: "quux",
+      crateVers: "1.0",
+      success: true
+    };
+    var dbctx;
+    db.connect(testDbCredentials, testDbName).then(function(d) {
+      dbctx = d;
+    }).then(function() { return db.addBuildResult(dbctx, oldResultWorking);
+    }).then(function() { return db.addBuildResult(dbctx, newResultWorking);
+    }).then(function() { return db.addBuildResult(dbctx, oldResultNotWorking);
+    }).then(function() { return db.addBuildResult(dbctx, newResultNotWorking);
+    }).then(function() { return db.addBuildResult(dbctx, oldResultRegressed);
+    }).then(function() { return db.addBuildResult(dbctx, newResultRegressed);
+    }).then(function() { return db.addBuildResult(dbctx, oldResultFixed);
+    }).then(function() { return db.addBuildResult(dbctx, newResultFixed);
+    }).then(function() {
+      return reports.createWeeklyReport("2015-03-03", dbctx, testDistDir, testCrateIndexAddr, tmpCacheDir);
+    }).then(function(report) {
+      assert(report.date == "2015-03-03");
+      assert(report.currentReport.nightly == "2015-02-26");
+      assert(report.currentReport.beta == "2015-02-20");
+      assert(report.currentReport.stable == null);
+      assert(report.betaStatuses.length == 0);
+      assert(report.nightlyStatuses[0].status == "working");
+      assert(report.nightlyStatuses[1].status == "not-working");
+      assert(report.nightlyStatuses[2].status == "regressed");
+      assert(report.nightlyStatuses[3].status == "fixed");
+      done();
+    }).catch(function(e) { done(e) });
+  });
+
 });
 
 suite("live network tests", function() {

@@ -11,26 +11,38 @@ var dist = require('./rust-dist');
 /**
  * Returns a promise of the data for a 'weekly report'.
  */
-function createWeeklyReport(date, dbCredentials, rustDistAddr, indexAddr, cacheDir) {
-  return createCurrentReport(date, rustDistAddr).then(function(current) {
-    return db.connect(dbCredentials).then(function(dbctx) {
+function createWeeklyReport(date, dbctx, rustDistAddr, indexAddr, cacheDir) {
+  return createCurrentReport(date, rustDistAddr).then(function(currentReport) {
+    return {
+      currentReport: currentReport
+    };
+  }).then(function(state) {
+    var stableToolchain = { channel: "stable", archiveDate: state.currentReport.stable };
+    var betaToolchain = { channel: "beta", archiveDate: state.currentReport.beta };
+    var nightlyToolchain = { channel: "nightly", archiveDate: state.currentReport.nightly };
+
+    var betaStatuses = calculateStatuses(dbctx, stableToolchain, betaToolchain);
+    var nightlyStatuses = calculateStatuses(dbctx, betaToolchain, nightlyToolchain);
+
+    return Promise.all([betaStatuses, nightlyStatuses]).then(function(statuses) {
       return {
-	current: current,
-	dbctx: dbctx
+	currentReport: state.currentReport,
+	betaStatuses: statuses[0],
+	nightlyStatuses: statuses[1]
       };
     });
   }).then(function(state) {
-    var stableToolchain = { channel: "stable", archiveDate: state.current.stable };
-    var betaToolchain = { channel: "beta", archiveDate: state.current.beta };
-    var nightlyToolchain = { channel: "nightly", archiveDate: state.current.nightly };
-    var betaRegressions = calculateRegressions(state.dbctx, stableToolchain, betaToolchain);
-    var nightlyRegressions = calculateRegressions(state.dbctx, betaToolchain, nightlyToolchain);
+
+    var betaRegressions = calculateRegressions(state.betaStatuses);
+    var nightlyRegressions = calculateRegressions(state.nightlyStatuses);
     var betaRootRegressions = pruneDependentRegressions(betaRegressions, indexAddr, cacheDir);
     var nightlyRootRegressions = pruneDependentRegressions(nightlyRegressions, indexAddr, cacheDir);
 
     return {
       date: date,
-      current: state.current,
+      currentReport: state.currentReport,
+      betaStatuses: state.betaStatuses,
+      nightlyStatuses: state.nightlyStatuses,
       betaRegressions: betaRegressions,
       nightlyRegressions: nightlyRegressions,
       betaRootRegressions: betaRootRegressions,
@@ -39,11 +51,47 @@ function createWeeklyReport(date, dbCredentials, rustDistAddr, indexAddr, cacheD
   });
 }
 
+/**
+ * Returns promise of array of `{ crateName, crateVers, status }`,
+ * where `status` is either 'working', 'not-working', 'regressed',
+ * 'fixed'.
+ */ 
+function calculateStatuses(dbctx, fromToolchain, toToolchain) {
+
+  if (fromToolchain.archiveDate == null || toToolchain.archiveDate == null) {
+    return new Promise(function(resolve, reject) { resolve([]); });
+  }
+
+  return db.getResultPairs(dbctx, fromToolchain, toToolchain).then(function(buildResults) {
+    debug(JSON.stringify(buildResults));
+    return buildResults.map(function(buildResult) {
+      var status = null;
+      if (buildResult.from.success && buildResult.to.success) {
+	status = "working";
+      } else if (!buildResult.from.success && !buildResult.to.success) {
+	status = "not-working";
+      } else if (buildResult.from.success && !buildResult.to.success) {
+	status = "regressed";
+      } else {
+	assert(!buildResult.from.success && buildResult.to.success);
+	status = "fixed";
+      }
+
+      return {
+	crateName: buildResult.crateName,
+	crateVers: buildResult.crateVers,
+	status: status
+      };
+    });
+  });
+}
+
 function calculateRegressions(dbctx, fromToolchain, toToolchain) {
-  
+  return null;
 }
 
 function pruneDependentRegressions(regressions, indexAddr, cacheDir) {
+  return null;
 }
 
 /**

@@ -94,7 +94,7 @@ Get credentials at https://auth.taskcluster.net/
 
 dl https://crates.io/api/v1/crates/toml/0.1.0 to get metadata
 
-# Weekly report
+# Weekly Report
 
 Date: 2015/03/09
 
@@ -102,18 +102,18 @@ The most recent stable release is XXX.
 The most recent beta release is XXX.
 The most recent nightly release is XXX.
 
-There are currently X regressions from stable to beta.
-There are currently X regressions from beta to nightly.
-
 There are currently X root regressions from stable to beta.
 There are currently X root regressions from beta to nightly.
 
+There are currently X regressions from stable to beta.
+There are currently X regressions from beta to nightly.
+
 From stable to beta:
-* X crates tested: X working / X not working / X regressed
+* X crates tested: X working / X not working / X regressed / X fixed
 * X crates not tested: X old / X exception / X no-data
 
 From beta to nightly:
-* X crates tested: X working / X not working / X regressed
+* X crates tested: X working / X not working / X regressed / X fixed
 * X crates not tested: X old / X exception / X no-data
 
 ## Beta root regressions, by popularity:
@@ -131,3 +131,7 @@ From beta to nightly:
 ## Nightly non-root regressions, by popularity:
 
 * [toml-0.1.18](link)
+
+# Comparison Report
+
+Like weekly but for two arbitrary toolchains.
