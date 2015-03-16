@@ -192,6 +192,7 @@ function getCrateSource(crateName, crateVers, dlRootAddr, cacheDir) {
 }
 
 exports.defaultIndexAddr = defaultIndexAddr;
+exports.defaultCacheDir = defaultCacheDir;
 exports.cloneIndex = cloneIndex;
 exports.loadCrates = loadCrates;
 exports.getDlRootAddrFromIndex = getDlRootAddrFromIndex;

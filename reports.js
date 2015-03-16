@@ -33,6 +33,8 @@ function createWeeklyReport(date, dbctx, rustDistAddr, indexAddr, cacheDir) {
     });
   }).then(function(state) {
 
+    var betaStatusSummary = calculateStatusSummary(state.betaStatuses);
+    var nightlyStatusSummary = calculateStatusSummary(state.nightlyStatuses);
     var betaRegressions = calculateRegressions(state.betaStatuses);
     var nightlyRegressions = calculateRegressions(state.nightlyStatuses);
     var betaRootRegressions = pruneDependentRegressions(betaRegressions, indexAddr, cacheDir);
@@ -43,6 +45,8 @@ function createWeeklyReport(date, dbctx, rustDistAddr, indexAddr, cacheDir) {
       currentReport: state.currentReport,
       betaStatuses: state.betaStatuses,
       nightlyStatuses: state.nightlyStatuses,
+      betaStatusSummary: betaStatusSummary,
+      nightlyStatusSummary: nightlyStatusSummary,
       betaRegressions: betaRegressions,
       nightlyRegressions: nightlyRegressions,
       betaRootRegressions: betaRootRegressions,
@@ -86,8 +90,40 @@ function calculateStatuses(dbctx, fromToolchain, toToolchain) {
   });
 }
 
-function calculateRegressions(dbctx, fromToolchain, toToolchain) {
-  return null;
+function calculateStatusSummary(statuses) {
+  var working = 0;
+  var notWorking = 0;
+  var regressed = 0;
+  var fixed = 0;
+  statuses.forEach(function(status) {
+    if (status.status == "working") {
+      working += 1;
+    } else if (status.status == "not-working") {
+      notWorking += 1;
+    } else if (status.status == "regressed") {
+      regressed += 1;
+    } else {
+      assert(status.status == "fixed");
+      fixed += 1;
+    }
+  });
+
+  return {
+    working: working,
+    notWorking: notWorking,
+    regressed: regressed,
+    fixed: fixed
+  };
+}
+
+function calculateRegressions(statuses) {
+  var regressions = [];
+  statuses.forEach(function(status) {
+    if (status.status == "regressed") {
+      regressions.push(status);
+    }
+  });
+  return regressions;
 }
 
 function pruneDependentRegressions(regressions, indexAddr, cacheDir) {

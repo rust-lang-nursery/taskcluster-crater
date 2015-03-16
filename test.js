@@ -474,14 +474,24 @@ suite("report tests", function() {
       return reports.createWeeklyReport("2015-03-03", dbctx, testDistDir, testCrateIndexAddr, tmpCacheDir);
     }).then(function(report) {
       assert(report.date == "2015-03-03");
+
       assert(report.currentReport.nightly == "2015-02-26");
       assert(report.currentReport.beta == "2015-02-20");
       assert(report.currentReport.stable == null);
+
       assert(report.betaStatuses.length == 0);
       assert(report.nightlyStatuses[0].status == "working");
       assert(report.nightlyStatuses[1].status == "not-working");
       assert(report.nightlyStatuses[2].status == "regressed");
       assert(report.nightlyStatuses[3].status == "fixed");
+
+      assert(report.nightlyStatusSummary.working == 1);
+      assert(report.nightlyStatusSummary.notWorking == 1);
+      assert(report.nightlyStatusSummary.regressed == 1);
+      assert(report.nightlyStatusSummary.fixed == 1);
+
+      assert(report.nightlyRegressions[0].crateName = "plot");
+
       done();
     }).catch(function(e) { done(e) });
   });
