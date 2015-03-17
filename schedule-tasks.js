@@ -9,10 +9,6 @@ var slugid = require('slugid');
 var scheduler = require('./scheduler');
 var crateIndex = require('./crate-index');
 
-var defaultTcCredentialsFile = "./tc-credentials.json";
-
-var rustDistAddr = "http://static-rust-lang-org.s3-us-west-1.amazonaws.com/dist";
-
 function main() {
   var toolchain = util.parseToolchain(process.argv[2])
   if (!toolchain) {
@@ -22,34 +18,19 @@ function main() {
 
   debug("scheduling for toolchain %s", JSON.stringify(toolchain));
 
-  var tcCredentials = loadTcCredentials(defaultTcCredentialsFile);
+  var config = util.loadDefaultConfig();
 
-  debug("credentials: %s", JSON.stringify(tcCredentials));
-
-  crateIndex.cloneIndex()
-    .then(function() { return crateIndex.getDlRootAddrFromIndex(); })
-    .then(function(dlRootAddr) {
-      var p = scheduler.createScheduleForAllCratesForToolchain(toolchain, dlRootAddr);
-      return p.then(function(schedule) {
-	return {
-	  dlRootAddr: dlRootAddr,
-	  schedule: schedule
-	};
-      });
+  crateIndex.cloneIndex(config)
+    .then(function() {
+      return scheduler.createScheduleForAllCratesForToolchain(toolchain, config);
     })
-    .then(function(scheduleAndRootAddr) {
-      var schedule = scheduleAndRootAddr.schedule;
-      var dlRootAddr = scheduleAndRootAddr.dlRootAddr;
-      return scheduler.scheduleBuilds(schedule, dlRootAddr, rustDistAddr, tcCredentials);
+    .then(function(schedule) {
+      return scheduler.scheduleBuilds(schedule, config);
     })
     .then(function(tasks) {
       console.log("created " + tasks.length + " tasks");
     })
     .done();
-}
-
-function loadTcCredentials(credentialsFile) {
-  return JSON.parse(fs.readFileSync(credentialsFile, "utf8"));
 }
 
 main();

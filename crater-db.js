@@ -9,15 +9,13 @@ var Promise = require('promise');
 var pg = require('pg');
 var util = require('./crater-util');
 
-var defaultDbCredentialsFile = "./pg-credentials.json";
-var defaultDbName = "crater";
-
 /**
  * Connects to a PostgreSQL DB and returns a promise of an opaque type
  * accepted as context to other functions here.
  */
-function connect(credentials, dbname) {
-  dbname = dbname || defaultDbName
+function connect(config) {
+  var credentials = config.dbCredentials;
+  var dbname = config.dbName;
 
   var dbctx = new Promise(function(resolve, reject) {
     var client = new pg.Client({
@@ -206,8 +204,6 @@ function getResultPairs(dbctx, fromToolchain, toToolchain) {
   });
 }
 
-exports.defaultDbCredentialsFile = defaultDbCredentialsFile;
-exports.defaultDbName = defaultDbName;
 exports.connect = connect;
 exports.disconnect = disconnect;
 exports.populate = populate;

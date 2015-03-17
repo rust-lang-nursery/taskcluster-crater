@@ -15,7 +15,8 @@ function main() {
     process.exit(1);
   }
 
-  var dbCredentials = JSON.parse(fs.readFileSync(db.defaultDbCredentialsFile, "utf8"));
+  var config = util.loadDefaultConfig();
+  var dbCredentials = config.dbCredentials;
 
   if (reportSpec.type == "current") {
     var date = reportSpec.date;
@@ -29,10 +30,7 @@ function main() {
   } else if (reportSpec.type == "weekly") {
     var date = reportSpec.date;
     db.connect(dbCredentials).then(function(dbctx) {
-      var p = reports.createWeeklyReport(date, dbctx,
-					 dist.defaultDistAddr,
-					 crateIndex.defaultIndexAddr,
-					 crateIndex.defaultCacheDir);
+      var p = reports.createWeeklyReport(date, dbctx, config);
       return p.then(function(report) {
 	console.log("# Weekly Report");
 	console.log();

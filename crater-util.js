@@ -4,10 +4,20 @@ var Promise = require('promise');
 var _fs = require('graceful-fs'); // Need to parse many files at once
 var fs = {
   readFile: Promise.denodeify(_fs.readFile),
+  readFileSync: _fs.readFileSync
 };
 var exec = require('child_process').exec;
 var http = require('http');
 var https = require('https');
+
+var defaultRustDistAddr = "http://static-rust-lang-org.s3-us-west-1.amazonaws.com/dist";
+var defaultCrateIndexAddr = "https://github.com/rust-lang/crates.io-index";
+var defaultCacheDir = "./cache";
+var defaultDlRootAddr = "https://crates.io/api/v1/crates";
+var defaultDbCredentialsFile = "./pg-credentials.json";
+var defaultPulseCredentialsFile = "./pulse-credentials.json";
+var defaultTcCredentialsFile = "./tc-credentials.json";
+var defaultDbName = "crater";
 
 /**
  * Parses a string toolchain identifier into an object { channel: string, date: string }
@@ -91,7 +101,28 @@ function rustDate(date) {
   return year + "-" + month + "-" + day;
 }
 
+function loadDefaultConfig() {
+  return {
+    dbName: defaultDbName,
+    rustDistAddr: defaultRustDistAddr,
+    crateIndexAddr: defaultCrateIndexAddr,
+    dlRootAddr: defaultDlRootAddr,
+    cacheDir: defaultCacheDir,
+    dbCredentials: loadCredentials(defaultDbCredentialsFile),
+    pulseCredentials: loadCredentials(defaultPulseCredentialsFile),
+    tcCredentials: loadCredentials(defaultTcCredentialsFile)
+  };
+}
+
+function loadCredentials(credentialsFile) {
+  return JSON.parse(fs.readFileSync(credentialsFile, "utf8"));
+}
+
 exports.parseToolchain = parseToolchain;
 exports.downloadToMem = downloadToMem;
 exports.runCmd = runCmd;
 exports.rustDate = rustDate;
+exports.loadDefaultConfig = loadDefaultConfig;
+exports.defaultDbCredentialsFile = defaultDbCredentialsFile;
+exports.defaultPulseCredentialsFile = defaultPulseCredentialsFile;
+exports.defaultTcCredentialsFile = defaultTcCredentialsFile;

@@ -11,8 +11,8 @@ var dist = require('./rust-dist');
 /**
  * Returns a promise of the data for a 'weekly report'.
  */
-function createWeeklyReport(date, dbctx, rustDistAddr, indexAddr, cacheDir) {
-  return createCurrentReport(date, rustDistAddr).then(function(currentReport) {
+function createWeeklyReport(date, dbctx, config) {
+  return createCurrentReport(date, config).then(function(currentReport) {
     return {
       currentReport: currentReport
     };
@@ -37,31 +37,31 @@ function createWeeklyReport(date, dbctx, rustDistAddr, indexAddr, cacheDir) {
     var nightlyStatusSummary = calculateStatusSummary(state.nightlyStatuses);
     var betaRegressions = calculateRegressions(state.betaStatuses);
     var nightlyRegressions = calculateRegressions(state.nightlyStatuses);
-    var betaRootRegressions = pruneDependentRegressions(betaRegressions, indexAddr, cacheDir);
-    var nightlyRootRegressions = pruneDependentRegressions(nightlyRegressions, indexAddr, cacheDir);
 
-    return Promise.all([betaRootRegressions, nightlyRootRegressions]).then(function(regs) {
+    var betaRootRegressions = pruneDependentRegressions(betaRegressions, config);
+    return betaRootRegressions.then(function(betaRootRegressions) {
 
-      var betaRootRegressions = regs[0];
-      var nightlyRootRegressions = regs[1];
+      var nightlyRootRegressions = pruneDependentRegressions(nightlyRegressions, config);
+      return nightlyRootRegressions.then(function(nightlyRootRegressions) {
 
-      var betaNonRootRegressions = pruneRootRegressions(betaRegressions, betaRootRegressions);
-      var nightlyNonRootRegressions = pruneRootRegressions(nightlyRegressions, nightlyRootRegressions);
+	var betaNonRootRegressions = pruneRootRegressions(betaRegressions, betaRootRegressions);
+	var nightlyNonRootRegressions = pruneRootRegressions(nightlyRegressions, nightlyRootRegressions);
 
-      return {
-	date: date,
-	currentReport: state.currentReport,
-	betaStatuses: state.betaStatuses,
-	nightlyStatuses: state.nightlyStatuses,
-	betaStatusSummary: betaStatusSummary,
-	nightlyStatusSummary: nightlyStatusSummary,
-	betaRegressions: betaRegressions,
-	nightlyRegressions: nightlyRegressions,
-	betaRootRegressions: betaRootRegressions,
-	nightlyRootRegressions: nightlyRootRegressions,
-	betaNonRootRegressions: betaNonRootRegressions,
-	nightlyNonRootRegressions: nightlyNonRootRegressions
-      };
+	return {
+	  date: date,
+	  currentReport: state.currentReport,
+	  betaStatuses: state.betaStatuses,
+	  nightlyStatuses: state.nightlyStatuses,
+	  betaStatusSummary: betaStatusSummary,
+	  nightlyStatusSummary: nightlyStatusSummary,
+	  betaRegressions: betaRegressions,
+	  nightlyRegressions: nightlyRegressions,
+	  betaRootRegressions: betaRootRegressions,
+	  nightlyRootRegressions: nightlyRootRegressions,
+	  betaNonRootRegressions: betaNonRootRegressions,
+	  nightlyNonRootRegressions: nightlyNonRootRegressions
+	};
+      });
     });
   });
 }
@@ -136,13 +136,13 @@ function calculateRegressions(statuses) {
   return regressions;
 }
 
-function pruneDependentRegressions(regressions, crates, indexAddr, cacheDir) {
+function pruneDependentRegressions(regressions, config) {
   var regressionMap = {};
   regressions.forEach(function(r) {
     regressionMap[r.crateName] = r;
   });
 
-  return crateIndex.loadCrates(indexAddr, cacheDir).then(function(crates) {
+  return crateIndex.loadCrates(config).then(function(crates) {
     var dag = crateIndex.getDag(crates);
     var independent = [];
     regressions.forEach(function(reg) {
@@ -192,8 +192,8 @@ function pruneRootRegressions(regs, rootRegs) {
 /**
  * Returns a promise of a report on the current nightly/beta/stable revisions.
  */
-function createCurrentReport(date, rustDistAddr) {
-  return dist.getAvailableToolchains(rustDistAddr).then(function(toolchains) {
+function createCurrentReport(date, config) {
+  return dist.getAvailableToolchains(config).then(function(toolchains) {
     var currentNightlyDate = null;
     toolchains.nightly.forEach(function(toolchainDate) {
       if (toolchainDate <= date) {

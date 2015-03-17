@@ -10,26 +10,26 @@ var tc = require('taskcluster-client');
 var assert = require('assert');
 var dist = require('./rust-dist');
 
-function createScheduleForAllCratesForToolchain(toolchain, dlRootAddr, indexAddr, cacheDir) {
-  var p = crateIndex.loadCrates(indexAddr, cacheDir)
+function createScheduleForAllCratesForToolchain(toolchain, config) {
+  var p = crateIndex.loadCrates(config)
   p = p.then(function(crates) {
     debug("loaded " + crates.length + " crates");
-    return filterOutOld(crates, dlRootAddr, cacheDir);
+    return filterOutOld(crates, config);
   });
   p = p.then(function(crates) {
-    return createScheduleForCratesForToolchain(crates, toolchain, indexAddr, cacheDir);
+    return createScheduleForCratesForToolchain(crates, toolchain);
   });    
   return p;
 }
 
-function filterOutOld(crates, dlRootAddr, cacheDir) {
+function filterOutOld(crates, config) {
   var original_length = crates.length;
 
   // Convert any old crates to nulls
   var p = Promise.denodeify(async.mapLimit)(crates, 100, function(crate, cb) {
     var name = crate.name;
     var vers = crate.vers;
-    var p = crateIndex.getVersionMetadata(name, vers, dlRootAddr, cacheDir);
+    var p = crateIndex.getVersionMetadata(name, vers, config);
     p = p.then(function(data) {
       var date = new Date(data.version.created_at);
       var earlyDate = new Date("2015-02-01");
@@ -57,7 +57,7 @@ function filterOutOld(crates, dlRootAddr, cacheDir) {
   return p;
 }
 
-function createScheduleForCratesForToolchain(crates, toolchain, indexAddr, cacheDir) {
+function createScheduleForCratesForToolchain(crates, toolchain) {
   // Convert to scheduler commands
   var tasks = [];
   crates.forEach(function(crate) {
@@ -72,7 +72,11 @@ function createScheduleForCratesForToolchain(crates, toolchain, indexAddr, cache
   return tasks;
 }
 
-function scheduleBuilds(schedule, dlRootAddr, rustDistAddr, tcCredentials) {
+function scheduleBuilds(schedule, config) {
+  var dlRootAddr = config.dlRootAddr;
+  var rustDistAddr = config.rustDistAddr;
+  var tcCredentials = config.tcCredentials;
+
   assert(dlRootAddr != null);
   assert(rustDistAddr != null);
   assert(tcCredentials != null);
@@ -115,7 +119,9 @@ function scheduleBuilds(schedule, dlRootAddr, rustDistAddr, tcCredentials) {
   return p;
 }
 
-function createTaskDescriptor(schedule, dlRootAddr, rustDistAddr) {
+function createTaskDescriptor(schedule, config) {
+  var dlRootAddr = config.dlRootAddr;
+
   debug("creating task descriptor for " + JSON.stringify(schedule));
 
   var channel = schedule.channel;
@@ -128,7 +134,7 @@ function createTaskDescriptor(schedule, dlRootAddr, rustDistAddr) {
   assert(crateName != null);
   assert(crateVers != null);
 
-  var p = installerUrlForToolchain(schedule, rustDistAddr)
+  var p = installerUrlForToolchain(schedule, config)
   return p.then(function(rustInstallerUrl) {
     var deadlineInMinutes = 60;
     var crateUrl = dlRootAddr + "/" + crateName + "/" + crateVers + "/download";
@@ -180,8 +186,8 @@ function createTaskDescriptor(schedule, dlRootAddr, rustDistAddr) {
   });
 }
 
-function installerUrlForToolchain(toolchain, rustDistAddr) {
-  return dist.installerUrlForToolchain(toolchain, "x86_64-unknown-linux-gnu", rustDistAddr);
+function installerUrlForToolchain(toolchain, config) {
+  return dist.installerUrlForToolchain(toolchain, "x86_64-unknown-linux-gnu", config);
 }
 
 

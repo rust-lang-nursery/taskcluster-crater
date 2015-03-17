@@ -16,11 +16,11 @@ var defaultPulseCredentialsFile = "./pulse-credentials.json";
 var defaultTcCredentialsFile = "./tc-credentials.json";
 
 function main() {
-  var dbCredentials = loadDbCredentials(db.defaultDbCredentialsFile);
-  var pulseCredentials = loadPulseCredentials(defaultPulseCredentialsFile);
-  var tcCredentials = loadTcCredentials(defaultTcCredentialsFile);
+  var config = util.loadDefaultConfig();
+  var pulseCredentials = config.pulseCredentials;
+  var tcCredentials = config.tcCredentials;
 
-  db.connect(dbCredentials).then(function(dbctx) {
+  db.connect(config).then(function(dbctx) {
 
     var tcQueue = new tc.Queue({ credentials: tcCredentials });
 
@@ -89,18 +89,6 @@ function recordResultForTask(dbctx, tcQueue, taskId, success) {
     debug("adding build result: " + JSON.stringify(buildResult));
     return db.addBuildResult(dbctx, buildResult);
   }).catch(function(e) { console.log(e) });
-}
-
-function loadDbCredentials(credentialsFile) {
-  return JSON.parse(fs.readFileSync(credentialsFile, "utf8"));
-}
-
-function loadPulseCredentials(credentialsFile) {
-  return JSON.parse(fs.readFileSync(credentialsFile, "utf8"));
-}
-
-function loadTcCredentials(credentialsFile) {
-  return JSON.parse(fs.readFileSync(credentialsFile, "utf8"));
 }
 
 main();

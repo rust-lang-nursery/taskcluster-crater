@@ -19,7 +19,18 @@ var tmpDir = "./testtmp";
 var tmpCacheDir = tmpDir + "/cache";
 
 var testDbName = "crater-test";
-var testDbCredentials = JSON.parse(fs.readFileSync(db.defaultDbCredentialsFile, "utf8"));
+var testDbCredentials = JSON.parse(fs.readFileSync(util.defaultDbCredentialsFile, "utf8"));
+
+var testConfig = {
+  rustDistAddr: testDataDir + "/dist",
+  crateIndexAddr: testDataDir + "/crates.io-index",
+  dlRootAddr: testDataDir + "/versions",
+  cacheDir: tmpDir + "/cache",
+  dbName: "crater-test",
+  dbCredentials: JSON.parse(fs.readFileSync(util.defaultDbCredentialsFile, "utf8"))
+};
+
+var liveConfig = util.loadDefaultConfig();
 
 function rmTempDir() {
   return util.runCmd("rm -Rf '" + tmpDir + "'");
@@ -32,7 +43,7 @@ function cleanTempDir() {
 }
 
 function cleanTempDb() {
-  return db.connect(testDbCredentials, testDbName).then(function(dbctx) {
+  return db.connect(testConfig).then(function(dbctx) {
     debug("a");
     var p = db.depopulate(dbctx);
     var p = p.then(function() { db.disconnect(dbctx); });
@@ -59,51 +70,13 @@ function runBeforeEachDb(done) {
     .catch(function(e) { done(e); });
 }
 
-suite("local rust-dist tests", function() {
-
-  beforeEach(runBeforeEach);
-  afterEach(runAfterEach);
-
-  test("download dist index", function(done) {
-    var p = dist.downloadIndex(testDistDir);
-    p = p.then(function(index) {
-      assert(index.ds[0].children.fs[1].name == "channel-rust-beta");
-      done();
-    });
-    p = p.catch(function(e) { done(e) });
-  });
-
-  test("get available toolchains", function(done) {
-    var p = dist.downloadIndex(testDistDir);
-    p = p.then(function(index) {
-      var toolchains = dist.getAvailableToolchainsFromIndex(index);
-      assert(toolchains.nightly.indexOf("2015-02-20") != -1);
-      assert(toolchains.beta.indexOf("2015-02-20") != -1);
-      assert(toolchains.stable.indexOf("2015-02-20") == -1);
-      done();
-    });
-    p = p.catch(function(e) { done(e) });
-  });
-
-  test("get available toolchains without separate download", function(done) {
-    var p = dist.getAvailableToolchains(testDistDir);
-    p = p.then(function(toolchains) {
-      assert(toolchains.nightly.indexOf("2015-02-20") != -1);
-      assert(toolchains.beta.indexOf("2015-02-20") != -1);
-      assert(toolchains.stable.indexOf("2015-02-20") == -1);
-      done();
-    });
-    p = p.catch(function(e) { done(e) });
-  });
-});
-
 suite("local crate-index tests", function() {
 
   beforeEach(runBeforeEach);
   afterEach(runAfterEach);
 
   test("load crates", function(done) {
-    var p = crates.loadCrates(testCrateIndexAddr, tmpCacheDir);
+    var p = crates.loadCrates(testConfig);
     p = p.then(function(crates) {
       assert(crates.length > 0);
       done();
@@ -112,9 +85,9 @@ suite("local crate-index tests", function() {
   });
 
   test("get dl addr from index", function(done) {
-    var p = crates.cloneIndex(testCrateIndexAddr, tmpCacheDir);
+    var p = crates.cloneIndex(testConfig);
     p = p.then(function() {
-      return crates.getDlRootAddrFromIndex(tmpCacheDir);
+      return crates.getDlRootAddrFromIndex(testConfig);
     });
     p = p.then(function(addr) {
       assert(addr == "https://crates.io/api/v1/crates");
@@ -124,7 +97,7 @@ suite("local crate-index tests", function() {
   });
 
   test("get version metadata", function(done) {
-    var p = crates.getVersionMetadata("toml", "0.1.18", testDlRootAddrForVersions, tmpCacheDir);
+    var p = crates.getVersionMetadata("toml", "0.1.18", testConfig);
     p = p.then(function(meta) {
       assert(meta.version.created_at == "2015-02-25T22:53:39Z");
       done();
@@ -133,12 +106,12 @@ suite("local crate-index tests", function() {
   });
 
   test("get cached version metadata", function(done) {
-    var p = crates.getVersionMetadata("toml", "0.1.18", testDlRootAddrForVersions, tmpCacheDir);
+    var p = crates.getVersionMetadata("toml", "0.1.18", testConfig);
     p = p.then(function(meta) {
       assert(meta.version.created_at == "2015-02-25T22:53:39Z");
     });
     p = p.then(function() {
-      return crates.getVersionMetadata("toml", "0.1.18", testDlRootAddrForVersions, tmpCacheDir);
+      return crates.getVersionMetadata("toml", "0.1.18", testConfig);
     });
     p = p.then(function(meta) {
       assert(meta.version.created_at == "2015-02-25T22:53:39Z");
@@ -148,7 +121,7 @@ suite("local crate-index tests", function() {
   });
 
   test("get most recent revs", function(done) {
-    var p = crates.loadCrates(testCrateIndexAddr, tmpCacheDir);
+    var p = crates.loadCrates(testConfig);
     p.then(function(crateData) {
       return crates.getMostRecentRevs(crateData);
     }).then(function(recent) {
@@ -159,7 +132,7 @@ suite("local crate-index tests", function() {
   });
 
   test("get dag", function(done) {
-    var p = crates.loadCrates(testCrateIndexAddr, tmpCacheDir);
+    var p = crates.loadCrates(testConfig);
     p.then(function(crateData) {
       return crates.getDag(crateData);
     }).then(function(crateData) {
@@ -176,7 +149,7 @@ suite("local rust-dist tests", function() {
   afterEach(runAfterEach);
 
   test("download dist index", function(done) {
-    var p = dist.downloadIndex(testDistDir);
+    var p = dist.downloadIndex(testConfig);
     p = p.then(function(index) {
       assert(index.ds[0].children.fs[1].name == "channel-rust-beta");
       done();
@@ -185,7 +158,7 @@ suite("local rust-dist tests", function() {
   });
 
   test("get available toolchains", function(done) {
-    var p = dist.downloadIndex(testDistDir);
+    var p = dist.downloadIndex(testConfig);
     p = p.then(function(index) {
       var toolchains = dist.getAvailableToolchainsFromIndex(index);
       assert(toolchains.nightly.indexOf("2015-02-20") != -1);
@@ -197,7 +170,7 @@ suite("local rust-dist tests", function() {
   });
 
   test("get available toolchains sorted", function(done) {
-    var p = dist.downloadIndex(testDistDir);
+    var p = dist.downloadIndex(testConfig);
     p = p.then(function(index) {
       var toolchains = dist.getAvailableToolchainsFromIndex(index);
       assert(toolchains.nightly.indexOf("2015-02-20") != -1);
@@ -209,7 +182,7 @@ suite("local rust-dist tests", function() {
   });
 
   test("get available toolchains without separate download", function(done) {
-    var p = dist.getAvailableToolchains(testDistDir);
+    var p = dist.getAvailableToolchains(testConfig);
     p = p.then(function(toolchains) {
       assert(toolchains.nightly.indexOf("2015-02-20") != -1);
       assert(toolchains.beta.indexOf("2015-02-20") != -1);
@@ -221,7 +194,7 @@ suite("local rust-dist tests", function() {
 
   test("get installer url", function(done) {
     var toolchain = { channel: "beta", archiveDate: "2015-03-03" };
-    dist.installerUrlForToolchain(toolchain, "x86_64-unknown-linux-gnu", testDistDir)
+    dist.installerUrlForToolchain(toolchain, "x86_64-unknown-linux-gnu", testConfig)
       .then(function(url) {
 	assert(url == testDistDir + "/2015-03-03/rust-1.0.0-alpha.2-x86_64-unknown-linux-gnu.tar.gz");
 	done();
@@ -255,7 +228,7 @@ suite("database tests", function() {
   afterEach(runAfterEach);
 
   test("populate and depopulate", function(done) {
-    db.connect(testDbCredentials, testDbName).then(function(dbctx) {
+    db.connect(testConfig).then(function(dbctx) {
       var p = db.populate(dbctx);
       var p = p.then(function() { return db.depopulate(dbctx); });
       var p = p.then(function() { return db.disconnect(dbctx); });
@@ -265,7 +238,7 @@ suite("database tests", function() {
   });
 
   test("add build result", function(done) {
-    db.connect(testDbCredentials, testDbName).then(function(dbctx) {
+    db.connect(testConfig).then(function(dbctx) {
       var actual = {
 	channel: "nightly",
 	archiveDate: "2015-03-01",
@@ -284,7 +257,7 @@ suite("database tests", function() {
   });
 
   test("upsert build result", function(done) {
-    db.connect(testDbCredentials, testDbName).then(function(dbctx) {
+    db.connect(testConfig).then(function(dbctx) {
       var actual = {
 	channel: "nightly",
 	archiveDate: "2015-03-01",
@@ -305,7 +278,7 @@ suite("database tests", function() {
   });
 
   test("get null build result", function(done) {
-    db.connect(testDbCredentials, testDbName).then(function(dbctx) {
+    db.connect(testConfig).then(function(dbctx) {
       var req = {
 	channel: "nightly",
 	archiveDate: "2015-03-01",
@@ -322,7 +295,7 @@ suite("database tests", function() {
   });
 
   test("get result pairs", function(done) {
-    db.connect(testDbCredentials, testDbName).then(function(dbctx) {
+    db.connect(testConfig).then(function(dbctx) {
       var oldResult1 = {
 	channel: "beta",
 	archiveDate: "2015-03-01",
@@ -390,7 +363,7 @@ suite("scheduler tests", function() {
 
   test("schedule all crates", function(done) {
     var tc = { channel: "nightly", date: "2015-03-03" };
-    var p = scheduler.createScheduleForAllCratesForToolchain(tc, testDlRootAddrForVersions, testCrateIndexAddr, tmpCacheDir);
+    var p = scheduler.createScheduleForAllCratesForToolchain(tc, testConfig);
     p = p.then(function(schedule) {
       var errors = false;
       schedule.forEach(function(build) {
@@ -415,7 +388,7 @@ suite("report tests", function() {
   afterEach(runAfterEach);
 
   test("current report", function(done) {
-    reports.createCurrentReport("2015-03-03", testDistDir).then(function(report) {
+    reports.createCurrentReport("2015-03-03", testConfig).then(function(report) {
       assert(report.nightly == "2015-02-26");
       assert(report.beta == "2015-02-20");
       assert(report.stable == null);
@@ -481,7 +454,7 @@ suite("report tests", function() {
       success: true
     };
     var dbctx;
-    db.connect(testDbCredentials, testDbName).then(function(d) {
+    db.connect(testConfig).then(function(d) {
       dbctx = d;
     }).then(function() { return db.addBuildResult(dbctx, oldResultWorking);
     }).then(function() { return db.addBuildResult(dbctx, newResultWorking);
@@ -492,7 +465,7 @@ suite("report tests", function() {
     }).then(function() { return db.addBuildResult(dbctx, oldResultFixed);
     }).then(function() { return db.addBuildResult(dbctx, newResultFixed);
     }).then(function() {
-      return reports.createWeeklyReport("2015-03-03", dbctx, testDistDir, testCrateIndexAddr, tmpCacheDir);
+      return reports.createWeeklyReport("2015-03-03", dbctx, testConfig);
     }).then(function(report) {
       assert(report.date == "2015-03-03");
 
@@ -547,14 +520,14 @@ suite("report tests", function() {
       success: false
     };
     var dbctx;
-    db.connect(testDbCredentials, testDbName).then(function(d) {
+    db.connect(testConfig).then(function(d) {
       dbctx = d;
     }).then(function() { return db.addBuildResult(dbctx, oldResultRegressed);
     }).then(function() { return db.addBuildResult(dbctx, newResultRegressed);
     }).then(function() { return db.addBuildResult(dbctx, oldResultRegressedDep);
     }).then(function() { return db.addBuildResult(dbctx, newResultRegressedDep);
     }).then(function() {
-      return reports.createWeeklyReport("2015-03-03", dbctx, testDistDir, testCrateIndexAddr, tmpCacheDir);
+      return reports.createWeeklyReport("2015-03-03", dbctx, testConfig);
     }).then(function(report) {
 
       // 'piston' is not a root regression
@@ -573,7 +546,7 @@ suite("live network tests", function() {
   afterEach(runAfterEach);
 
   test("download dist index", function(done) {
-    var p = dist.downloadIndex();
+    var p = dist.downloadIndex(liveConfig);
     p = p.then(function(index) {
       done()
     });
@@ -581,7 +554,7 @@ suite("live network tests", function() {
   });
 
   test("load crates", function(done) {
-    var p = crates.loadCrates();
+    var p = crates.loadCrates(liveConfig);
     p = p.then(function(crates) {
       assert(crates.length > 0);
       done();
@@ -590,9 +563,9 @@ suite("live network tests", function() {
   });
 
   test("get version metadata", function(done) {
-    var p = crates.cloneIndex();
-    p = p.then(function() { return crates.getDlRootAddrFromIndex(); });
-    p = p.then(function(addr) { return crates.getVersionMetadata("toml", "0.1.18", addr); });
+    var p = crates.cloneIndex(liveConfig);
+    p = p.then(function() { return crates.getDlRootAddrFromIndex(liveConfig); });
+    p = p.then(function(addr) { return crates.getVersionMetadata("toml", "0.1.18", liveConfig); });
     p = p.then(function(meta) {
       assert(meta.version.created_at == "2015-02-25T22:53:39Z");
       done();

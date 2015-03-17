@@ -7,14 +7,12 @@ var fs = require('fs');
 var assert = require('assert');
 var util = require('./crater-util');
 
-var defaultDistAddr = "http://static-rust-lang-org.s3-website-us-west-1.amazonaws.com/dist";
-
 /**
  * Download the JSON index and return a promised JSON object. If
  * `distAddr` is null the default remote address is used.
  */
-function downloadIndex(distAddr) {
-  distAddr = distAddr || defaultDistAddr;
+function downloadIndex(config) {
+  var distAddr = config.rustDistAddr;
 
   var index = distAddr + "/index.json";
 
@@ -87,8 +85,8 @@ function getAvailableToolchains(distAddr) {
   return p;
 }
 
-function installerUrlForToolchain(toolchain, triple, rustDistAddr) {
-  rustDistAddr = rustDistAddr || defaultDistAddr;
+function installerUrlForToolchain(toolchain, triple, config) {
+  var rustDistAddr = config.rustDistAddr;
 
   var manifest = rustDistAddr + "/" + toolchain.archiveDate + "/channel-rust-" + toolchain.channel;
 
@@ -112,7 +110,6 @@ function installerUrlForToolchain(toolchain, triple, rustDistAddr) {
   });
 }
 
-exports.defaultDistAddr = defaultDistAddr;
 exports.downloadIndex = downloadIndex;
 exports.getAvailableToolchainsFromIndex = getAvailableToolchainsFromIndex;
 exports.getAvailableToolchains = getAvailableToolchains;

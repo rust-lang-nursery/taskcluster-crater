@@ -13,9 +13,6 @@ var path = require('path');
 var semver = require('semver');
 var util = require('./crater-util');
 
-var defaultIndexAddr = "https://github.com/rust-lang/crates.io-index"
-var defaultCacheDir = "./cache"
-
 var localIndexName = "crate-index"
 var crateCacheName = "crate-cache"
 var sourceCacheName = "source-cache"
@@ -24,9 +21,10 @@ var versionCacheName = "version-cache"
 /**
  * Ensure that the crate-index repository is either present or created
  */
-function cloneIndex(indexAddr, cacheDir) {
-  indexAddr = indexAddr || defaultIndexAddr;
-  cacheDir = cacheDir || defaultCacheDir;
+function cloneIndex(config) {
+  
+  var indexAddr = config.crateIndexAddr;
+  var cacheDir = config.cacheDir;
 
   var localIndex = path.join(cacheDir, localIndexName);
 
@@ -99,13 +97,13 @@ function readFile(dir, filename) {
 /**
  * Load the crate index from the remote address.
  */
-function loadCrates(indexAddr, cacheDir) {
-  indexAddr = indexAddr || defaultIndexAddr;
-  cacheDir = cacheDir || defaultCacheDir;
+function loadCrates(config) {
+  var indexAddr = config.crateIndexAddr;
+  var cacheDir = config.cacheDir;
 
   var localIndex = path.join(cacheDir, localIndexName);
 
-  var p = cloneIndex(indexAddr, cacheDir);
+  var p = cloneIndex(config);
 
   p = p.then(function() {
     debug('repos asserted');
@@ -134,8 +132,8 @@ function loadCrates(indexAddr, cacheDir) {
 /**
  * Gets the 'dl' field from config.json in the index.
  */
-function getDlRootAddrFromIndex(cacheDir) {
-  cacheDir = cacheDir || defaultCacheDir;
+function getDlRootAddrFromIndex(config) {
+  var cacheDir = config.cacheDir;
 
   var localIndex = path.join(cacheDir, localIndexName);
 
@@ -149,8 +147,9 @@ function getDlRootAddrFromIndex(cacheDir) {
 /**
  * Downloads the version metadata from crates.io and returns it.
  */
-function getVersionMetadata(crateName, crateVers, dlRootAddr, cacheDir) {
-  cacheDir = cacheDir || defaultCacheDir;
+function getVersionMetadata(crateName, crateVers, config) {
+  var dlRootAddr = config.dlRootAddr;
+  var cacheDir = config.cacheDir;
 
   var versionCache = path.join(cacheDir, versionCacheName);
 
@@ -179,16 +178,6 @@ function getVersionMetadata(crateName, crateVers, dlRootAddr, cacheDir) {
     p = p.then(function() { return json; });
     return p;
   }
-}
-
-function getCrateFile(crateName, crateVers, dlRootAddr, cacheDir) {
-  cacheDir = cacheDir || defaultCacheDir;
-  assert(false); // TODO
-}
-
-function getCrateSource(crateName, crateVers, dlRootAddr, cacheDir) {
-  cacheDir = cacheDir || defaultCacheDir;
-  assert(false); // TODO
 }
 
 /**
@@ -229,13 +218,9 @@ function getDag(crates) {
   return map;
 }
 
-exports.defaultIndexAddr = defaultIndexAddr;
-exports.defaultCacheDir = defaultCacheDir;
 exports.cloneIndex = cloneIndex;
 exports.loadCrates = loadCrates;
 exports.getDlRootAddrFromIndex = getDlRootAddrFromIndex;
-exports.getCrateFile = getCrateFile;
-exports.getCrateSource = getCrateSource;
 exports.getVersionMetadata = getVersionMetadata;
 exports.getMostRecentRevs = getMostRecentRevs;
 exports.getDag = getDag;
