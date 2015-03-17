@@ -191,6 +191,43 @@ function getCrateSource(crateName, crateVers, dlRootAddr, cacheDir) {
   assert(false); // TODO
 }
 
+/**
+ * Given the resolved output from `loadCrates`, return a map from crate
+ * names to arrays of crate data.
+ */
+function getMostRecentRevs(crates) {
+  var map = {};
+  crates.forEach(function(c) {
+    if (map[c.name] == null) {
+      map[c.name] = c;
+    } else {
+      if (semver.lt(map[c.name].vers, c.vers)) {
+	map[c.name] = c;
+      }
+    }
+  });
+
+  return map;
+}
+
+/**
+ * Given the resolved output from `loadCrates`, return a map from crate
+ * names to arrays of dependencies, using data from the most recent crate revisions
+ * (so it is not perfectly accurate).
+ */
+function getDag(crates) {
+  var mostRecent = getMostRecentRevs(crates);
+  var map = { };
+  crates.forEach(function(crate) {
+    var deps = [];
+    crate.deps.forEach(function(dep) {
+      deps.push(dep.name);
+    });
+    map[crate.name] = deps;
+  });
+  return map;
+}
+
 exports.defaultIndexAddr = defaultIndexAddr;
 exports.defaultCacheDir = defaultCacheDir;
 exports.cloneIndex = cloneIndex;
@@ -199,3 +236,5 @@ exports.getDlRootAddrFromIndex = getDlRootAddrFromIndex;
 exports.getCrateFile = getCrateFile;
 exports.getCrateSource = getCrateSource;
 exports.getVersionMetadata = getVersionMetadata;
+exports.getMostRecentRevs = getMostRecentRevs;
+exports.getDag = getDag;

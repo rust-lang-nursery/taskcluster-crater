@@ -147,6 +147,27 @@ suite("local crate-index tests", function() {
     p = p.catch(function(e) { done(e) });
   });
 
+  test("get most recent revs", function(done) {
+    var p = crates.loadCrates(testCrateIndexAddr, tmpCacheDir);
+    p.then(function(crateData) {
+      return crates.getMostRecentRevs(crateData);
+    }).then(function(recent) {
+      assert(recent["toml"].vers == "0.1.18");
+      assert(recent["obj-rs"].vers == "0.4.2");
+      done();
+    }).catch(function(e) { done(e); });
+  });
+
+  test("get dag", function(done) {
+    var p = crates.loadCrates(testCrateIndexAddr, tmpCacheDir);
+    p.then(function(crateData) {
+      return crates.getDag(crateData);
+    }).then(function(crateData) {
+      assert(crateData["piston"][0] == "pistoncore-input");
+      done();
+    }).catch(function(e) { done(e); });
+  });
+
 });
 
 suite("local rust-dist tests", function() {
