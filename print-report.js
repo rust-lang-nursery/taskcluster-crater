@@ -38,14 +38,24 @@ function main() {
 	console.log();
 	console.log("Date: " + report.date);
 	console.log();
-	console.log("The most recent stable release is " + report.currentReport.stable + ".");
-	console.log("The most recent beta release is " + report.currentReport.beta + ".");
-	console.log("The most recent nightly release is " + report.currentReport.nightly + ".");
+	console.log("## Current releases");
 	console.log();
-	console.log("There are currently " + report.betaRegressions.length +
+	console.log("* The most recent stable release is " + report.currentReport.stable + ".");
+	console.log("* The most recent beta release is " + report.currentReport.beta + ".");
+	console.log("* The most recent nightly release is " + report.currentReport.nightly + ".");
+	console.log();
+	console.log("## Regressions");
+	console.log();
+	console.log("* There are currently " + report.betaRootRegressions.length +
+		    " root regressions from stable to beta.");
+	console.log("* There are currently " + report.nightlyRootRegressions.length +
+		    " root regressions from beta to nightly.");
+	console.log("* There are currently " + report.betaRegressions.length +
 		    " regressions from stable to beta.");
-	console.log("There are currently " + report.nightlyRegressions.length +
+	console.log("* There are currently " + report.nightlyRegressions.length +
 		    " regressions from beta to nightly.");
+	console.log();
+	console.log("## Coverage");
 	console.log();
 	console.log("From stable to beta:");
 	console.log("* " + report.betaStatuses.length + " crates tested: " +
@@ -61,7 +71,29 @@ function main() {
 		    report.nightlyStatusSummary.regressed + " regressed / " +
 		    report.nightlyStatusSummary.fixed + " fixed.");
 	console.log();
-	console.log("## Beta non-root regressions, by popularity");
+	console.log("## Beta root regressions, (not) by popularity:");
+	console.log();
+	report.betaRootRegressions.forEach(function(reg) {
+	  console.log("* " + reg.crateName + "-" + reg.crateVers);
+	});
+	console.log();
+	console.log("## Nightly root regressions, (not) by popularity:");
+	console.log();
+	report.nightlyRootRegressions.forEach(function(reg) {
+	  console.log("* " + reg.crateName + "-" + reg.crateVers);
+	});
+	console.log();
+	console.log("## Beta non-root regressions, (not) by popularity:");
+	console.log();
+	report.betaRegressions.forEach(function(reg) {
+	  console.log("* " + reg.crateName + "-" + reg.crateVers);
+	});
+	console.log();
+	console.log("## Nightly non-root regressions, (not) by popularity:");
+	console.log();
+	report.nightlyRegressions.forEach(function(reg) {
+	  console.log("* " + reg.crateName + "-" + reg.crateVers);
+	});
       }).then(function() {
 	return db.disconnect(dbctx);
       });

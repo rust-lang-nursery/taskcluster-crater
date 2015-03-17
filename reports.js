@@ -40,18 +40,20 @@ function createWeeklyReport(date, dbctx, rustDistAddr, indexAddr, cacheDir) {
     var betaRootRegressions = pruneDependentRegressions(betaRegressions, indexAddr, cacheDir);
     var nightlyRootRegressions = pruneDependentRegressions(nightlyRegressions, indexAddr, cacheDir);
 
-    return {
-      date: date,
-      currentReport: state.currentReport,
-      betaStatuses: state.betaStatuses,
-      nightlyStatuses: state.nightlyStatuses,
-      betaStatusSummary: betaStatusSummary,
-      nightlyStatusSummary: nightlyStatusSummary,
-      betaRegressions: betaRegressions,
-      nightlyRegressions: nightlyRegressions,
-      betaRootRegressions: betaRootRegressions,
-      nightlyRootRegressions: nightlyRootRegressions
-    };
+    return Promise.all([betaRootRegressions, nightlyRootRegressions]).then(function(regs) {
+      return {
+	date: date,
+	currentReport: state.currentReport,
+	betaStatuses: state.betaStatuses,
+	nightlyStatuses: state.nightlyStatuses,
+	betaStatusSummary: betaStatusSummary,
+	nightlyStatusSummary: nightlyStatusSummary,
+	betaRegressions: betaRegressions,
+	nightlyRegressions: nightlyRegressions,
+	betaRootRegressions: regs[0],
+	nightlyRootRegressions: regs[1]
+      };
+    });
   });
 }
 
@@ -127,7 +129,25 @@ function calculateRegressions(statuses) {
 }
 
 function pruneDependentRegressions(regressions, indexAddr, cacheDir) {
-  return null;
+  return crateIndex.loadCrates(indexAddr, cacheDir).then(function(crates) {
+    var dag = crateIndex.getDag(crates);
+    var independent = [];
+    regressions.forEach(function(reg) {
+      var isIndependent = true;
+      var data = dag[reg.crateName];
+      data.forEach(function(dep) {
+	regressions.forEach(function(reg) {
+	  if (reg.crateName == dep) {
+	    isIndependent = false;
+	  }
+	});
+      });
+      if (isIndependent) {
+	independent.push(reg);
+      }
+    });
+    return independent;
+  });
 }
 
 /**
