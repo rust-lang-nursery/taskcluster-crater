@@ -218,13 +218,14 @@ function getMostRecentRevs(crates) {
 function getDag(crates) {
   var mostRecent = getMostRecentRevs(crates);
   var map = { };
-  crates.forEach(function(crate) {
+  for (var k in mostRecent) {
+    var crate = mostRecent[k];
     var deps = [];
     crate.deps.forEach(function(dep) {
       deps.push(dep.name);
     });
     map[crate.name] = deps;
-  });
+  }
   return map;
 }
 

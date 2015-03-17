@@ -85,13 +85,13 @@ function main() {
 	console.log();
 	console.log("## Beta non-root regressions, (not) by popularity:");
 	console.log();
-	report.betaRegressions.forEach(function(reg) {
+	report.betaNonRootRegressions.forEach(function(reg) {
 	  console.log("* " + reg.crateName + "-" + reg.crateVers);
 	});
 	console.log();
 	console.log("## Nightly non-root regressions, (not) by popularity:");
 	console.log();
-	report.nightlyRegressions.forEach(function(reg) {
+	report.nightlyNonRootRegressions.forEach(function(reg) {
 	  console.log("* " + reg.crateName + "-" + reg.crateVers);
 	});
       }).then(function() {

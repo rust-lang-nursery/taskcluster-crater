@@ -41,6 +41,13 @@ function createWeeklyReport(date, dbctx, rustDistAddr, indexAddr, cacheDir) {
     var nightlyRootRegressions = pruneDependentRegressions(nightlyRegressions, indexAddr, cacheDir);
 
     return Promise.all([betaRootRegressions, nightlyRootRegressions]).then(function(regs) {
+
+      var betaRootRegressions = regs[0];
+      var nightlyRootRegressions = regs[1];
+
+      var betaNonRootRegressions = pruneRootRegressions(betaRegressions, betaRootRegressions);
+      var nightlyNonRootRegressions = pruneRootRegressions(nightlyRegressions, nightlyRootRegressions);
+
       return {
 	date: date,
 	currentReport: state.currentReport,
@@ -50,8 +57,10 @@ function createWeeklyReport(date, dbctx, rustDistAddr, indexAddr, cacheDir) {
 	nightlyStatusSummary: nightlyStatusSummary,
 	betaRegressions: betaRegressions,
 	nightlyRegressions: nightlyRegressions,
-	betaRootRegressions: regs[0],
-	nightlyRootRegressions: regs[1]
+	betaRootRegressions: betaRootRegressions,
+	nightlyRootRegressions: nightlyRootRegressions,
+	betaNonRootRegressions: betaNonRootRegressions,
+	nightlyNonRootRegressions: nightlyNonRootRegressions
       };
     });
   });
@@ -69,7 +78,6 @@ function calculateStatuses(dbctx, fromToolchain, toToolchain) {
   }
 
   return db.getResultPairs(dbctx, fromToolchain, toToolchain).then(function(buildResults) {
-    debug(JSON.stringify(buildResults));
     return buildResults.map(function(buildResult) {
       var status = null;
       if (buildResult.from.success && buildResult.to.success) {
@@ -128,26 +136,57 @@ function calculateRegressions(statuses) {
   return regressions;
 }
 
-function pruneDependentRegressions(regressions, indexAddr, cacheDir) {
+function pruneDependentRegressions(regressions, crates, indexAddr, cacheDir) {
+  var regressionMap = {};
+  regressions.forEach(function(r) {
+    regressionMap[r.crateName] = r;
+  });
+
   return crateIndex.loadCrates(indexAddr, cacheDir).then(function(crates) {
     var dag = crateIndex.getDag(crates);
     var independent = [];
     regressions.forEach(function(reg) {
       var isIndependent = true;
-      var data = dag[reg.crateName];
-      data.forEach(function(dep) {
-	regressions.forEach(function(reg) {
-	  if (reg.crateName == dep) {
-	    isIndependent = false;
-	  }
-	});
-      });
+      var depStack = dag[reg.crateName];
+      if (depStack == null) {
+	// No info about this crate? Happens in the test suite.
+	debug("no deps for " + reg.crateName);
+      }
+      while (depStack && depStack.length != 0 && isIndependent) {
+
+	var nextDep = depStack.pop();
+	if (regressionMap[nextDep]) {
+	  debug(reg.crateName + " depends on regressed " + nextDep);
+	  isIndependent = false;
+	}
+
+	if (dag[nextDep]) {
+	  depStack.concat(dag[nextDep]);
+	}
+      }
       if (isIndependent) {
+	debug(reg.crateName + " is an independent regression");
 	independent.push(reg);
       }
     });
     return independent;
   });
+}
+
+function pruneRootRegressions(regs, rootRegs) {
+  var rootRegMap = {};
+  rootRegs.forEach(function(r) {
+    rootRegMap[r.crateName] = r;
+  });
+
+  var dependent = []
+  regs.forEach(function(reg) {
+    if (!rootRegMap[reg.crateName]) {
+      dependent.push(reg);
+    }
+  });
+
+  return dependent;
 }
 
 /**

@@ -517,6 +517,54 @@ suite("report tests", function() {
     }).catch(function(e) { done(e) });
   });
 
+  test("weekly report prune regressed leaves", function(done) {
+    var oldResultRegressed = {
+      channel: "beta",
+      archiveDate: "2015-02-20",
+      crateName: "piston",
+      crateVers: "0.0.7",
+      success: true
+    };
+    var newResultRegressed = {
+      channel: "nightly",
+      archiveDate: "2015-02-26",
+      crateName: "piston",
+      crateVers: "0.0.7",
+      success: false
+    };
+    var oldResultRegressedDep = {
+      channel: "beta",
+      archiveDate: "2015-02-20",
+      crateName: "pistoncore-input",
+      crateVers: "0.0.5",
+      success: true
+    };
+    var newResultRegressedDep = {
+      channel: "nightly",
+      archiveDate: "2015-02-26",
+      crateName: "pistoncore-input",
+      crateVers: "0.0.5",
+      success: false
+    };
+    var dbctx;
+    db.connect(testDbCredentials, testDbName).then(function(d) {
+      dbctx = d;
+    }).then(function() { return db.addBuildResult(dbctx, oldResultRegressed);
+    }).then(function() { return db.addBuildResult(dbctx, newResultRegressed);
+    }).then(function() { return db.addBuildResult(dbctx, oldResultRegressedDep);
+    }).then(function() { return db.addBuildResult(dbctx, newResultRegressedDep);
+    }).then(function() {
+      return reports.createWeeklyReport("2015-03-03", dbctx, testDistDir, testCrateIndexAddr, tmpCacheDir);
+    }).then(function(report) {
+
+      // 'piston' is not a root regression
+      assert(report.nightlyRootRegressions.length = 1);
+      assert(report.nightlyRootRegressions[0].crateName == "pistoncore-input");
+
+      done();
+    }).catch(function(e) { done(e) });
+  });
+
 });
 
 suite("live network tests", function() {
