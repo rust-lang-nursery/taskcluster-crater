@@ -105,7 +105,7 @@ function scheduleBuilds(schedule, dlRootAddr, rustDistAddr, tcCredentials) {
 	  console.log("error is " + e);
 	  cb(e, null);
 	}).then(function(result) {
-	  console.log("createTask returned status: ", result.status);
+	  console.log("created task for " + JSON.stringify(schedule));
 	  console.log("inspector link: https://tools.taskcluster.net/task-inspector/#" + taskId);
 	  cb(null, result);
 	});
