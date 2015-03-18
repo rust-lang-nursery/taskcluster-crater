@@ -84,7 +84,8 @@ function recordResultForTask(dbctx, tcQueue, taskId, success) {
       archiveDate: archiveDate,
       crateName: crateName,
       crateVers: crateVers,
-      success: success
+      success: success,
+      taskId: taskId
     };
     debug("adding build result: " + JSON.stringify(buildResult));
     return db.addBuildResult(dbctx, buildResult);

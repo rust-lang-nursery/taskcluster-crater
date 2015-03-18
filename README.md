@@ -62,5 +62,7 @@ The credentials need to be in pg-credentials.js.
 
 # Future work
 
-* Only test the most recent revisions of crates for now.
 * Use task graphs that mirror the crate dependency structure.
+* Custom builds
+* Limiting builds to the top N.
+* Arbitrary comparisons ('comparison report')
