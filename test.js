@@ -407,6 +407,17 @@ suite("scheduler tests", function() {
       done();
     }).catch(function(e) { done(e); });
   });
+
+  test("schedule most recent", function(done) {
+    var options = { toolchain: { channel: "nightly", date: "2015-03-03" }, top: 2, mostRecentOnly: true };
+    var p = scheduler.createSchedule(options, testConfig);
+    p.then(function(schedule) {
+      assert(schedule.length == 2);
+      assert(schedule[0].crateName == "winapi");
+      assert(schedule[1].crateName == "rustc-serialize");
+      done();
+    }).catch(function(e) { done(e); });
+  });
 });
 
 suite("report tests", function() {

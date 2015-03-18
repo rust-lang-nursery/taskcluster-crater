@@ -23,6 +23,12 @@ function createSchedule(schedOpts, config) {
       return crates;
     }
   }).then(function(crates) {
+    if (schedOpts.mostRecentOnly) {
+      return retainMostRecent(crates);
+    } else {
+      return crates;
+    }
+  }).then(function(crates) {
     return createScheduleForCratesForToolchain(crates, schedOpts.toolchain);
   });
 }
@@ -88,6 +94,21 @@ function retainTop(crates, count) {
   }
 
   return finalSorted;
+}
+
+function retainMostRecent(crates, count) {
+  var mostRecent = crateIndex.getMostRecentRevs(crates);
+
+  var result = [];
+
+  crates.forEach(function(crate) {
+    var recent = mostRecent[crate.name];
+    if (crate.vers == recent.vers) {
+      result.push(crate);
+    }
+  });
+
+  return result;
 }
 
 function createScheduleForCratesForToolchain(crates, toolchain) {

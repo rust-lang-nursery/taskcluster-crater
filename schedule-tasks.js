@@ -32,15 +32,20 @@ function main() {
 function parseOptionsFromArgs() {
   var toolchain = util.parseToolchain(process.argv[2])
   var top = null;
+  var mostRecentOnly = false;
   for (var i = 3; i < process.argv.length; i++) {
     if (process.argv[i] == "--top") {
       top = parseInt(process.argv[i + 1]);
+    }
+    if (process.argv[i] == "--most-recent-only") {
+      mostRecentOnly = true;
     }
   }
 
   return {
     toolchain: toolchain,
-    top: top
+    top: top,
+    mostRecentOnly: mostRecentOnly
   };
 }
 
