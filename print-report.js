@@ -29,7 +29,7 @@ function main() {
     }).done();
   } else if (reportSpec.type == "weekly") {
     var date = reportSpec.date;
-    db.connect(dbCredentials).then(function(dbctx) {
+    db.connect(config).then(function(dbctx) {
       var p = reports.createWeeklyReport(date, dbctx, config);
       return p.then(function(report) {
 	console.log("# Weekly Report");
