@@ -12,6 +12,7 @@ var walk = require('walkdir');
 var path = require('path');
 var semver = require('semver');
 var util = require('./crater-util');
+var assert = require('assert');
 
 var localIndexName = "crate-index"
 var crateCacheName = "crate-cache"
@@ -218,9 +219,39 @@ function getDag(crates) {
   return map;
 }
 
+/**
+ * Return a map from crate names to number of transitive downstream users.
+ */
+function getPopularityMap(crates) {
+
+  var users = { };
+
+  // Set users of every crate to 0
+  crates.forEach(function(crate) {
+    users[crate.name] = 0;
+  });
+
+  var dag = getDag(crates);
+  for (var crateName in dag) {
+    var depStack = dag[crateName];
+    while (depStack && depStack.length != 0) {
+      var nextDep = depStack.pop();
+      assert(users[nextDep] != null);
+      users[nextDep] += 1;
+
+      if (dag[nextDep]) {
+	depStack.concat(dag[nextDep]);
+      }
+    }
+  }
+
+  return users;
+}
+
 exports.cloneIndex = cloneIndex;
 exports.loadCrates = loadCrates;
 exports.getDlRootAddrFromIndex = getDlRootAddrFromIndex;
 exports.getVersionMetadata = getVersionMetadata;
 exports.getMostRecentRevs = getMostRecentRevs;
 exports.getDag = getDag;
+exports.getPopularityMap = getPopularityMap;

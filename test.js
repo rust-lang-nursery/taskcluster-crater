@@ -141,6 +141,17 @@ suite("local crate-index tests", function() {
     }).catch(function(e) { done(e); });
   });
 
+  test("get popularity map", function(done) {
+    var p = crates.loadCrates(testConfig);
+    p.then(function(crateData) {
+      var pop = crates.getPopularityMap(crateData);
+      assert(pop.time == 72);
+      assert(pop.num == 17);
+      assert(pop.piston == 0);
+      done();
+    }).catch(function(e) { done(e); });
+  });
+
 });
 
 suite("local rust-dist tests", function() {
