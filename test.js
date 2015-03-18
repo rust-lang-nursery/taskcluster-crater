@@ -379,8 +379,8 @@ suite("scheduler tests", function() {
   afterEach(runAfterEach);
 
   test("schedule all crates", function(done) {
-    var tc = { channel: "nightly", date: "2015-03-03" };
-    var p = scheduler.createScheduleForAllCratesForToolchain(tc, testConfig);
+    var options = { toolchain: { channel: "nightly", date: "2015-03-03" }, top: null };;
+    var p = scheduler.createSchedule(options, testConfig);
     p = p.then(function(schedule) {
       var errors = false;
       schedule.forEach(function(build) {
@@ -396,6 +396,16 @@ suite("scheduler tests", function() {
       }
     });
     p.done();
+  });
+
+  test("schedule top crates", function(done) {
+    var options = { toolchain: { channel: "nightly", date: "2015-03-03" }, top: 2 };
+    var p = scheduler.createSchedule(options, testConfig);
+    p.then(function(schedule) {
+      assert(schedule[0].crateName == "winapi");
+      assert(schedule[schedule.length - 1].crateName == "rustc-serialize");
+      done();
+    }).catch(function(e) { done(e); });
   });
 });
 

@@ -236,6 +236,10 @@ function getPopularityMap(crates) {
     var depStack = dag[crateName];
     while (depStack && depStack.length != 0) {
       var nextDep = depStack.pop();
+      if (users[nextDep] == null) {
+	debug("dep " + nextDep + " is unknown. probably filtered out earlier");
+	users[nextDep] = 0;
+      }
       assert(users[nextDep] != null);
       users[nextDep] += 1;
 

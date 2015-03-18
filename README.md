@@ -66,3 +66,4 @@ The credentials need to be in pg-credentials.js.
 * Custom builds
 * Limiting builds to the top N.
 * Arbitrary comparisons ('comparison report')
+* Add --most-recent-only flag to schedule-tasks.js

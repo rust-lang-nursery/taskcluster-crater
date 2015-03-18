@@ -10,16 +10,21 @@ var tc = require('taskcluster-client');
 var assert = require('assert');
 var dist = require('./rust-dist');
 
-function createScheduleForAllCratesForToolchain(toolchain, config) {
-  var p = crateIndex.loadCrates(config)
-  p = p.then(function(crates) {
-    debug("loaded " + crates.length + " crates");
+/**
+ * Create a schedule of tasks for execution by `scheduleBuilds`.
+ */
+function createSchedule(schedOpts, config) {
+  return crateIndex.loadCrates(config).then(function(crates) {
     return filterOutOld(crates, config);
+  }).then(function(crates) {
+    if (schedOpts.top) {
+      return retainTop(crates, schedOpts.top);
+    } else {
+      return crates;
+    }
+  }).then(function(crates) {
+    return createScheduleForCratesForToolchain(crates, schedOpts.toolchain);
   });
-  p = p.then(function(crates) {
-    return createScheduleForCratesForToolchain(crates, toolchain);
-  });    
-  return p;
 }
 
 function filterOutOld(crates, config) {
@@ -57,6 +62,34 @@ function filterOutOld(crates, config) {
   return p;
 }
 
+function retainTop(crates, count) {
+  var popMap = crateIndex.getPopularityMap(crates);
+  var sorted = crates.slice();
+  sorted.sort(function(a, b) {
+    var aPop = popMap[a.name];
+    var bPop = popMap[b.name];
+    if (aPop == bPop) { return 0; }
+    if (aPop < bPop) { return 1; }
+    if (aPop > bPop) { return -1; }
+  });
+
+  // We want the to *count* unique crate names, but to keep
+  // all revisions.
+  var finalSorted = [];
+  var seenCrateNames = {};
+  for (var i = 0; i < sorted.length; i++) {
+    var crate = sorted[i];
+    seenCrateNames[crate.name] = 0;
+    if (Object.keys(seenCrateNames).length > count) {
+      break;
+    }
+
+    finalSorted.push(crate);
+  }
+
+  return finalSorted;
+}
+
 function createScheduleForCratesForToolchain(crates, toolchain) {
   // Convert to scheduler commands
   var tasks = [];
@@ -73,12 +106,8 @@ function createScheduleForCratesForToolchain(crates, toolchain) {
 }
 
 function scheduleBuilds(schedule, config) {
-  var dlRootAddr = config.dlRootAddr;
-  var rustDistAddr = config.rustDistAddr;
   var tcCredentials = config.tcCredentials;
 
-  assert(dlRootAddr != null);
-  assert(rustDistAddr != null);
   assert(tcCredentials != null);
 
   // FIXME: For testing, just schedule five builds instead of thousands
@@ -94,7 +123,7 @@ function scheduleBuilds(schedule, config) {
   var i = 1;
 
   return Promise.denodeify(async.mapLimit)(schedule, 100, function(schedule, cb) {
-    createTaskDescriptor(schedule, dlRootAddr, rustDistAddr).then(function(taskDesc) {
+    createTaskDescriptor(schedule, config).then(function(taskDesc) {
       debug("createTask payload: " + JSON.stringify(taskDesc));
 
       var taskId = slugid.v4();
@@ -191,5 +220,5 @@ function installerUrlForToolchain(toolchain, config) {
 }
 
 
-exports.createScheduleForAllCratesForToolchain = createScheduleForAllCratesForToolchain
-exports.scheduleBuilds = scheduleBuilds
+exports.createSchedule = createSchedule;
+exports.scheduleBuilds = scheduleBuilds;

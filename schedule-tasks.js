@@ -10,27 +10,38 @@ var scheduler = require('./scheduler');
 var crateIndex = require('./crate-index');
 
 function main() {
-  var toolchain = util.parseToolchain(process.argv[2])
-  if (!toolchain) {
-    console.log("can't parse toolchain");
+  var options = parseOptionsFromArgs();
+  if (!options) {
+    console.log("can't parse options");
     process.exit(1);
   }
 
-  debug("scheduling for toolchain %s", JSON.stringify(toolchain));
+  debug("scheduling for toolchain %s", JSON.stringify(options));
 
   var config = util.loadDefaultConfig();
 
-  crateIndex.cloneIndex(config)
-    .then(function() {
-      return scheduler.createScheduleForAllCratesForToolchain(toolchain, config);
-    })
-    .then(function(schedule) {
-      return scheduler.scheduleBuilds(schedule, config);
-    })
-    .then(function(tasks) {
-      console.log("created " + tasks.length + " tasks");
-    })
-    .done();
+  crateIndex.cloneIndex(config).then(function() {
+    return scheduler.createSchedule(options, config);
+  }).then(function(schedule) {
+    return scheduler.scheduleBuilds(schedule, config);
+  }).then(function(tasks) {
+    console.log("created " + tasks.length + " tasks");
+  }).done();
+}
+
+function parseOptionsFromArgs() {
+  var toolchain = util.parseToolchain(process.argv[2])
+  var top = null;
+  for (var i = 3; i < process.argv.length; i++) {
+    if (process.argv[i] == "--top") {
+      top = parseInt(process.argv[i + 1]);
+    }
+  }
+
+  return {
+    toolchain: toolchain,
+    top: top
+  };
 }
 
 main();
