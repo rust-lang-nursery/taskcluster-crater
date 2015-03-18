@@ -20,7 +20,7 @@ function main() {
 
   if (reportSpec.type == "current") {
     var date = reportSpec.date;
-    reports.createCurrentReport(date).then(function(report) {
+    reports.createCurrentReport(date, config).then(function(report) {
       console.log("# Current Report");
       console.log();
       console.log("* current stable is " + report.stable);
@@ -69,25 +69,25 @@ function main() {
 		    report.nightlyStatusSummary.regressed + " regressed / " +
 		    report.nightlyStatusSummary.fixed + " fixed.");
 	console.log();
-	console.log("## Beta root regressions, (not) by popularity:");
+	console.log("## Beta root regressions, (unsorted):");
 	console.log();
 	report.betaRootRegressions.forEach(function(reg) {
 	  console.log("* " + reg.crateName + "-" + reg.crateVers);
 	});
 	console.log();
-	console.log("## Nightly root regressions, (not) by popularity:");
+	console.log("## Nightly root regressions, (unsorted):");
 	console.log();
 	report.nightlyRootRegressions.forEach(function(reg) {
 	  console.log("* " + reg.crateName + "-" + reg.crateVers);
 	});
 	console.log();
-	console.log("## Beta non-root regressions, (not) by popularity:");
+	console.log("## Beta non-root regressions, (unsorted):");
 	console.log();
 	report.betaNonRootRegressions.forEach(function(reg) {
 	  console.log("* " + reg.crateName + "-" + reg.crateVers);
 	});
 	console.log();
-	console.log("## Nightly non-root regressions, (not) by popularity:");
+	console.log("## Nightly non-root regressions, (unsorted):");
 	console.log();
 	report.nightlyNonRootRegressions.forEach(function(reg) {
 	  console.log("* " + reg.crateName + "-" + reg.crateVers);
