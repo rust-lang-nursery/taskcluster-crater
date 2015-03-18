@@ -244,7 +244,8 @@ suite("database tests", function() {
 	archiveDate: "2015-03-01",
 	crateName: "toml",
 	crateVers: "1.0",
-	success: true
+	success: true,
+	taskId: "foo"
       };
       var p = Promise.resolve();
       var p = p.then(function() { return db.addBuildResult(dbctx, actual); });
@@ -263,7 +264,8 @@ suite("database tests", function() {
 	archiveDate: "2015-03-01",
 	crateName: "toml",
 	crateVers: "1.0",
-	success: true
+	success: true,
+	taskId: "foo"
       };
       var p = Promise.resolve();
       // Call addBuildResult twice, an insert then an update
@@ -301,28 +303,32 @@ suite("database tests", function() {
 	archiveDate: "2015-03-01",
 	crateName: "num",
 	crateVers: "1.0",
-	success: true
+	success: true,
+	taskId: "t1"
       };
       var oldResult2 = {
 	channel: "beta",
 	archiveDate: "2015-03-01",
 	crateName: "toml",
 	crateVers: "1.1",
-	success: true
+	success: true,
+	taskId: "t2"
       };
       var newResult1 = {
 	channel: "nightly",
 	archiveDate: "2015-03-02",
 	crateName: "num",
 	crateVers: "1.0",
-	success: false
+	success: false,
+	taskId: "t3"
       };
       var newResult2 = {
 	channel: "nightly",
 	archiveDate: "2015-03-02",
 	crateName: "toml",
 	crateVers: "1.1",
-	success: true
+	success: true,
+	taskId: "t2"
       };
       var fromToolchain = {
 	channel: "beta",

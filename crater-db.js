@@ -54,6 +54,7 @@ function populate(dbctx) {
            channel text, archive_date text, \
            crate_name text, crate_vers text, \
            success boolean, \
+           task_id text, \
            primary key ( \
            channel, archive_date, crate_name, crate_vers ) ) \
            ";
@@ -81,7 +82,8 @@ function depopulate(dbctx) {
 
 /**
  * Adds a build result and returns a promise of nothing. buildResult should
- * look like `{ channel: ..., archiveDate: ..., crateName: ..., crateVers: ..., success: ... }`.
+ * look like `{ channel: ..., archiveDate: ..., crateName: ..., crateVers: ..., success: ...,
+ * taskId: ... }`.
  */
 function addBuildResult(dbctx, buildResult) {
   return new Promise(function (resolve, reject) {
@@ -96,23 +98,25 @@ function addBuildResult(dbctx, buildResult) {
       var p = getBuildResult(dbctx, buildResult);
       p.then(function(r) {
 	if (r == null) {
-	  var q = "insert into build_results values ($1, $2, $3, $4, $5)";
+	  var q = "insert into build_results values ($1, $2, $3, $4, $5, $6)";
 	  debug(q);
 	  dbctx.client.query(q, [buildResult.channel,
 				 buildResult.archiveDate,
 				 buildResult.crateName,
 				 buildResult.crateVers,
-				 buildResult.success],
+				 buildResult.success,
+				 buildResult.taskId],
 			     f);
 	} else {
-	  var q = "update build_results set success = $5 where \
+	  var q = "update build_results set success = $5, task_id =$6 where \
                    channel = $1 and archive_date = $2 and crate_name = $3 and crate_vers = $4";
 	  debug(q);
 	  dbctx.client.query(q, [buildResult.channel,
 				 buildResult.archiveDate,
 				 buildResult.crateName,
 				 buildResult.crateVers,
-				 buildResult.success],
+				 buildResult.success,
+				 buildResult.taskId],
 			     f);
 	}
       });
@@ -143,7 +147,8 @@ function getBuildResult(dbctx, buildResultKey) {
 	    archiveDate: row.archive_date,
 	    crateName: row.crate_name,
 	    crateVers: row.crate_vers,
-	    success: row.success
+	    success: row.success,
+	    taskId: row.task_id
 	  });
 	} else {
 	  resolve(null);
@@ -171,7 +176,8 @@ function getResultPairs(dbctx, fromToolchain, toToolchain) {
   // and b.channel = 'nightly' and b.archive_date = '2015-03-11'
   // and a.crate_name = b.crate_name and a.crate_vers = b.crate_vers;
 
-  var q = "select a.crate_name, a.crate_vers, a.success as from_success, b.success as to_success \
+  var q = "select a.crate_name, a.crate_vers, a.success as from_success, b.success as to_success, \
+           a.task_id as from_task_id, b.task_id as to_task_id \
            from build_results a, build_results b \
            where a.channel = $1 and a.archive_date = $2 \
            and b.channel = $3 and b.archive_date = $4 \
