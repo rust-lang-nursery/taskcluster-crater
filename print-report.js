@@ -70,32 +70,13 @@ function main() {
 		    " regressions from beta to nightly.");
 	console.log();
 	console.log("## Beta root regressions, (unsorted):");
-	console.log();
-	report.betaRootRegressions.forEach(function(reg) {
-	  var link = reg.inspectorLink;
-	  console.log("* [" + reg.crateName + "-" + reg.crateVers + "](" + link + ")");
-	});
-	console.log();
+	printCrateList(report.betaRootRegressions);
 	console.log("## Nightly root regressions, (unsorted):");
-	console.log();
-	report.nightlyRootRegressions.forEach(function(reg) {
-	  var link = reg.inspectorLink;
-	  console.log("* [" + reg.crateName + "-" + reg.crateVers + "](" + link + ")");
-	});
-	console.log();
+	printCrateList(report.nightlyRootRegressions);
 	console.log("## Beta non-root regressions, (unsorted):");
-	console.log();
-	report.betaNonRootRegressions.forEach(function(reg) {
-	  var link = reg.inspectorLink;
-	  console.log("* [" + reg.crateName + "-" + reg.crateVers + "](" + link + ")");
-	});
-	console.log();
+	printCrateList(report.betaRegressions);
 	console.log("## Nightly non-root regressions, (unsorted):");
-	console.log();
-	report.nightlyNonRootRegressions.forEach(function(reg) {
-	  var link = reg.inspectorLink;
-	  console.log("* [" + reg.crateName + "-" + reg.crateVers + "](" + link + ")");
-	});
+	printCrateList(report.nightlyRegressions);
       }).then(function() {
 	return db.disconnect(dbctx);
       });
@@ -125,23 +106,23 @@ function main() {
 	console.log("* There are " + report.regressions.length + " regressions");
 	console.log();
 	console.log("## Root regressions, (unsorted):");
-	console.log();
-	report.rootRegressions.forEach(function(reg) {
-	  var link = reg.inspectorLink;
-	  console.log("* [" + reg.crateName + "-" + reg.crateVers + "](" + link + ")");
-	});
-	console.log();
+	printCrateList(report.rootRegressions);
 	console.log("## Non-root regressions, (unsorted):");
-	console.log();
-	report.nonRootRegressions.forEach(function(reg) {
-	  var link = reg.inspectorLink;
-	  console.log("* [" + reg.crateName + "-" + reg.crateVers + "](" + link + ")");
-	});
+	printCrateList(report.nonRootRegressions);
       }).then(function() {
 	return db.disconnect(dbctx);
       });
     }).done();
   }
+}
+
+function printCrateList(statuses) {
+  console.log();
+  statuses.forEach(function(reg) {
+    var toLink = reg.to.inspectorLink;
+    console.log("* [" + reg.crateName + "-" + reg.crateVers + "](" + toLink + ")");
+  });
+  console.log();
 }
 
 function getReportSpecFromArgs() {

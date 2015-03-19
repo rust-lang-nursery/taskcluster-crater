@@ -87,13 +87,14 @@ function calculateStatuses(dbctx, fromToolchain, toToolchain) {
 	status = "fixed";
       }
 
-      return {
-	crateName: buildResult.crateName,
-	crateVers: buildResult.crateVers,
-	status: status,
-	taskId: buildResult.to.taskId,
-	inspectorLink: "https://tools.taskcluster.net/task-inspector/#" + buildResult.to.taskId
-      };
+      var inspectorRoot = "https://tools.taskcluster.net/task-inspector/#";
+
+      // Just modify the intermediate result
+      buildResult.status = status;
+      buildResult.from.inspectorLink = inspectorRoot + buildResult.from.taskId;
+      buildResult.to.inspectorLink = inspectorRoot + buildResult.to.taskId;
+
+      return buildResult;
     });
   });
 }
