@@ -12,10 +12,14 @@ function createComparisonReport(fromToolchain, toToolchain, dbctx, config) {
   var statuses = calculateStatuses(dbctx, fromToolchain, toToolchain);
   return statuses.then(function(statuses) {
     var statusSummary = calculateStatusSummary(statuses);
-    var regressions = calculateRegressions(statuses);
+    var regressions = extractWithStatus(statuses, "regressed");
     var rootRegressions = pruneDependentRegressions(regressions, config);
     return rootRegressions.then(function(rootRegressions) {
       var nonRootRegressions = pruneRootRegressions(regressions, rootRegressions);
+
+      var working = extractWithStatus(statuses, "working");
+      var broken = extractWithStatus(statuses, "broken");
+      var fixed = extractWithStatus(statuses, "fixed");
 
       return {
 	fromToolchain: fromToolchain,
@@ -25,6 +29,9 @@ function createComparisonReport(fromToolchain, toToolchain, dbctx, config) {
 	regressions: regressions,
 	rootRegressions: rootRegressions,
 	nonRootRegressions: nonRootRegressions,
+	working: working,
+	broken: broken,
+	fixed: fixed
       };
     });
   });
@@ -125,14 +132,14 @@ function calculateStatusSummary(statuses) {
   };
 }
 
-function calculateRegressions(statuses) {
-  var regressions = [];
+function extractWithStatus(statuses, needed) {
+  var result = [];
   statuses.forEach(function(status) {
-    if (status.status == "regressed") {
-      regressions.push(status);
+    if (status.status == needed) {
+      result.push(status);
     }
   });
-  return regressions;
+  return result;
 }
 
 function pruneDependentRegressions(regressions, config) {

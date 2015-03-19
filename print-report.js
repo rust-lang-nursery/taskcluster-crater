@@ -69,14 +69,22 @@ function main() {
 	console.log("* There are currently " + report.nightlyRegressions.length +
 		    " regressions from beta to nightly.");
 	console.log();
-	console.log("## Beta root regressions, (unsorted):");
+	console.log("## Beta root regressions:");
 	printCrateList(report.betaRootRegressions);
-	console.log("## Nightly root regressions, (unsorted):");
+	console.log("## Nightly root regressions:");
 	printCrateList(report.nightlyRootRegressions);
-	console.log("## Beta non-root regressions, (unsorted):");
+	console.log("## Beta non-root regressions:");
 	printCrateList(report.betaRegressions);
-	console.log("## Nightly non-root regressions, (unsorted):");
+	console.log("## Nightly non-root regressions:");
 	printCrateList(report.nightlyRegressions);
+	console.log("## Beta broken:");
+	printCrateList(report.beta.broken);
+	console.log("## Nightly broken:");
+	printCrateList(report.nightly.broken);
+	console.log("## Beta fixed:");
+	printCrateList(report.beta.fixed);
+	console.log("## Nightly fixed:");
+	printCrateList(report.nightly.fixed);
       }).then(function() {
 	return db.disconnect(dbctx);
       });
@@ -105,10 +113,16 @@ function main() {
 	console.log("* There are " + report.rootRegressions.length + " root regressions");
 	console.log("* There are " + report.regressions.length + " regressions");
 	console.log();
-	console.log("## Root regressions, (unsorted):");
+	console.log("## Root regressions:");
 	printCrateList(report.rootRegressions);
-	console.log("## Non-root regressions, (unsorted):");
+	console.log("## Non-root regressions:");
 	printCrateList(report.nonRootRegressions);
+	console.log("## Broken:");
+	printCrateList(report.broken);
+	console.log("## Fixed:");
+	printCrateList(report.fixed);
+	console.log("## Working:");
+	printCrateList(report.working);
       }).then(function() {
 	return db.disconnect(dbctx);
       });
@@ -123,7 +137,7 @@ function printCrateList(statuses) {
     var toLink = reg.to.inspectorLink;
     var s = "* " + reg.crateName + "-" + reg.crateVers + " " +
       "([before](" + fromLink + ")) " +
-      "([after](" + fromLink + "))";
+      "([after](" + toLink + "))";
     console.log(s);
   });
   console.log();
