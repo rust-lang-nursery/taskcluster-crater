@@ -513,12 +513,12 @@ suite("report tests", function() {
 
       assert(report.betaStatuses.length == 0);
       assert(report.nightlyStatuses[0].status == "working");
-      assert(report.nightlyStatuses[1].status == "not-working");
+      assert(report.nightlyStatuses[1].status == "broken");
       assert(report.nightlyStatuses[2].status == "regressed");
       assert(report.nightlyStatuses[3].status == "fixed");
 
       assert(report.nightlyStatusSummary.working == 1);
-      assert(report.nightlyStatusSummary.notWorking == 1);
+      assert(report.nightlyStatusSummary.broken == 1);
       assert(report.nightlyStatusSummary.regressed == 1);
       assert(report.nightlyStatusSummary.fixed == 1);
 
