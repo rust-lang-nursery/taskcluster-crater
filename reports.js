@@ -24,7 +24,7 @@ function createComparisonReport(fromToolchain, toToolchain, dbctx, config) {
 	statusSummary: statusSummary,
 	regressions: regressions,
 	rootRegressions: rootRegressions,
-	nonRootRegressions: nonRootRegressions
+	nonRootRegressions: nonRootRegressions,
       };
     });
   });
@@ -64,7 +64,7 @@ function createWeeklyReport(date, dbctx, config) {
 
 /**
  * Returns promise of array of `{ crateName, crateVers, status }`,
- * where `status` is either 'working', 'not-working', 'regressed',
+ * where `status` is either 'working', 'broken', 'regressed',
  * 'fixed'.
  */ 
 function calculateStatuses(dbctx, fromToolchain, toToolchain) {
@@ -79,7 +79,7 @@ function calculateStatuses(dbctx, fromToolchain, toToolchain) {
       if (buildResult.from.success && buildResult.to.success) {
 	status = "working";
       } else if (!buildResult.from.success && !buildResult.to.success) {
-	status = "not-working";
+	status = "broken";
       } else if (buildResult.from.success && !buildResult.to.success) {
 	status = "regressed";
       } else {
@@ -100,14 +100,14 @@ function calculateStatuses(dbctx, fromToolchain, toToolchain) {
 
 function calculateStatusSummary(statuses) {
   var working = 0;
-  var notWorking = 0;
+  var broken = 0;
   var regressed = 0;
   var fixed = 0;
   statuses.forEach(function(status) {
     if (status.status == "working") {
       working += 1;
-    } else if (status.status == "not-working") {
-      notWorking += 1;
+    } else if (status.status == "broken") {
+      broken += 1;
     } else if (status.status == "regressed") {
       regressed += 1;
     } else {
@@ -118,7 +118,7 @@ function calculateStatusSummary(statuses) {
 
   return {
     working: working,
-    notWorking: notWorking,
+    broken: broken,
     regressed: regressed,
     fixed: fixed
   };

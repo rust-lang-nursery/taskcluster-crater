@@ -42,17 +42,6 @@ function main() {
 	console.log("* The most recent beta release is " + report.currentReport.beta + ".");
 	console.log("* The most recent nightly release is " + report.currentReport.nightly + ".");
 	console.log();
-	console.log("## Regressions");
-	console.log();
-	console.log("* There are currently " + report.betaRootRegressions.length +
-		    " root regressions from stable to beta.");
-	console.log("* There are currently " + report.nightlyRootRegressions.length +
-		    " root regressions from beta to nightly.");
-	console.log("* There are currently " + report.betaRegressions.length +
-		    " regressions from stable to beta.");
-	console.log("* There are currently " + report.nightlyRegressions.length +
-		    " regressions from beta to nightly.");
-	console.log();
 	console.log("## Coverage");
 	console.log();
 	console.log("From stable to beta:");
@@ -65,9 +54,20 @@ function main() {
 	console.log("From beta to nightly:");
 	console.log("* " + report.nightlyStatuses.length + " crates tested: " +
 		    report.nightlyStatusSummary.working + " working / " +
-		    report.nightlyStatusSummary.notWorking + " not working / " +
+		    report.nightlyStatusSummary.broken + " broken / " +
 		    report.nightlyStatusSummary.regressed + " regressed / " +
 		    report.nightlyStatusSummary.fixed + " fixed.");
+	console.log();
+	console.log("## Regressions");
+	console.log();
+	console.log("* There are currently " + report.betaRootRegressions.length +
+		    " root regressions from stable to beta.");
+	console.log("* There are currently " + report.nightlyRootRegressions.length +
+		    " root regressions from beta to nightly.");
+	console.log("* There are currently " + report.betaRegressions.length +
+		    " regressions from stable to beta.");
+	console.log("* There are currently " + report.nightlyRegressions.length +
+		    " regressions from beta to nightly.");
 	console.log();
 	console.log("## Beta root regressions, (unsorted):");
 	console.log();
@@ -111,18 +111,18 @@ function main() {
 	console.log("* From: " + util.toolchainToString(report.fromToolchain));
 	console.log("* To: " + util.toolchainToString(report.toToolchain));
 	console.log();
-	console.log("## Regressions");
-	console.log();
-	console.log("* There are " + report.rootRegressions.length + " root regressions");
-	console.log("* There are currently " + report.regressions.length + " regressions");
-	console.log();
 	console.log("## Coverage");
 	console.log();
 	console.log("* " + report.statuses.length + " crates tested: " +
 		    report.statusSummary.working + " working / " +
-		    report.statusSummary.notWorking + " not working / " +
+		    report.statusSummary.broken + " broken / " +
 		    report.statusSummary.regressed + " regressed / " +
 		    report.statusSummary.fixed + " fixed.");
+	console.log();
+	console.log("## Regressions");
+	console.log();
+	console.log("* There are " + report.rootRegressions.length + " root regressions");
+	console.log("* There are currently " + report.regressions.length + " regressions");
 	console.log();
 	console.log("## Root regressions, (unsorted):");
 	console.log();
