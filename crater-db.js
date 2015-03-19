@@ -195,7 +195,7 @@ function getResultPairs(dbctx, fromToolchain, toToolchain) {
 	    crateName: row.crate_name,
 	    crateVers: row.crate_vers,
 	    from: { success: row.from_success, taskId: row.from_task_id },
-	    to: { success: row.to_success, taskId: row.from_task_id }
+	    to: { success: row.to_success, taskId: row.to_task_id }
 	  });
 	});
 	resolve(results);
