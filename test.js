@@ -222,13 +222,13 @@ suite("local utility tests", function() {
     assert(util.parseToolchain(null) == null);
     assert(util.parseToolchain("nightly") == null);
     var actual = JSON.stringify(util.parseToolchain("nightly-2015-03-01"));
-    var ex = JSON.stringify({ channel: "nightly", date: "2015-03-01" });
+    var ex = JSON.stringify({ channel: "nightly", archiveDate: "2015-03-01" });
     assert(actual == ex);
     var actual = JSON.stringify(util.parseToolchain("beta-2015-03-01"));
-    var ex = JSON.stringify({ channel: "beta", date: "2015-03-01" });
+    var ex = JSON.stringify({ channel: "beta", archiveDate: "2015-03-01" });
     assert(actual == ex);
     var actual = JSON.stringify(util.parseToolchain("stable-2015-03-01"));
-    var ex = JSON.stringify({ channel: "stable", date: "2015-03-01" });
+    var ex = JSON.stringify({ channel: "stable", archiveDate: "2015-03-01" });
     assert(actual == ex);
   });
 
