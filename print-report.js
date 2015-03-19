@@ -122,7 +122,7 @@ function main() {
 	console.log("## Regressions");
 	console.log();
 	console.log("* There are " + report.rootRegressions.length + " root regressions");
-	console.log("* There are currently " + report.regressions.length + " regressions");
+	console.log("* There are " + report.regressions.length + " regressions");
 	console.log();
 	console.log("## Root regressions, (unsorted):");
 	console.log();
