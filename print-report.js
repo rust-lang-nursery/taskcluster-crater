@@ -119,8 +119,12 @@ function main() {
 function printCrateList(statuses) {
   console.log();
   statuses.forEach(function(reg) {
+    var fromLink = reg.from.inspectorLink;
     var toLink = reg.to.inspectorLink;
-    console.log("* [" + reg.crateName + "-" + reg.crateVers + "](" + toLink + ")");
+    var s = "* " + reg.crateName + "-" + reg.crateVers + " " +
+      "([before](" + fromLink + ")) " +
+      "([after](" + fromLink + "))";
+    console.log(s);
   });
   console.log();
 }
