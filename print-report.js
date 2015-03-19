@@ -72,25 +72,29 @@ function main() {
 	console.log("## Beta root regressions, (unsorted):");
 	console.log();
 	report.betaRootRegressions.forEach(function(reg) {
-	  console.log("* " + reg.crateName + "-" + reg.crateVers);
+	  var link = reg.inspectorLink;
+	  console.log("* [" + reg.crateName + "-" + reg.crateVers + "](" + link + ")");
 	});
 	console.log();
 	console.log("## Nightly root regressions, (unsorted):");
 	console.log();
 	report.nightlyRootRegressions.forEach(function(reg) {
-	  console.log("* " + reg.crateName + "-" + reg.crateVers);
+	  var link = reg.inspectorLink;
+	  console.log("* [" + reg.crateName + "-" + reg.crateVers + "](" + link + ")");
 	});
 	console.log();
 	console.log("## Beta non-root regressions, (unsorted):");
 	console.log();
 	report.betaNonRootRegressions.forEach(function(reg) {
-	  console.log("* " + reg.crateName + "-" + reg.crateVers);
+	  var link = reg.inspectorLink;
+	  console.log("* [" + reg.crateName + "-" + reg.crateVers + "](" + link + ")");
 	});
 	console.log();
 	console.log("## Nightly non-root regressions, (unsorted):");
 	console.log();
 	report.nightlyNonRootRegressions.forEach(function(reg) {
-	  console.log("* " + reg.crateName + "-" + reg.crateVers);
+	  var link = reg.inspectorLink;
+	  console.log("* [" + reg.crateName + "-" + reg.crateVers + "](" + link + ")");
 	});
       }).then(function() {
 	return db.disconnect(dbctx);

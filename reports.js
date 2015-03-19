@@ -94,7 +94,9 @@ function calculateStatuses(dbctx, fromToolchain, toToolchain) {
       return {
 	crateName: buildResult.crateName,
 	crateVers: buildResult.crateVers,
-	status: status
+	status: status,
+	taskId: buildResult.to.taskId,
+	inspectorLink: "https://tools.taskcluster.net/task-inspector/#" + buildResult.to.taskId
       };
     });
   });
