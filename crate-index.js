@@ -133,15 +133,17 @@ function loadCrates(config) {
 /**
  * Gets the 'dl' field from config.json in the index.
  */
-function getDlRootAddrFromIndex(config) {
-  var cacheDir = config.cacheDir;
+function getDlRootAddr(config) {
+  return cloneIndex(config).then(function() {
+    var cacheDir = config.cacheDir;
 
-  var localIndex = path.join(cacheDir, localIndexName);
+    var localIndex = path.join(cacheDir, localIndexName);
 
-  return fs.readFile(path.join(localIndex, "config.json"), 'utf-8').then(function(filedata) {
-    return JSON.parse(filedata);
-  }).then(function(data) {
-    return data.dl;
+    return fs.readFile(path.join(localIndex, "config.json"), 'utf-8').then(function(filedata) {
+      return JSON.parse(filedata);
+    }).then(function(data) {
+      return data.dl;
+    });
   });
 }
 
@@ -254,7 +256,7 @@ function getPopularityMap(crates) {
 
 exports.cloneIndex = cloneIndex;
 exports.loadCrates = loadCrates;
-exports.getDlRootAddrFromIndex = getDlRootAddrFromIndex;
+exports.getDlRootAddr = getDlRootAddr;
 exports.getVersionMetadata = getVersionMetadata;
 exports.getMostRecentRevs = getMostRecentRevs;
 exports.getDag = getDag;

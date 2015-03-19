@@ -85,10 +85,7 @@ suite("local crate-index tests", function() {
   });
 
   test("get dl addr from index", function(done) {
-    var p = crates.cloneIndex(testConfig);
-    p = p.then(function() {
-      return crates.getDlRootAddrFromIndex(testConfig);
-    });
+    var p = crates.getDlRootAddr(testConfig);
     p = p.then(function(addr) {
       assert(addr == "https://crates.io/api/v1/crates");
       done();
@@ -601,8 +598,7 @@ suite("live network tests", function() {
   });
 
   test("get version metadata", function(done) {
-    var p = crates.cloneIndex(liveConfig);
-    p = p.then(function() { return crates.getDlRootAddrFromIndex(liveConfig); });
+    var p = crates.getDlRootAddr(liveConfig);
     p = p.then(function(addr) { return crates.getVersionMetadata("toml", "0.1.18", liveConfig); });
     p = p.then(function(meta) {
       assert(meta.version.created_at == "2015-02-25T22:53:39Z");
