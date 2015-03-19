@@ -9,6 +9,7 @@ var fs = {
 var exec = require('child_process').exec;
 var http = require('http');
 var https = require('https');
+var assert = require('assert');
 
 var defaultRustDistAddr = "http://static-rust-lang-org.s3-us-west-1.amazonaws.com/dist";
 var defaultCrateIndexAddr = "https://github.com/rust-lang/crates.io-index";
@@ -39,11 +40,16 @@ function parseToolchain(toolchainName) {
   if (ret_channel) {
     return {
       channel: ret_channel,
-      date: ret_date,
+      archiveDate: ret_date,
     };    
   } else {
     return null;
   }
+}
+
+function toolchainToString(toolchain) {
+  assert(toolchain.channel && toolchain.archiveDate);
+  return toolchain.channel + "-" + toolchain.archiveDate;
 }
 
 function downloadToMem(addr) {
@@ -119,6 +125,7 @@ function loadCredentials(credentialsFile) {
 }
 
 exports.parseToolchain = parseToolchain;
+exports.toolchainToString = toolchainToString;
 exports.downloadToMem = downloadToMem;
 exports.runCmd = runCmd;
 exports.rustDate = rustDate;

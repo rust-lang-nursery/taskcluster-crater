@@ -117,7 +117,7 @@ function createScheduleForCratesForToolchain(crates, toolchain) {
   crates.forEach(function(crate) {
     var task = {
       channel: toolchain.channel,
-      archiveDate: toolchain.date,
+      archiveDate: toolchain.archiveDate,
       crateName: crate.name,
       crateVers: crate.vers
     }

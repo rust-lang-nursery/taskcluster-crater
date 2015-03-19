@@ -100,6 +100,47 @@ function main() {
 	return db.disconnect(dbctx);
       });
     }).done();
+  } else if (reportSpec.type == "comparison") {
+    var date = reportSpec.date;
+    db.connect(config).then(function(dbctx) {
+      var p = reports.createComparisonReport(reportSpec.fromToolchain, reportSpec.toToolchain,
+					     dbctx, config);
+      return p.then(function(report) {
+	console.log("# Comparison report");
+	console.log();
+	console.log("* From: " + util.toolchainToString(report.fromToolchain));
+	console.log("* To: " + util.toolchainToString(report.toToolchain));
+	console.log();
+	console.log("## Regressions");
+	console.log();
+	console.log("* There are " + report.rootRegressions.length + " root regressions");
+	console.log("* There are currently " + report.regressions.length + " regressions");
+	console.log();
+	console.log("## Coverage");
+	console.log();
+	console.log("* " + report.statuses.length + " crates tested: " +
+		    report.statusSummary.working + " working / " +
+		    report.statusSummary.notWorking + " not working / " +
+		    report.statusSummary.regressed + " regressed / " +
+		    report.statusSummary.fixed + " fixed.");
+	console.log();
+	console.log("## Root regressions, (unsorted):");
+	console.log();
+	report.rootRegressions.forEach(function(reg) {
+	  var link = reg.inspectorLink;
+	  console.log("* [" + reg.crateName + "-" + reg.crateVers + "](" + link + ")");
+	});
+	console.log();
+	console.log("## Non-root regressions, (unsorted):");
+	console.log();
+	report.nonRootRegressions.forEach(function(reg) {
+	  var link = reg.inspectorLink;
+	  console.log("* [" + reg.crateName + "-" + reg.crateVers + "](" + link + ")");
+	});
+      }).then(function() {
+	return db.disconnect(dbctx);
+      });
+    }).done();
   }
 }
 
@@ -113,7 +154,16 @@ function getReportSpecFromArgs() {
     return {
       type: "weekly",
       date: process.argv[3] || util.rustDate(new Date(Date.now()))
+    };
+  } else if (process.argv[2] == "comparison") {
+    if (!process.argv[3] || !process.argv[4]) {
+      return null;
     }
+    return {
+      type: "comparison",
+      fromToolchain: util.parseToolchain(process.argv[3]),
+      toToolchain: util.parseToolchain(process.argv[4])
+    };
   } else {
     return null;
   }

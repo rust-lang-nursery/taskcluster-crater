@@ -569,7 +569,7 @@ suite("report tests", function() {
     }).then(function(report) {
 
       // 'piston' is not a root regression
-      assert(report.nightlyRootRegressions.length = 1);
+      assert(report.nightlyRootRegressions.length == 1);
       assert(report.nightlyRootRegressions[0].crateName == "pistoncore-input");
 
       done();

@@ -8,58 +8,54 @@ var db = require('./crater-db');
 var assert = require('assert');
 var dist = require('./rust-dist');
 
+function createComparisonReport(fromToolchain, toToolchain, dbctx, config) {
+  var statuses = calculateStatuses(dbctx, fromToolchain, toToolchain);
+  return statuses.then(function(statuses) {
+    var statusSummary = calculateStatusSummary(statuses);
+    var regressions = calculateRegressions(statuses);
+    var rootRegressions = pruneDependentRegressions(regressions, config);
+    return rootRegressions.then(function(rootRegressions) {
+      var nonRootRegressions = pruneRootRegressions(regressions, rootRegressions);
+
+      return {
+	fromToolchain: fromToolchain,
+	toToolchain: toToolchain,
+	statuses: statuses,
+	statusSummary: statusSummary,
+	regressions: regressions,
+	rootRegressions: rootRegressions,
+	nonRootRegressions: nonRootRegressions
+      };
+    });
+  });
+}
+
 /**
  * Returns a promise of the data for a 'weekly report'.
  */
 function createWeeklyReport(date, dbctx, config) {
   return createCurrentReport(date, config).then(function(currentReport) {
-    return {
-      currentReport: currentReport
-    };
-  }).then(function(state) {
-    var stableToolchain = { channel: "stable", archiveDate: state.currentReport.stable };
-    var betaToolchain = { channel: "beta", archiveDate: state.currentReport.beta };
-    var nightlyToolchain = { channel: "nightly", archiveDate: state.currentReport.nightly };
+    var stableToolchain = { channel: "stable", archiveDate: currentReport.stable };
+    var betaToolchain = { channel: "beta", archiveDate: currentReport.beta };
+    var nightlyToolchain = { channel: "nightly", archiveDate: currentReport.nightly };
 
-    var betaStatuses = calculateStatuses(dbctx, stableToolchain, betaToolchain);
-    var nightlyStatuses = calculateStatuses(dbctx, betaToolchain, nightlyToolchain);
-
-    return Promise.all([betaStatuses, nightlyStatuses]).then(function(statuses) {
-      return {
-	currentReport: state.currentReport,
-	betaStatuses: statuses[0],
-	nightlyStatuses: statuses[1]
-      };
-    });
-  }).then(function(state) {
-
-    var betaStatusSummary = calculateStatusSummary(state.betaStatuses);
-    var nightlyStatusSummary = calculateStatusSummary(state.nightlyStatuses);
-    var betaRegressions = calculateRegressions(state.betaStatuses);
-    var nightlyRegressions = calculateRegressions(state.nightlyStatuses);
-
-    var betaRootRegressions = pruneDependentRegressions(betaRegressions, config);
-    return betaRootRegressions.then(function(betaRootRegressions) {
-
-      var nightlyRootRegressions = pruneDependentRegressions(nightlyRegressions, config);
-      return nightlyRootRegressions.then(function(nightlyRootRegressions) {
-
-	var betaNonRootRegressions = pruneRootRegressions(betaRegressions, betaRootRegressions);
-	var nightlyNonRootRegressions = pruneRootRegressions(nightlyRegressions, nightlyRootRegressions);
-
+    var betaReport = createComparisonReport(stableToolchain, betaToolchain, dbctx, config);
+    return betaReport.then(function(betaReport) {
+      var nightlyReport = createComparisonReport(betaToolchain, nightlyToolchain, dbctx, config);
+      return nightlyReport.then(function(nightlyReport) {
 	return {
 	  date: date,
-	  currentReport: state.currentReport,
-	  betaStatuses: state.betaStatuses,
-	  nightlyStatuses: state.nightlyStatuses,
-	  betaStatusSummary: betaStatusSummary,
-	  nightlyStatusSummary: nightlyStatusSummary,
-	  betaRegressions: betaRegressions,
-	  nightlyRegressions: nightlyRegressions,
-	  betaRootRegressions: betaRootRegressions,
-	  nightlyRootRegressions: nightlyRootRegressions,
-	  betaNonRootRegressions: betaNonRootRegressions,
-	  nightlyNonRootRegressions: nightlyNonRootRegressions
+	  currentReport: currentReport,
+	  betaStatuses: betaReport.statuses,
+	  nightlyStatuses: nightlyReport.statuses,
+	  betaStatusSummary: betaReport.statusSummary,
+	  nightlyStatusSummary: nightlyReport.statusSummary,
+	  betaRegressions: betaReport.regressions,
+	  nightlyRegressions: nightlyReport.regressions,
+	  betaRootRegressions: betaReport.rootRegressions,
+	  nightlyRootRegressions: nightlyReport.rootRegressions,
+	  betaNonRootRegressions: betaReport.nonRootRegressions,
+	  nightlyNonRootRegressions: nightlyReport.nonRootRegressions
 	};
       });
     });
@@ -224,5 +220,6 @@ function createCurrentReport(date, config) {
   });
 }
 
-exports.createWeeklyReport = createWeeklyReport
-exports.createCurrentReport = createCurrentReport
+exports.createWeeklyReport = createWeeklyReport;
+exports.createCurrentReport = createCurrentReport;
+exports.createComparisonReport = createComparisonReport;
