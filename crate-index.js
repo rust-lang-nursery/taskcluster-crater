@@ -254,7 +254,6 @@ function getPopularityMap(crates) {
   return users;
 }
 
-exports.cloneIndex = cloneIndex;
 exports.loadCrates = loadCrates;
 exports.getDlRootAddr = getDlRootAddr;
 exports.getVersionMetadata = getVersionMetadata;
