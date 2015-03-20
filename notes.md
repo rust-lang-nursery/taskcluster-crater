@@ -135,3 +135,7 @@ From beta to nightly:
 # Comparison Report
 
 Like weekly but for two arbitrary toolchains.
+
+# Score Board
+
+Show the top X packages in order and their build status, for all channels

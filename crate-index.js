@@ -13,11 +13,38 @@ var path = require('path');
 var semver = require('semver');
 var util = require('./crater-util');
 var assert = require('assert');
+var async = require('async');
 
 var localIndexName = "crate-index"
 var crateCacheName = "crate-cache"
 var sourceCacheName = "source-cache"
 var versionCacheName = "version-cache"
+
+function workDispatcher(task, cb) {
+  task(cb);
+}
+
+// A queue used to serialize access to the on-disk git repo and caches,
+// to avoid corruption.
+var actionQueue = async.queue(workDispatcher, 1);
+
+/**
+ * Takes a function that returns a promise and ensures that no other serial promises execute
+ * until is resolved. Returns a promise of that resolved value.
+ */
+function serial(f) {
+  return new Promise(function(resolve, reject) {
+    actionQueue.push(function(dispatcherCb) {
+      f().then(function(r) {
+	dispatcherCb();
+	resolve(r);
+      }).catch(function(e) {
+	dispatcherCb();
+	reject(e);
+      });
+    });
+  });
+}
 
 /**
  * Ensure that the crate-index repository is either present or created
@@ -41,7 +68,7 @@ function cloneIndex(config) {
     debug('Repository exists');
   });
 
-  return p
+  return p;
 }
 
 /**
@@ -99,50 +126,54 @@ function readFile(dir, filename) {
  * Load the crate index from the remote address.
  */
 function loadCrates(config) {
-  var indexAddr = config.crateIndexAddr;
-  var cacheDir = config.cacheDir;
+  return serial(function() {
+    var indexAddr = config.crateIndexAddr;
+    var cacheDir = config.cacheDir;
 
-  var localIndex = path.join(cacheDir, localIndexName);
+    var localIndex = path.join(cacheDir, localIndexName);
 
-  var p = cloneIndex(config);
+    var p = cloneIndex(config);
 
-  p = p.then(function() {
-    debug('repos asserted');
-    return findFiles(localIndex)
-  });
-
-  p = p.then(function(filenames) {
-    debug('files found');
-    return Promise.all(filenames.map(function(filename) {
-      return readFile(localIndex, filename);
-    }));
-  });
-
-  p = p.then(function(res) {
-    debug('files read');
-    var flat = [];
-    res.forEach(function(r) {
-      Array.prototype.push.apply(flat, r);
+    p = p.then(function() {
+      debug('repos asserted');
+      return findFiles(localIndex)
     });
-    return flat;
-  });
 
-  return p;
+    p = p.then(function(filenames) {
+      debug('files found');
+      return Promise.all(filenames.map(function(filename) {
+	return readFile(localIndex, filename);
+      }));
+    });
+
+    p = p.then(function(res) {
+      debug('files read');
+      var flat = [];
+      res.forEach(function(r) {
+	Array.prototype.push.apply(flat, r);
+      });
+      return flat;
+    });
+
+    return p;
+  });
 }
 
 /**
  * Gets the 'dl' field from config.json in the index.
  */
 function getDlRootAddr(config) {
-  return cloneIndex(config).then(function() {
-    var cacheDir = config.cacheDir;
+  return serial(function() {
+    return cloneIndex(config).then(function() {
+      var cacheDir = config.cacheDir;
 
-    var localIndex = path.join(cacheDir, localIndexName);
+      var localIndex = path.join(cacheDir, localIndexName);
 
-    return fs.readFile(path.join(localIndex, "config.json"), 'utf-8').then(function(filedata) {
-      return JSON.parse(filedata);
-    }).then(function(data) {
-      return data.dl;
+      return fs.readFile(path.join(localIndex, "config.json"), 'utf-8').then(function(filedata) {
+	return JSON.parse(filedata);
+      }).then(function(data) {
+	return data.dl;
+      });
     });
   });
 }
@@ -151,36 +182,38 @@ function getDlRootAddr(config) {
  * Downloads the version metadata from crates.io and returns it.
  */
 function getVersionMetadata(crateName, crateVers, config) {
-  var dlRootAddr = config.dlRootAddr;
-  var cacheDir = config.cacheDir;
+  return serial(function() {
+    var dlRootAddr = config.dlRootAddr;
+    var cacheDir = config.cacheDir;
 
-  var versionCache = path.join(cacheDir, versionCacheName);
+    var versionCache = path.join(cacheDir, versionCacheName);
 
-  var url = dlRootAddr + "/" + crateName + "/" + crateVers;
-  var cacheDir = versionCache + "/" + crateName;
-  var cacheFile = cacheDir + "/" + crateVers;
+    var url = dlRootAddr + "/" + crateName + "/" + crateVers;
+    var cacheDir = versionCache + "/" + crateName;
+    var cacheFile = cacheDir + "/" + crateVers;
 
-  if (fs.existsSync(cacheFile)) {
-    debug("using cache for metadata " + crateName + " " + crateVers);
-    return fs.readFile(cacheFile, 'utf-8').then(function(filedata) {
-      return JSON.parse(filedata);
-    });
-  } else {
-    debug("downloading metadata " + crateName + " " + crateVers);
-    var json = null;
-    var p = util.downloadToMem(url);
-    p = p.then(function(data) {
-      json = JSON.parse(data);
-    });
-    p = p.then(function() {
-      return util.runCmd('mkdir -p ' + cacheDir);
-    });
-    p = p.then(function() {
-      return fs.writeFile(cacheFile, JSON.stringify(json));
-    });
-    p = p.then(function() { return json; });
-    return p;
-  }
+    if (fs.existsSync(cacheFile)) {
+      debug("using cache for metadata " + crateName + " " + crateVers);
+      return fs.readFile(cacheFile, 'utf-8').then(function(filedata) {
+	return JSON.parse(filedata);
+      });
+    } else {
+      debug("downloading metadata " + crateName + " " + crateVers);
+      var json = null;
+      var p = util.downloadToMem(url);
+      p = p.then(function(data) {
+	json = JSON.parse(data);
+      });
+      p = p.then(function() {
+	return util.runCmd('mkdir -p ' + cacheDir);
+      });
+      p = p.then(function() {
+	return fs.writeFile(cacheFile, JSON.stringify(json));
+      });
+      p = p.then(function() { return json; });
+      return p;
+    }
+  });
 }
 
 /**

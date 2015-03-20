@@ -149,6 +149,21 @@ suite("local crate-index tests", function() {
     }).catch(function(e) { done(e); });
   });
 
+  // Test that concurrent access to the crate index doesn't break things because
+  // of interleaved I/O.
+  test("concurrent no clobber", function(done) {
+    var responses = 0;
+    for (var i = 0; i < 10; i++) {
+      crates.loadCrates(testConfig).then(function(crateData) {
+	assert(crateData.length == 5646);
+	responses += 1;
+	if (responses == 10) {
+	  done();
+	}
+      }).catch(function(e) { done(e); });
+    }
+  });
+
 });
 
 suite("local rust-dist tests", function() {
