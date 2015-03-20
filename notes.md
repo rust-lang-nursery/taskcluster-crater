@@ -94,6 +94,8 @@ Get credentials at https://auth.taskcluster.net/
 
 dl https://crates.io/api/v1/crates/toml/0.1.0 to get metadata
 
+See details about the cratertest worker type at http://aws-provisioner.taskcluster.net/
+
 # Weekly Report
 
 Date: 2015/03/09
