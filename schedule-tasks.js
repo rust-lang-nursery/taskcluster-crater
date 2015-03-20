@@ -20,7 +20,7 @@ function main() {
 
   var config = util.loadDefaultConfig();
 
-  crateIndex.cloneIndex(config).then(function() {
+  Promise.resolve().then(function() {
     return scheduler.createSchedule(options, config);
   }).then(function(schedule) {
     return scheduler.scheduleBuilds(schedule, config);
