@@ -194,8 +194,8 @@ function createTaskDescriptor(schedule, config) {
     var createTime = new Date(Date.now());
     var deadlineTime = new Date(createTime.getTime() + deadlineInMinutes * 60000);
 
-    // Using b2gtest because they have active works available
-    var workerType = "b2gtest";
+    // FIXME should be configurable
+    var workerType = "cratertest";
 
     var env = {
       "CRATER_RUST_INSTALLER": rustInstallerUrl,
