@@ -35,10 +35,19 @@ main() {
 	rustc --version
 	cargo --version
 
-	echo "Downloading cratefrom $crate_file"
+	echo "Downloading crate from $crate_file"
 	curl -fL "$crate_file" -o crate.tar.gz
 	mkdir ./crate
 	tar xzf crate.tar.gz -C ./crate --strip-components=1
+
+	echo "Replacing path dependencies in Cargo.toml"
+	if [ -e ./crate/Cargo.toml ]; then
+	    sed -i /^\w*path/d ./crate/Cargo.toml
+	else
+	    echo "Cargo.toml does not exist!"
+	fi
+
+	echo "Building and testing"
 	(cd ./crate && cargo build)
 	(cd ./crate && cargo test)
     elif [ "$task_type" = "custom-build" ]; then
