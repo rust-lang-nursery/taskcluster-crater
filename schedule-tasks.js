@@ -20,33 +20,55 @@ function main() {
 
   var config = util.loadDefaultConfig();
 
-  Promise.resolve().then(function() {
-    return scheduler.createSchedule(options, config);
-  }).then(function(schedule) {
-    return scheduler.scheduleBuilds(schedule, config);
-  }).then(function(tasks) {
-    console.log("created " + tasks.length + " tasks");
-  }).done();
+  if (options.type == "build-crates") {
+    Promise.resolve().then(function() {
+      return scheduler.createSchedule(options, config);
+    }).then(function(schedule) {
+      return scheduler.scheduleBuilds(schedule, config);
+    }).then(function(tasks) {
+      console.log("created " + tasks.length + " tasks");
+    }).done();
+  } else {
+    Promise.resolve().then(function() {
+      return scheduler.scheduleCustomBuild(options, config);
+    }).done();
+  }
 }
 
 function parseOptionsFromArgs() {
-  var toolchain = util.parseToolchain(process.argv[2])
-  var top = null;
-  var mostRecentOnly = false;
-  for (var i = 3; i < process.argv.length; i++) {
-    if (process.argv[i] == "--top") {
-      top = parseInt(process.argv[i + 1]);
+  var type = process.argv[2];
+  if (type == "build-crates") {
+    var toolchain = util.parseToolchain(process.argv[3])
+    var top = null;
+    var mostRecentOnly = false;
+    for (var i = 4; i < process.argv.length; i++) {
+      if (process.argv[i] == "--top") {
+	top = parseInt(process.argv[i + 1]);
+      }
+      if (process.argv[i] == "--most-recent-only") {
+	mostRecentOnly = true;
+      }
     }
-    if (process.argv[i] == "--most-recent-only") {
-      mostRecentOnly = true;
-    }
-  }
 
-  return {
-    toolchain: toolchain,
-    top: top,
-    mostRecentOnly: mostRecentOnly
-  };
+    return {
+      type: "build-crates",
+      toolchain: toolchain,
+      top: top,
+      mostRecentOnly: mostRecentOnly
+    };
+  } else if (type == "build-rust") {
+    var gitRepo = process.argv[3];
+    var commitSha = process.argv[4];
+    if (!gitRepo || !commitSha) {
+      return null;
+    }
+
+    return {
+      type: "build-rust",
+      gitRepo: gitRepo,
+      commitSha: commitSha
+    };
+  }
 }
 
 main();

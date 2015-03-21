@@ -144,7 +144,7 @@ function scheduleBuilds(schedule, config) {
   var i = 1;
 
   return Promise.denodeify(async.mapLimit)(schedule, 100, function(schedule, cb) {
-    createTaskDescriptor(schedule, config).then(function(taskDesc) {
+    createTaskDescriptorForCrateBuild(schedule, config).then(function(taskDesc) {
       debug("createTask payload: " + JSON.stringify(taskDesc));
 
       var taskId = slugid.v4();
@@ -169,7 +169,7 @@ function scheduleBuilds(schedule, config) {
   return p;
 }
 
-function createTaskDescriptor(schedule, config) {
+function createTaskDescriptorForCrateBuild(schedule, config) {
   var dlRootAddr = config.dlRootAddr;
 
   debug("creating task descriptor for " + JSON.stringify(schedule));
@@ -186,60 +186,111 @@ function createTaskDescriptor(schedule, config) {
 
   var p = installerUrlForToolchain(schedule, config)
   return p.then(function(rustInstallerUrl) {
-    var deadlineInMinutes = 60;
     var crateUrl = dlRootAddr + "/" + crateName + "/" + crateVers + "/download";
-
     var taskName = channel + "-" + archiveDate + "-vs-" + crateName + "-" + crateVers;
-
-    var createTime = new Date(Date.now());
-    var deadlineTime = new Date(createTime.getTime() + deadlineInMinutes * 60000);
-
-    // FIXME should be configurable
-    var workerType = "cratertest";
 
     var env = {
       "CRATER_RUST_INSTALLER": rustInstallerUrl,
       "CRATER_CRATE_FILE": crateUrl
     };
-    var cmd = "apt-get update && apt-get install curl -y && (curl -sf https://raw.githubusercontent.com/brson/taskcluster-crater/master/run-crater-task.sh | sh)";
 
-    var task = {
-      "provisionerId": "aws-provisioner",
-      "workerType": workerType,
-      "created": createTime.toISOString(),
-      "deadline": deadlineTime.toISOString(),
-      "routes": [
-	"crater.#"
-      ],
-      "payload": {
-	"image": "ubuntu:13.10",
-	"command": [ "/bin/bash", "-c", cmd ],
-	"env": env,
-	"maxRunTime": 600
-      },
-      "metadata": {
-	"name": "Crater task " + taskName,
-	"description": "Testing Rust crates for Rust language regressions",
-	"owner": "banderson@mozilla.com",
-	"source": "http://github.com/brson/taskcluster-crater"
-      },
-      "extra": {
-	"crater": {
-	  "channel": channel,
-	  "archiveDate": archiveDate,
-	  "crateName": crateName,
-	  "crateVers": crateVers
-	}
-      }
+    var extra = {
+      "channel": channel,
+      "archiveDate": archiveDate,
+      "crateName": crateName,
+      "crateVers": crateVers
     };
-    return task;
+
+    return createTaskDescriptor(taskName, env, extra, "crate-build");
   });
+}
+
+function createTaskDescriptor(taskName, env, extra, taskType) {
+  var deadlineInMinutes = 60;
+
+  var createTime = new Date(Date.now());
+  var deadlineTime = new Date(createTime.getTime() + deadlineInMinutes * 60000);
+
+  // FIXME should be configurable
+  var workerType = "cratertest";
+
+  var cmd = "apt-get update && apt-get install curl -y && (curl -sf https://raw.githubusercontent.com/brson/taskcluster-crater/master/run-crater-task.sh | sh)";
+
+  env.CRATER_TASK_TYPE = taskType;
+  extra.taskType = taskType;
+
+  var task = {
+    "provisionerId": "aws-provisioner",
+    "workerType": workerType,
+    "created": createTime.toISOString(),
+    "deadline": deadlineTime.toISOString(),
+    "routes": [
+      "crater.#"
+    ],
+    "payload": {
+      "image": "ubuntu:13.10",
+      "command": [ "/bin/bash", "-c", cmd ],
+      "env": env,
+      "maxRunTime": 600
+    },
+    "metadata": {
+      "name": "Crater task " + taskName,
+      "description": "Testing Rust crates for Rust language regressions",
+      "owner": "banderson@mozilla.com",
+      "source": "http://github.com/brson/taskcluster-crater"
+    },
+    "extra": {
+      "crater": extra
+    }
+  };
+  return task;
 }
 
 function installerUrlForToolchain(toolchain, config) {
   return dist.installerUrlForToolchain(toolchain, "x86_64-unknown-linux-gnu", config);
 }
 
+/**
+ * Schedules a build and upload of a custom build. Fails if `uniqueName`
+ * has already been taken.
+ */
+function scheduleCustomBuild(options, config) {
+  var gitRepo = options.gitRepo;
+  var commitSha = options.commitSha;
+
+  if (commitSha.length != 40) {
+    return Promise.reject("bogus sha");
+  }
+
+  var tcCredentials = config.tcCredentials;
+
+  var queue = new tc.Queue({ credentials: tcCredentials });
+  var taskId = slugid.v4();
+  var taskDesc = createTaskDescriptorForCustomBuild(gitRepo, commitSha);
+  return queue.createTask(taskId, taskDesc).then(function(result) {
+    console.log("created task for " + gitRepo);
+    console.log("inspector link: https://tools.taskcluster.net/task-inspector/#" + taskId);
+    return result;
+  });
+}
+
+function createTaskDescriptorForCustomBuild(gitRepo, commitSha) {
+
+  var taskName = "build-" + commitSha;
+
+  var env = {
+    "CRATER_TOOLCHAIN_GIT_REPO": gitRepo,
+    "CRATER_TOOLCHAIN_GIT_SHA": commitSha,
+  };
+
+  var extra = {
+    toolchainGitRepo: gitRepo,
+    toolchainGitSha: commitSha
+  };
+
+  return createTaskDescriptor(taskName, env, extra, "custom-build");
+}
 
 exports.createSchedule = createSchedule;
 exports.scheduleBuilds = scheduleBuilds;
+exports.scheduleCustomBuild = scheduleCustomBuild;
