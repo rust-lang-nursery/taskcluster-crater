@@ -37,7 +37,7 @@ function main() {
 
 function parseOptionsFromArgs() {
   var type = process.argv[2];
-  if (type == "build-crates") {
+  if (type == "crate-build") {
     var toolchain = util.parseToolchain(process.argv[3])
     var top = null;
     var mostRecentOnly = false;
@@ -51,12 +51,12 @@ function parseOptionsFromArgs() {
     }
 
     return {
-      type: "build-crates",
+      type: "crate-build",
       toolchain: toolchain,
       top: top,
       mostRecentOnly: mostRecentOnly
     };
-  } else if (type == "build-rust") {
+  } else if (type == "custom-build") {
     var gitRepo = process.argv[3];
     var commitSha = process.argv[4];
     if (!gitRepo || !commitSha) {
@@ -64,7 +64,7 @@ function parseOptionsFromArgs() {
     }
 
     return {
-      type: "build-rust",
+      type: "custom-build",
       gitRepo: gitRepo,
       commitSha: commitSha
     };
