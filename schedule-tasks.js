@@ -20,7 +20,7 @@ function main() {
 
   var config = util.loadDefaultConfig();
 
-  if (options.type == "build-crates") {
+  if (options.type == "crate-build") {
     Promise.resolve().then(function() {
       return scheduler.createSchedule(options, config);
     }).then(function(schedule) {

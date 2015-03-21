@@ -69,26 +69,34 @@ function recordResultForTask(dbctx, tcQueue, taskId, success) {
     debug("task: " + JSON.stringify(task));
     var extra = task.extra.crater;
 
-    var channel = extra.channel;
-    var archiveDate = extra.archiveDate;
-    var crateName = extra.crateName;
-    var crateVers = extra.crateVers;
+    if (extra.taskType == "crate-build") {
 
-    assert(channel);
-    assert(archiveDate);
-    assert(crateName);
-    assert(crateVers);
+      var channel = extra.channel;
+      var archiveDate = extra.archiveDate;
+      var crateName = extra.crateName;
+      var crateVers = extra.crateVers;
 
-    var buildResult = {
-      channel: channel,
-      archiveDate: archiveDate,
-      crateName: crateName,
-      crateVers: crateVers,
-      success: success,
-      taskId: taskId
-    };
-    debug("adding build result: " + JSON.stringify(buildResult));
-    return db.addBuildResult(dbctx, buildResult);
+      assert(channel);
+      assert(archiveDate);
+      assert(crateName);
+      assert(crateVers);
+
+      var buildResult = {
+	channel: channel,
+	archiveDate: archiveDate,
+	crateName: crateName,
+	crateVers: crateVers,
+	success: success,
+	taskId: taskId
+      };
+      debug("adding build result: " + JSON.stringify(buildResult));
+      return db.addBuildResult(dbctx, buildResult);
+    } else if (extra.taskType == "custom-build") {
+      // TODO
+    } else {
+      console.log("unknown task type " + extra.taskType);
+      return Promise.resolve();
+    }
   }).catch(function(e) { console.log(e) });
 }
 
