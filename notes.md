@@ -141,3 +141,10 @@ Like weekly but for two arbitrary toolchains.
 # Score Board
 
 Show the top X packages in order and their build status, for all channels
+
+# Next Steps
+
+* store custom builds on s3
+* build crates against custom rust
+* sort reports by crate popularity
+* add scoreboard report

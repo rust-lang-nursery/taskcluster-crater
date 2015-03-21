@@ -24,7 +24,6 @@ main() {
 	fi
 
 	echo "Installing system packages"
-	apt-get update
 	apt-get install build-essential -y
 
 	echo "Installing Rust from $rust_installer"
@@ -65,7 +64,6 @@ main() {
 	fi
 
 	echo "Installing system packages"
-	apt-get update
 	apt-get install build-essential -y
 	apt-get install git file python2.7 -y
 
@@ -73,7 +71,7 @@ main() {
 	git clone "$git_repo" rust && (cd rust && git reset "$commit_sha" --hard)
 
 	echo "Configuring"
-	(cd rust && ./configure)
+	(cd rust && ./configure --build=x86_64-unknown-linux-gnu)
 
 	echo "Building"
 	(cd rust && make -j && make dist)
