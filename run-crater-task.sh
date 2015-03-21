@@ -58,7 +58,7 @@ main() {
 	echo "Installing system packages"
 	apt-get update
 	apt-get install build-essential -y
-	apt-get install git file -y
+	apt-get install git file python2.7 -y
 
 	echo "Cloning git repo"
 	git clone "$git_repo" rust && (cd rust && git reset "$commit_sha" --hard)
