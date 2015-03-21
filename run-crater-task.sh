@@ -67,7 +67,7 @@ main() {
 	(cd rust && ./configure)
 
 	echo "Building"
-	(cd rust && make && make dist)
+	(cd rust && make -j && make dist)
 
     else
 	echo "unknown task type"

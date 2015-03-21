@@ -20,6 +20,12 @@ function createSchedule(schedOpts, config) {
   return crateIndex.loadCrates(config).then(function(crates) {
     return filterOutOld(crates, config);
   }).then(function(crates) {
+    if (schedOpts.crateName) {
+      return retainMatchingNames(crates, schedOpts.crateName);
+    } else {
+      return crates;
+    }
+  }).then(function(crates) {
     if (schedOpts.top) {
       return retainTop(crates, schedOpts.top);
     } else {
@@ -107,6 +113,18 @@ function retainMostRecent(crates, count) {
   crates.forEach(function(crate) {
     var recent = mostRecent[crate.name];
     if (crate.vers == recent.vers) {
+      result.push(crate);
+    }
+  });
+
+  return result;
+}
+
+function retainMatchingNames(crates, name) {
+  var result = [];
+
+  crates.forEach(function(crate) {
+    if (crate.name == name) {
       result.push(crate);
     }
   });

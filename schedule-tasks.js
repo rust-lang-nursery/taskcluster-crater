@@ -41,6 +41,7 @@ function parseOptionsFromArgs() {
     var toolchain = util.parseToolchain(process.argv[3])
     var top = null;
     var mostRecentOnly = false;
+    var crateName = null;
     for (var i = 4; i < process.argv.length; i++) {
       if (process.argv[i] == "--top") {
 	top = parseInt(process.argv[i + 1]);
@@ -48,13 +49,17 @@ function parseOptionsFromArgs() {
       if (process.argv[i] == "--most-recent-only") {
 	mostRecentOnly = true;
       }
+      if (process.argv[i] == "--name") {
+	crateName = process.argv[i + 1];
+      } 
     }
 
     return {
       type: "crate-build",
       toolchain: toolchain,
       top: top,
-      mostRecentOnly: mostRecentOnly
+      mostRecentOnly: mostRecentOnly,
+      crateName: crateName
     };
   } else if (type == "custom-build") {
     var gitRepo = process.argv[3];
