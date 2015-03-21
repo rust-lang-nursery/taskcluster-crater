@@ -10,6 +10,9 @@ var tc = require('taskcluster-client');
 var assert = require('assert');
 var dist = require('./rust-dist');
 
+var customBuildMaxRunTimeInSeconds = 120 * 60;
+var crateBuildMaxRunTimeInSeconds = 30 * 60;
+
 /**
  * Create a schedule of tasks for execution by `scheduleBuilds`.
  */
@@ -201,11 +204,12 @@ function createTaskDescriptorForCrateBuild(schedule, config) {
       "crateVers": crateVers
     };
 
-    return createTaskDescriptor(taskName, env, extra, "crate-build");
+    return createTaskDescriptor(taskName, env, extra,
+				"crate-build", crateBuildMaxRunTimeInSeconds);
   });
 }
 
-function createTaskDescriptor(taskName, env, extra, taskType) {
+function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime) {
   var deadlineInMinutes = 60;
 
   var createTime = new Date(Date.now());
@@ -231,7 +235,7 @@ function createTaskDescriptor(taskName, env, extra, taskType) {
       "image": "ubuntu:13.10",
       "command": [ "/bin/bash", "-c", cmd ],
       "env": env,
-      "maxRunTime": 600
+      "maxRunTime": maxRunTime
     },
     "metadata": {
       "name": "Crater task " + taskName,
@@ -288,7 +292,8 @@ function createTaskDescriptorForCustomBuild(gitRepo, commitSha) {
     toolchainGitSha: commitSha
   };
 
-  return createTaskDescriptor(taskName, env, extra, "custom-build");
+  return createTaskDescriptor(taskName, env, extra,
+			      "custom-build", customBuildMaxRunTimeInSeconds);
 }
 
 exports.createSchedule = createSchedule;
