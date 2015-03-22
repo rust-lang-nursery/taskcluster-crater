@@ -26,6 +26,10 @@ main() {
 	echo "Installing system packages"
 	apt-get install build-essential -y
 
+	echo "Installing various native libs"
+	# As a temporary convience to make various popular libraries build
+	apt-get install liballegro-dev libz-dev
+
 	echo "Installing Rust from $rust_installer"
 	curl -f "$rust_installer" -o installer.tar.gz
 	mkdir ./rust-install
