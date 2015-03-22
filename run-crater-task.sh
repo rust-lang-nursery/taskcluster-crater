@@ -28,7 +28,7 @@ main() {
 
 	echo "Installing various native libs"
 	# As a temporary convience to make various popular libraries build
-	apt-get install liballegro-dev libz-dev -y
+	apt-get install libz-dev -y
 
 	echo "Installing Rust from $rust_installer"
 	curl -f "$rust_installer" -o installer.tar.gz
