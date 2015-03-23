@@ -563,6 +563,49 @@ suite("report tests", function() {
     }).catch(function(e) { done(e) });
   });
 
+  test("weekly report sort by popularity", function(done) {
+    var oldResultRegressed = {
+      toolchain: util.parseToolchain("beta-2015-02-20"),
+      crateName: "piston",
+      crateVers: "0.0.7",
+      success: true
+    };
+    var newResultRegressed = {
+      toolchain: util.parseToolchain("nightly-2015-02-26"),
+      crateName: "piston",
+      crateVers: "0.0.7",
+      success: false
+    };
+    var oldResultRegressedDep = {
+      toolchain: util.parseToolchain("beta-2015-02-20"),
+      crateName: "url",
+      crateVers: "0.0.5",
+      success: true
+    };
+    var newResultRegressedDep = {
+      toolchain: util.parseToolchain("nightly-2015-02-26"),
+      crateName: "url",
+      crateVers: "0.0.5",
+      success: false
+    };
+    var dbctx;
+    db.connect(testConfig).then(function(d) {
+      dbctx = d;
+    }).then(function() { return db.addBuildResult(dbctx, oldResultRegressed);
+    }).then(function() { return db.addBuildResult(dbctx, newResultRegressed);
+    }).then(function() { return db.addBuildResult(dbctx, oldResultRegressedDep);
+    }).then(function() { return db.addBuildResult(dbctx, newResultRegressedDep);
+    }).then(function() {
+      return reports.createWeeklyReport("2015-03-03", dbctx, testConfig);
+    }).then(function(report) {
+
+      assert(report.nightlyRegressions[0].crateName == "url");
+      assert(report.nightlyRegressions[1].crateName == "piston");
+
+      done();
+    }).catch(function(e) { done(e) });
+  });
+
 });
 
 suite("live network tests", function() {

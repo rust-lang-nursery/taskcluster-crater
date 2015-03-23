@@ -69,21 +69,21 @@ function main() {
 	console.log("* There are currently " + report.nightlyRegressions.length +
 		    " regressions from beta to nightly.");
 	console.log();
-	console.log("## Beta root regressions:");
+	console.log("## Beta root regressions, sorted by popularity:");
 	printCrateList(report.betaRootRegressions);
-	console.log("## Nightly root regressions:");
+	console.log("## Nightly root regressions, sorted by popularity:");
 	printCrateList(report.nightlyRootRegressions);
-	console.log("## Beta non-root regressions:");
+	console.log("## Beta non-root regressions, sorted by popularity:");
 	printCrateList(report.betaRegressions);
-	console.log("## Nightly non-root regressions:");
+	console.log("## Nightly non-root regressions, sorted by popularity:");
 	printCrateList(report.nightlyRegressions);
-	console.log("## Beta broken:");
+	console.log("## Beta broken, sorted by popularity:");
 	printCrateList(report.beta.broken);
-	console.log("## Nightly broken:");
+	console.log("## Nightly broken, sorted by popularity:");
 	printCrateList(report.nightly.broken);
-	console.log("## Beta fixed:");
+	console.log("## Beta fixed, sorted by popularity:");
 	printCrateList(report.beta.fixed);
-	console.log("## Nightly fixed:");
+	console.log("## Nightly fixed, sorted by popularity:");
 	printCrateList(report.nightly.fixed);
       }).then(function() {
 	return db.disconnect(dbctx);
@@ -113,15 +113,15 @@ function main() {
 	console.log("* There are " + report.rootRegressions.length + " root regressions");
 	console.log("* There are " + report.regressions.length + " regressions");
 	console.log();
-	console.log("## Root regressions:");
+	console.log("## Root regressions, sorted by popularity:");
 	printCrateList(report.rootRegressions);
-	console.log("## Non-root regressions:");
+	console.log("## Non-root regressions, sorted by popularity:");
 	printCrateList(report.nonRootRegressions);
-	console.log("## Broken:");
+	console.log("## Broken, sorted by popularity:");
 	printCrateList(report.broken);
-	console.log("## Fixed:");
+	console.log("## Fixed, sorted by popularity:");
 	printCrateList(report.fixed);
-	console.log("## Working:");
+	console.log("## Working, sorted by popularity:");
 	printCrateList(report.working);
       }).then(function() {
 	return db.disconnect(dbctx);

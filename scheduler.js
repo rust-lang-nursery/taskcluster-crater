@@ -223,7 +223,7 @@ function createTaskDescriptorForCrateBuild(schedule, config) {
 }
 
 function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, workerType, artifacts) {
-  var deadlineInMinutes = 60 * 4; // I'm in no hurry
+  var deadlineInMinutes = 60 * 8; // I'm in no hurry
 
   var createTime = new Date(Date.now());
   var deadlineTime = new Date(createTime.getTime() + deadlineInMinutes * 60000);

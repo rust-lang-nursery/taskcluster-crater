@@ -24,7 +24,6 @@ main() {
 	fi
 
 	echo "Installing system packages"
-	apt-get update || exit 1
 	apt-get install build-essential -y
 
 	echo "Installing various native libs"
@@ -69,7 +68,6 @@ main() {
 	fi
 
 	echo "Installing system packages"
-	apt-get update
 	apt-get install build-essential -y
 	apt-get install git file python2.7 -y
 

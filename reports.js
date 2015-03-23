@@ -11,6 +11,8 @@ var dist = require('./rust-dist');
 function createComparisonReport(fromToolchain, toToolchain, dbctx, config) {
   var statuses = calculateStatuses(dbctx, fromToolchain, toToolchain);
   return statuses.then(function(statuses) {
+    return sortStatusesByPopularity(statuses, config);
+  }).then(function(statuses) {
     var statusSummary = calculateStatusSummary(statuses);
     var regressions = extractWithStatus(statuses, "regressed");
     var rootRegressions = pruneDependentRegressions(regressions, config);
@@ -103,6 +105,23 @@ function calculateStatuses(dbctx, fromToolchain, toToolchain) {
 
       return buildResult;
     });
+  });
+}
+
+function sortStatusesByPopularity(statuses, config) {
+  return crateIndex.loadCrates(config).then(function(crates) {
+    var popMap = crateIndex.getPopularityMap(crates);
+
+    var sorted = statuses.slice();
+    sorted.sort(function(a, b) {
+      var aPop = popMap[a.crateName];
+      var bPop = popMap[b.crateName];
+      if (aPop == bPop) { return 0; }
+      if (aPop < bPop) { return 1; }
+      if (aPop > bPop) { return -1; }
+    });
+
+    return sorted;
   });
 }
 
