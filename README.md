@@ -115,7 +115,7 @@ The credentials need to be in `pg-credentials.js`:
 
 # Testing
 
-    $ mocha --opts ./mocha.opts
+    $ npm test
 
 You'll need to have a 'crater-test' database configured locally.    
 
@@ -124,7 +124,6 @@ You'll need to have a 'crater-test' database configured locally.
 * Use task graphs that mirror the crate dependency structure.
 * Custom builds
 * Only create tasks for build_results we don't have yet, unless --all is passed
-* Rewrite path dependencies before building
 * REST service
 * HTML frontend
 * CLI <-> REST frontend

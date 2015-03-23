@@ -188,4 +188,14 @@ Show the top X packages in order and their build status, for all channels
 13:26 < jonasfj> -ti is for interactive terminal output
 13:26 < garndt> wonder how bad my virtualbox vm will die if I try it
 13:27 < jonasfj> --rm deletes the container when you disconnect...
- 
+
+# REST
+
+14:02 < brson> besides not being able to build rust, i've got the major functionality i need scaped together, but it's just a bunch of modules and cli tools. now i want to put it behind a HTTP REST interface. what's the easy 
+               way to do that in node?
+14:04 < jonasfj> what do you mean? do you want to setup to github hook... or offer a REST API for people to hit? Who is the consumer...
+14:08 < brson> jonasfj: I want the functionality of my tool to be exposed as a REST API so I can add a web frontend to it
+14:11 -!- bhearsum [bhearsum@moz-n6cgoa.dsl.bell.ca] has quit [Quit: mooooonday]
+14:11 <@lightsofapollo> brson: hapi / express are decent node frameworks
+14:11 <@lightsofapollo> http frameworks
+14:12  * lightsofapollo would have loved to see this as a rust only thing ... someday
