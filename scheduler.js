@@ -217,11 +217,12 @@ function createTaskDescriptorForCrateBuild(schedule, config) {
     };
 
     return createTaskDescriptor(taskName, env, extra,
-				"crate-build", crateBuildMaxRunTimeInSeconds, "cratertest");
+				"crate-build", crateBuildMaxRunTimeInSeconds, "cratertest",
+				null);
   });
 }
 
-function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, workerType) {
+function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, workerType, artifacts) {
   var deadlineInMinutes = 60 * 4; // I'm in no hurry
 
   var createTime = new Date(Date.now());
@@ -245,7 +246,8 @@ function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, worker
       "image": "ubuntu:13.10",
       "command": [ "/bin/bash", "-c", cmd ],
       "env": env,
-      "maxRunTime": maxRunTime
+      "maxRunTime": maxRunTime,
+      "artifacts": artifacts
     },
     "metadata": {
       "name": "Crater task " + taskName,
@@ -306,8 +308,20 @@ function createTaskDescriptorForCustomBuild(gitRepo, commitSha) {
     toolchainGitSha: commitSha
   };
 
+  var twoMonths = 60 /*s*/ * (24 * 60) /*m*/ * (30 * 2) /*d*/;
+
+  // Upload the installer
+  var artifacts = {
+    installer: {
+      type: "file",
+      path: "./rust/dist/rustc-" + commitSha + "-x86_64-unknown-linux-gnu.tar.gz",
+      expires: new Date((new Date(Date.now())) + twoMonths)
+    }
+  };
+
   return createTaskDescriptor(taskName, env, extra,
-			      "custom-build", customBuildMaxRunTimeInSeconds, "rustbuild");
+			      "custom-build", customBuildMaxRunTimeInSeconds, "rustbuild",
+			      artifacts);
 }
 
 exports.createSchedule = createSchedule;

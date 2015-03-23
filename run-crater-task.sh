@@ -24,6 +24,7 @@ main() {
 	fi
 
 	echo "Installing system packages"
+	apt-get update || exit 1
 	apt-get install build-essential -y
 
 	echo "Installing various native libs"
@@ -68,6 +69,7 @@ main() {
 	fi
 
 	echo "Installing system packages"
+	apt-get update
 	apt-get install build-essential -y
 	apt-get install git file python2.7 -y
 
@@ -79,6 +81,10 @@ main() {
 
 	echo "Building"
 	(cd rust && make -j && make dist)
+
+	echo "Renaming installer"
+	mv rust/dist/rustc-*-x86_64-unknown-linux-gnu.tar.gz \
+           rust/dist/rustc-"$commit_sha"-x86_64-unknown-linux-gnu.tar.gz
 
     else
 	echo "unknown task type"

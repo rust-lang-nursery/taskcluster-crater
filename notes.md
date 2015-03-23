@@ -179,3 +179,13 @@ Show the top X packages in order and their build status, for all channels
 12:32 < jonasfj> it'll probably start running soon, then we'll see if it 60g is enough ram
 12:35 < jonasfj> note, we often use different workertypes for tests and builds. Builds easily saturates CPU and ram, so running multiple builds in parallel is usually pointless..
 12:37 < jonasfj> tests on the other hand are often slow... not running in parallel... They are more linear time "intensive", than cpu intensive... so running them in parallel pays off..
+
+# info about docker
+
+13:25 < jonasfj> it's pretty trivial... and fast I always test locally...
+13:25 < jonasfj> not in our config... but we could have missed something...
+13:26 < jonasfj> docker run -ti --rm -e ENV_VAR_FROM_TASK=VALUE ubuntu:13.10 <commands from task>
+13:26 < jonasfj> -ti is for interactive terminal output
+13:26 < garndt> wonder how bad my virtualbox vm will die if I try it
+13:27 < jonasfj> --rm deletes the container when you disconnect...
+ 
