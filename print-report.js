@@ -127,6 +127,16 @@ function main() {
 	return db.disconnect(dbctx);
       });
     }).done();
+  } else if (reportSpec.type == "popularity") {
+    reports.createPopularityReport(config).then(function(report) {
+      console.log("# Popularity report");
+      console.log("");
+      report.forEach(function(r) {
+	console.log("* " + r.pop + " [" + r.crateName + "](" + r.url + ")");
+      });
+    });
+  } else {
+    console.log("unknown report type");
   }
 }
 
@@ -162,6 +172,10 @@ function getReportSpecFromArgs() {
       type: "comparison",
       fromToolchain: util.parseToolchain(process.argv[3]),
       toToolchain: util.parseToolchain(process.argv[4])
+    };
+  } else if (process.argv[2] == "popularity") {
+    return {
+      type: "popularity"
     };
   } else {
     return null;

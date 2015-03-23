@@ -11,7 +11,7 @@ var dist = require('./rust-dist');
 function createComparisonReport(fromToolchain, toToolchain, dbctx, config) {
   var statuses = calculateStatuses(dbctx, fromToolchain, toToolchain);
   return statuses.then(function(statuses) {
-    return sortStatusesByPopularity(statuses, config);
+    return sortByPopularity(statuses, config);
   }).then(function(statuses) {
     var statusSummary = calculateStatusSummary(statuses);
     var regressions = extractWithStatus(statuses, "regressed");
@@ -108,7 +108,7 @@ function calculateStatuses(dbctx, fromToolchain, toToolchain) {
   });
 }
 
-function sortStatusesByPopularity(statuses, config) {
+function sortByPopularity(statuses, config) {
   return crateIndex.loadCrates(config).then(function(crates) {
     var popMap = crateIndex.getPopularityMap(crates);
 
@@ -247,6 +247,33 @@ function createCurrentReport(date, config) {
   });
 }
 
+function createPopularityReport(config) {
+  return crateIndex.loadCrates(config).then(function(crates) {
+    var popMap = crateIndex.getPopularityMap(crates);
+
+    return crates.map(function(crate) {
+      return {
+	crateName: crate.name,
+	url: "https://crates.io/crates/" + crate.name,
+	pop: popMap[crate.name]
+      };
+    });
+  }).then(function(crates) {
+    var map = {}
+    return crates.filter(function(crate) {
+      if (map[crate.crateName]) {
+	return false;
+      } else {
+	map[crate.crateName] = crate;
+	return true;
+      }
+    });
+  }).then(function(crates) {
+    return sortByPopularity(crates, config);
+  });
+}
+
 exports.createWeeklyReport = createWeeklyReport;
 exports.createCurrentReport = createCurrentReport;
 exports.createComparisonReport = createComparisonReport;
+exports.createPopularityReport = createPopularityReport;
