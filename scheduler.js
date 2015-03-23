@@ -218,7 +218,7 @@ function createTaskDescriptorForCrateBuild(schedule, config) {
 
     return createTaskDescriptor(taskName, env, extra,
 				"crate-build", crateBuildMaxRunTimeInSeconds, "cratertest",
-				null);
+				{ });
   });
 }
 
