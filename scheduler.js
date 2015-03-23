@@ -223,18 +223,15 @@ function createTaskDescriptorForCrateBuild(schedule, config) {
     };
 
     return createTaskDescriptor(taskName, env, extra,
-				"crate-build", crateBuildMaxRunTimeInSeconds);
+				"crate-build", crateBuildMaxRunTimeInSeconds, "cratertest");
   });
 }
 
-function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime) {
+function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, workerType) {
   var deadlineInMinutes = 60 * 4; // I'm in no hurry
 
   var createTime = new Date(Date.now());
   var deadlineTime = new Date(createTime.getTime() + deadlineInMinutes * 60000);
-
-  // FIXME should be configurable
-  var workerType = "cratertest";
 
   var cmd = "apt-get update && apt-get install curl -y && (curl -sf https://raw.githubusercontent.com/brson/taskcluster-crater/master/run-crater-task.sh | sh)";
 
@@ -246,6 +243,7 @@ function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime) {
     "workerType": workerType,
     "created": createTime.toISOString(),
     "deadline": deadlineTime.toISOString(),
+    "retries": 8,
     "routes": [
       "crater.#"
     ],
@@ -311,7 +309,7 @@ function createTaskDescriptorForCustomBuild(gitRepo, commitSha) {
   };
 
   return createTaskDescriptor(taskName, env, extra,
-			      "custom-build", customBuildMaxRunTimeInSeconds);
+			      "custom-build", customBuildMaxRunTimeInSeconds, "rustbuild");
 }
 
 exports.createSchedule = createSchedule;
