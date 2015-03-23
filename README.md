@@ -127,3 +127,4 @@ You'll need to have a 'crater-test' database configured locally.
 * REST service
 * HTML frontend
 * CLI <-> REST frontend
+* Use customized docker containers to avoid huge dls
