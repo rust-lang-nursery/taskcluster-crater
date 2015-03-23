@@ -86,6 +86,8 @@ function getAvailableToolchains(distAddr) {
 }
 
 function installerUrlForToolchain(toolchain, triple, config) {
+  assert(toolchain.channel);
+
   var rustDistAddr = config.rustDistAddr;
 
   var manifest = rustDistAddr + "/" + toolchain.archiveDate + "/channel-rust-" + toolchain.channel;

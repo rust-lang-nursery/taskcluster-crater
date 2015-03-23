@@ -43,13 +43,23 @@ function parseToolchain(toolchainName) {
       archiveDate: ret_date,
     };    
   } else {
+    // It must be a 40-character sha
+    if (toolchainName.length == 40) {
+      return {
+	customSha: toolchainName
+      }
+    }
     return null;
   }
 }
 
 function toolchainToString(toolchain) {
-  assert(toolchain.channel && toolchain.archiveDate);
-  return toolchain.channel + "-" + toolchain.archiveDate;
+  assert((toolchain.channel && toolchain.archiveDate) || toolchain.customSha);
+  if (!toolchain.customSha) {
+    return toolchain.channel + "-" + toolchain.archiveDate;
+  } else {
+    return toolchain.customSha;
+  }
 }
 
 function downloadToMem(addr) {

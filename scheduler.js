@@ -137,8 +137,7 @@ function createScheduleForCratesForToolchain(crates, toolchain) {
   var tasks = [];
   crates.forEach(function(crate) {
     var task = {
-      channel: toolchain.channel,
-      archiveDate: toolchain.archiveDate,
+      toolchain: toolchain,
       crateName: crate.name,
       crateVers: crate.vers
     }
@@ -195,20 +194,16 @@ function createTaskDescriptorForCrateBuild(schedule, config) {
 
   debug("creating task descriptor for " + JSON.stringify(schedule));
 
-  var channel = schedule.channel;
-  var archiveDate = schedule.archiveDate;
   var crateName = schedule.crateName;
   var crateVers = schedule.crateVers;
 
-  assert(channel != null);
-  assert(archiveDate != null);
   assert(crateName != null);
   assert(crateVers != null);
 
-  var p = installerUrlForToolchain(schedule, config)
+  var p = installerUrlForToolchain(schedule.toolchain, config)
   return p.then(function(rustInstallerUrl) {
     var crateUrl = dlRootAddr + "/" + crateName + "/" + crateVers + "/download";
-    var taskName = channel + "-" + archiveDate + "-vs-" + crateName + "-" + crateVers;
+    var taskName = util.toolchainToString(schedule.toolchain) + "-vs-" + crateName + "-" + crateVers;
 
     var env = {
       "CRATER_RUST_INSTALLER": rustInstallerUrl,
@@ -216,8 +211,7 @@ function createTaskDescriptorForCrateBuild(schedule, config) {
     };
 
     var extra = {
-      "channel": channel,
-      "archiveDate": archiveDate,
+      "toolchain": channel,
       "crateName": crateName,
       "crateVers": crateVers
     };
@@ -267,7 +261,11 @@ function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, worker
 }
 
 function installerUrlForToolchain(toolchain, config) {
-  return dist.installerUrlForToolchain(toolchain, "x86_64-unknown-linux-gnu", config);
+  if (toolchain.channel) {
+    return dist.installerUrlForToolchain(toolchain, "x86_64-unknown-linux-gnu", config);
+  } else {
+    assert(false);
+  }
 }
 
 /**

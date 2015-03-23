@@ -263,8 +263,7 @@ suite("database tests", function() {
   test("add build result", function(done) {
     db.connect(testConfig).then(function(dbctx) {
       var actual = {
-	channel: "nightly",
-	archiveDate: "2015-03-01",
+	toolchain: util.parseToolchain("nightly-2015-03-01"),
 	crateName: "toml",
 	crateVers: "1.0",
 	success: true,
@@ -283,8 +282,7 @@ suite("database tests", function() {
   test("upsert build result", function(done) {
     db.connect(testConfig).then(function(dbctx) {
       var actual = {
-	channel: "nightly",
-	archiveDate: "2015-03-01",
+	toolchain: util.parseToolchain("nightly-2015-03-01"),
 	crateName: "toml",
 	crateVers: "1.0",
 	success: true,
@@ -305,8 +303,7 @@ suite("database tests", function() {
   test("get null build result", function(done) {
     db.connect(testConfig).then(function(dbctx) {
       var req = {
-	channel: "nightly",
-	archiveDate: "2015-03-01",
+	toolchain: util.parseToolchain("nightly-2015-03-01"),
 	crateName: "toml",
 	crateVers: "1.0"
       };
@@ -322,45 +319,35 @@ suite("database tests", function() {
   test("get result pairs", function(done) {
     db.connect(testConfig).then(function(dbctx) {
       var oldResult1 = {
-	channel: "beta",
-	archiveDate: "2015-03-01",
+	toolchain: util.parseToolchain("beta-2015-03-01"),
 	crateName: "num",
 	crateVers: "1.0",
 	success: true,
 	taskId: "t1"
       };
       var oldResult2 = {
-	channel: "beta",
-	archiveDate: "2015-03-01",
+	toolchain: util.parseToolchain("beta-2015-03-01"),
 	crateName: "toml",
 	crateVers: "1.1",
 	success: true,
 	taskId: "t2"
       };
       var newResult1 = {
-	channel: "nightly",
-	archiveDate: "2015-03-02",
+	toolchain: util.parseToolchain("nightly-2015-03-02"),
 	crateName: "num",
 	crateVers: "1.0",
 	success: false,
 	taskId: "t3"
       };
       var newResult2 = {
-	channel: "nightly",
-	archiveDate: "2015-03-02",
+	toolchain: util.parseToolchain("nightly-2015-03-02"),
 	crateName: "toml",
 	crateVers: "1.1",
 	success: true,
 	taskId: "t2"
       };
-      var fromToolchain = {
-	channel: "beta",
-	archiveDate: "2015-03-01"
-      };
-      var toToolchain = {
-	channel: "nightly",
-	archiveDate: "2015-03-02"
-      };
+      var fromToolchain = util.parseToolchain("beta-2015-03-01");
+      var toToolchain = util.parseToolchain("nightly-2015-03-02");
       var p = Promise.resolve();
       var p = p.then(function() { return db.addBuildResult(dbctx, oldResult1); });
       var p = p.then(function() { return db.addBuildResult(dbctx, oldResult2); });
@@ -448,57 +435,49 @@ suite("report tests", function() {
 
   test("weekly report", function(done) {
     var oldResultWorking = {
-      channel: "beta",
-      archiveDate: "2015-02-20",
+      toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "num",
       crateVers: "1.0",
       success: true
     };
     var newResultWorking = {
-      channel: "nightly",
-      archiveDate: "2015-02-26",
+      toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "num",
       crateVers: "1.0",
       success: true
     };
     var oldResultNotWorking = {
-      channel: "beta",
-      archiveDate: "2015-02-20",
+      toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "op",
       crateVers: "1.0",
       success: false
     };
     var newResultNotWorking = {
-      channel: "nightly",
-      archiveDate: "2015-02-26",
+      toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "op",
       crateVers: "1.0",
       success: false
     };
     var oldResultRegressed = {
-      channel: "beta",
-      archiveDate: "2015-02-20",
+      toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "plot",
       crateVers: "1.0",
       success: true
     };
     var newResultRegressed = {
-      channel: "nightly",
-      archiveDate: "2015-02-26",
+      toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "plot",
       crateVers: "1.0",
       success: false
     };
     var oldResultFixed = {
-      channel: "beta",
-      archiveDate: "2015-02-20",
+      toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "quux",
       crateVers: "1.0",
       success: false
     };
     var newResultFixed = {
-      channel: "nightly",
-      archiveDate: "2015-02-26",
+      toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "quux",
       crateVers: "1.0",
       success: true
@@ -542,29 +521,25 @@ suite("report tests", function() {
 
   test("weekly report prune regressed leaves", function(done) {
     var oldResultRegressed = {
-      channel: "beta",
-      archiveDate: "2015-02-20",
+      toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "piston",
       crateVers: "0.0.7",
       success: true
     };
     var newResultRegressed = {
-      channel: "nightly",
-      archiveDate: "2015-02-26",
+      toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "piston",
       crateVers: "0.0.7",
       success: false
     };
     var oldResultRegressedDep = {
-      channel: "beta",
-      archiveDate: "2015-02-20",
+      toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "pistoncore-input",
       crateVers: "0.0.5",
       success: true
     };
     var newResultRegressedDep = {
-      channel: "nightly",
-      archiveDate: "2015-02-26",
+      toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "pistoncore-input",
       crateVers: "0.0.5",
       success: false

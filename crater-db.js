@@ -51,12 +51,12 @@ function disconnect(dbctx) {
 function populate(dbctx) {
   var q = "create table if not exists \
            build_results ( \
-           channel text, archive_date text, \
-           crate_name text, crate_vers text, \
-           success boolean, \
+           toolchain text not null, \
+           crate_name text not null, crate_vers text not null, \
+           success boolean not null, \
            task_id text, \
            primary key ( \
-           channel, archive_date, crate_name, crate_vers ) ) \
+           toolchain, crate_name, crate_vers ) ) \
            ";
   return new Promise(function (resolve, reject) {
     dbctx.client.query(q, function(e, r) {
@@ -82,7 +82,7 @@ function depopulate(dbctx) {
 
 /**
  * Adds a build result and returns a promise of nothing. buildResult should
- * look like `{ channel: ..., archiveDate: ..., crateName: ..., crateVers: ..., success: ...,
+ * look like `{ toolchain: ..., crateName: ..., crateVers: ..., success: ...,
  * taskId: ... }`.
  */
 function addBuildResult(dbctx, buildResult) {
@@ -95,30 +95,34 @@ function addBuildResult(dbctx, buildResult) {
     };
 
     dbctx.client.query('begin', function(err, res) {
+      if (err) {
+	reject(err);
+	return;
+      }
       var p = getBuildResult(dbctx, buildResult);
       p.then(function(r) {
 	if (r == null) {
-	  var q = "insert into build_results values ($1, $2, $3, $4, $5, $6)";
+	  var q = "insert into build_results values ($1, $2, $3, $4, $5)";
 	  debug(q);
-	  dbctx.client.query(q, [buildResult.channel,
-				 buildResult.archiveDate,
+	  dbctx.client.query(q, [util.toolchainToString(buildResult.toolchain),
 				 buildResult.crateName,
 				 buildResult.crateVers,
 				 buildResult.success,
 				 buildResult.taskId],
 			     f);
 	} else {
-	  var q = "update build_results set success = $5, task_id =$6 where \
-                   channel = $1 and archive_date = $2 and crate_name = $3 and crate_vers = $4";
+	  var q = "update build_results set success = $4, task_id = $5 where \
+                   toolchain = $1 and crate_name = $2 and crate_vers = $3";
 	  debug(q);
-	  dbctx.client.query(q, [buildResult.channel,
-				 buildResult.archiveDate,
+	  dbctx.client.query(q, [util.toolchainToString(buildResult.toolchain),
 				 buildResult.crateName,
 				 buildResult.crateVers,
 				 buildResult.success,
 				 buildResult.taskId],
 			     f);
 	}
+      }).catch(function(e) {
+	reject(e);
       });
     });
 
@@ -127,14 +131,14 @@ function addBuildResult(dbctx, buildResult) {
 
 /**
  * Adds a build result and returns a promise of a build
- * result. buildResultKey should look like `{ channel: ..., archiveDate: ...,
+ * result. buildResultKey should look like `{ toolchain: ...,
  * crateName: ..., crateVers: ... }`.
  *
  * Returns a promised null if there is no build result for the key.
  */
 function getBuildResult(dbctx, buildResultKey) {
   var q = "select * from build_results where \
-           channel = $1 and archive_date = $2 and crate_name = $3 and crate_vers = $4";
+           toolchain = $1 and crate_name = $2 and crate_vers = $3";
   debug(q);
   return new Promise(function (resolve, reject) {
     var f = function(e, r) {
@@ -143,8 +147,7 @@ function getBuildResult(dbctx, buildResultKey) {
 	if (r.rows.length > 0) {
 	  var row = r.rows[0];
 	  resolve({
-	    channel: row.channel,
-	    archiveDate: row.archive_date,
+	    toolchain: util.parseToolchain(row.toolchain),
 	    crateName: row.crate_name,
 	    crateVers: row.crate_vers,
 	    success: row.success,
@@ -156,8 +159,7 @@ function getBuildResult(dbctx, buildResultKey) {
       }
     };
 
-    dbctx.client.query(q, [buildResultKey.channel,
-			   buildResultKey.archiveDate,
+    dbctx.client.query(q, [util.toolchainToString(buildResultKey.toolchain),
 			   buildResultKey.crateName,
 			   buildResultKey.crateVers],
 		       f);
@@ -171,16 +173,10 @@ function getBuildResult(dbctx, buildResultKey) {
  * and `from` and `to` look like `{ succes: bool }`.
  */
 function getResultPairs(dbctx, fromToolchain, toToolchain) {
-  // select * from build_results a, build_results b
-  // where a.channel = 'beta' and a.archive_date = '2015-02-20'
-  // and b.channel = 'nightly' and b.archive_date = '2015-03-11'
-  // and a.crate_name = b.crate_name and a.crate_vers = b.crate_vers;
-
   var q = "select a.crate_name, a.crate_vers, a.success as from_success, b.success as to_success, \
            a.task_id as from_task_id, b.task_id as to_task_id \
            from build_results a, build_results b \
-           where a.channel = $1 and a.archive_date = $2 \
-           and b.channel = $3 and b.archive_date = $4 \
+           where a.toolchain = $1 and b.toolchain = $2 \
            and a.crate_name = b.crate_name and a.crate_vers = b.crate_vers \
            order by a.crate_name, a.crate_vers";
   debug(q);
@@ -202,10 +198,8 @@ function getResultPairs(dbctx, fromToolchain, toToolchain) {
       }
     };
 
-    dbctx.client.query(q, [fromToolchain.channel,
-			   fromToolchain.archiveDate,
-			   toToolchain.channel,
-			   toToolchain.archiveDate],
+    dbctx.client.query(q, [util.toolchainToString(fromToolchain),
+			   util.toolchainToString(toToolchain)],
 		       f);
   });
 }

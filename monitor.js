@@ -40,7 +40,7 @@ function main() {
     pulseListener.bind(queueEvents.taskException("route.crater.#"));
 
     pulseListener.on('message', function(m) {
-      debug("msg: " + JSON.stringify(m));
+      console.log("msg: " + JSON.stringify(m));
 
       var taskId = m.payload.status.taskId;
       var state = m.payload.status.state;
@@ -71,25 +71,22 @@ function recordResultForTask(dbctx, tcQueue, taskId, success) {
 
     if (extra.taskType == "crate-build") {
 
-      var channel = extra.channel;
-      var archiveDate = extra.archiveDate;
+      var toolchain = extra.toolchain;
       var crateName = extra.crateName;
       var crateVers = extra.crateVers;
 
-      assert(channel);
-      assert(archiveDate);
+      assert(toolchain);
       assert(crateName);
       assert(crateVers);
 
       var buildResult = {
-	channel: channel,
-	archiveDate: archiveDate,
+	toolchain: toolchain,
 	crateName: crateName,
 	crateVers: crateVers,
 	success: success,
 	taskId: taskId
       };
-      debug("adding build result: " + JSON.stringify(buildResult));
+      console.log("adding build result: " + JSON.stringify(buildResult));
       return db.addBuildResult(dbctx, buildResult);
     } else if (extra.taskType == "custom-build") {
       // TODO
