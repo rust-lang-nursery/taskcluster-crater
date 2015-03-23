@@ -211,7 +211,7 @@ function createTaskDescriptorForCrateBuild(schedule, config) {
     };
 
     var extra = {
-      "toolchain": channel,
+      "toolchain": schedule.toolchain,
       "crateName": crateName,
       "crateVers": crateVers
     };
