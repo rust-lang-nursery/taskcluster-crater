@@ -152,3 +152,30 @@ Show the top X packages in order and their build status, for all channels
 * build crates against custom rust
 * sort reports by crate popularity
 * add scoreboard report
+
+# info about worker types
+
+12:19 < jonasfj> brson, cratertest is currently an r3.xlarge configurated with capacity = 5, which means it'll run up to 5 tasks in parallel... Reducing capacity would give you more ram...You can also move to r3.2xlarge :)
+12:21 < jonasfj> as long as you moving within the r3 series I think it'll work.. c3 series is probably good too... but c4 might require some worker-level changes to how we mount disks...
+12:21 < jonasfj> r3.largeI2I15.25I1 x 32
+12:21 < jonasfj> r3.xlargeI4I30.5I1 x 80
+12:21 < jonasfj> r3.2xlargeI8I61I1 x 160
+12:21 < jonasfj> r3.4xlargeI16I122I1 x 320
+12:21 < jonasfj> r3.8xlarge
+12:21 < jonasfj> 32
+12:21 < jonasfj> 244
+12:21 < jonasfj> 2 x 320
+12:22 < jonasfj> ahh, that did work well...
+12:22 < jonasfj> my point was moving to r3.2xlarge and reducing capacity to 2 should give you 30G ram per container
+12:23 < jonasfj> (we currently don't enforce fair sharing between containers)
+12:26 < jonasfj> all of this can be done on aws-provisioner.taskcluster.net
+12:28 < jonasfj> brson, I created rustbuild workertype (better name later); it's an r3.2xlarge (60G ram 8 cores) capacity one so will only run one container at the time...
+12:28 < jonasfj> (also limited to no more than one instance... but you can change that if you want more... small limits are good when testing.
+12:29 < jonasfj> anyways, I recreated your tasks for testing without the route (so it won't interfere with your listener):
+12:29 < jonasfj> brson, http://docs.taskcluster.net/tools/task-inspector/#oezansp3QYmx3HQfRCjXPA
+12:29 < jonasfj> ahh, submitted it with wrong workerType, my bad :)
+12:29 -!- kang [kang@moz-t24d28.ca.comcast.net] has quit [Quit: WeeChat 1.1.1]
+12:32 < jonasfj> brson, meant: http://docs.taskcluster.net/tools/task-inspector/#tISmmRsyRBewU_tEIsewww
+12:32 < jonasfj> it'll probably start running soon, then we'll see if it 60g is enough ram
+12:35 < jonasfj> note, we often use different workertypes for tests and builds. Builds easily saturates CPU and ram, so running multiple builds in parallel is usually pointless..
+12:37 < jonasfj> tests on the other hand are often slow... not running in parallel... They are more linear time "intensive", than cpu intensive... so running them in parallel pays off..
