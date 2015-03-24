@@ -53,6 +53,9 @@ function cleanTempDb() {
 
 function runBeforeEach(done) {
   cleanTempDir()
+    .then(function() {
+      return crates.updateCaches(testConfig);
+    })
     .then(function() { done(); })
     .catch(function(e) { done(e); });
 }
@@ -79,15 +82,6 @@ suite("local crate-index tests", function() {
     var p = crates.loadCrates(testConfig);
     p = p.then(function(crates) {
       assert(crates.length > 0);
-      done();
-    });
-    p = p.catch(function(e) { done(e) });
-  });
-
-  test("get dl addr from index", function(done) {
-    var p = crates.getDlRootAddr(testConfig);
-    p = p.then(function(addr) {
-      assert(addr == "https://crates.io/api/v1/crates");
       done();
     });
     p = p.catch(function(e) { done(e) });
@@ -622,7 +616,8 @@ suite("live network tests", function() {
   });
 
   test("load crates", function(done) {
-    var p = crates.loadCrates(liveConfig);
+    var p = crates.cloneIndex(liveConfig);
+    p = p.then(function() { return crates.loadCrates(liveConfig); });
     p = p.then(function(crates) {
       assert(crates.length > 0);
       done();
@@ -631,8 +626,8 @@ suite("live network tests", function() {
   });
 
   test("get version metadata", function(done) {
-    var p = crates.getDlRootAddr(liveConfig);
-    p = p.then(function(addr) { return crates.getVersionMetadata("toml", "0.1.18", liveConfig); });
+    var p = crates.cloneIndex(liveConfig);
+    p = p.then(function() { return crates.getVersionMetadata("toml", "0.1.18", liveConfig); });
     p = p.then(function(meta) {
       assert(meta.version.created_at == "2015-02-25T22:53:39Z");
       done();

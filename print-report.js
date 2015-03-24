@@ -16,8 +16,12 @@ function main() {
   }
 
   var config = util.loadDefaultConfig();
-  var dbCredentials = config.dbCredentials;
+  crateIndex.updateCaches(config).then(function() {
+    printReport(config, reportSpec);
+  });
+}
 
+function printReport(config, reportSpec) {
   if (reportSpec.type == "current") {
     var date = reportSpec.date;
     reports.createCurrentReport(date, config).then(function(report) {

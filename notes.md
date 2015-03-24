@@ -199,3 +199,8 @@ Show the top X packages in order and their build status, for all channels
 14:11 <@lightsofapollo> brson: hapi / express are decent node frameworks
 14:11 <@lightsofapollo> http frameworks
 14:12  * lightsofapollo would have loved to see this as a rust only thing ... someday
+
+# a working rust build task
+
+https://gist.github.com/jonasfj/91526a796c9f1cdc5c87
+http://docs.taskcluster.net/tools/task-inspector/#IDs5uUXuS9SGuqvYfaCQ9w/0

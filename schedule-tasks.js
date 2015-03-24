@@ -20,19 +20,21 @@ function main() {
 
   var config = util.loadDefaultConfig();
 
-  if (options.type == "crate-build") {
-    Promise.resolve().then(function() {
-      return scheduler.createSchedule(options, config);
-    }).then(function(schedule) {
-      return scheduler.scheduleBuilds(schedule, config);
-    }).then(function(tasks) {
-      console.log("created " + tasks.length + " tasks");
-    }).done();
-  } else {
-    Promise.resolve().then(function() {
-      return scheduler.scheduleCustomBuild(options, config);
-    }).done();
-  }
+  crateIndex.updateCaches(config).then(function() {
+    if (options.type == "crate-build") {
+      Promise.resolve().then(function() {
+	return scheduler.createSchedule(options, config);
+      }).then(function(schedule) {
+	return scheduler.scheduleBuilds(schedule, config);
+      }).then(function(tasks) {
+	console.log("created " + tasks.length + " tasks");
+      }).done();
+    } else {
+      Promise.resolve().then(function() {
+	return scheduler.scheduleCustomBuild(options, config);
+      }).done();
+    }
+  });
 }
 
 function parseOptionsFromArgs() {

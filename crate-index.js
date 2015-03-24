@@ -47,6 +47,13 @@ function serial(f) {
 }
 
 /**
+ * Ensures the index is fresh and metadata for all crates is cached.
+ */
+function updateCaches(config) {
+  return cloneIndex(config);
+}
+
+/**
  * Ensure that the crate-index repository is either present or created
  */
 function cloneIndex(config) {
@@ -132,7 +139,7 @@ function loadCrates(config) {
 
     var localIndex = path.join(cacheDir, localIndexName);
 
-    var p = cloneIndex(config);
+    var p = Promise.resolve();
 
     p = p.then(function() {
       debug('repos asserted');
@@ -160,26 +167,9 @@ function loadCrates(config) {
 }
 
 /**
- * Gets the 'dl' field from config.json in the index.
- */
-function getDlRootAddr(config) {
-  return serial(function() {
-    return cloneIndex(config).then(function() {
-      var cacheDir = config.cacheDir;
-
-      var localIndex = path.join(cacheDir, localIndexName);
-
-      return fs.readFile(path.join(localIndex, "config.json"), 'utf-8').then(function(filedata) {
-	return JSON.parse(filedata);
-      }).then(function(data) {
-	return data.dl;
-      });
-    });
-  });
-}
-
-/**
  * Downloads the version metadata from crates.io and returns it.
+ *
+ * May return promised errors.
  */
 function getVersionMetadata(crateName, crateVers, config) {
   return serial(function() {
@@ -201,6 +191,10 @@ function getVersionMetadata(crateName, crateVers, config) {
       debug("downloading metadata " + crateName + " " + crateVers);
       var json = null;
       var p = util.downloadToMem(url);
+      p = p.catch(function(e) {
+	debug("error downloading metadata for " + crateName + "-" + crateVers);
+	return Promise.reject(e);
+      });
       p = p.then(function(data) {
 	json = JSON.parse(data);
       });
@@ -287,8 +281,9 @@ function getPopularityMap(crates) {
   return users;
 }
 
+exports.updateCaches = updateCaches;
+exports.cloneIndex = cloneIndex;
 exports.loadCrates = loadCrates;
-exports.getDlRootAddr = getDlRootAddr;
 exports.getVersionMetadata = getVersionMetadata;
 exports.getMostRecentRevs = getMostRecentRevs;
 exports.getDag = getDag;

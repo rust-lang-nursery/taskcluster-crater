@@ -243,7 +243,7 @@ function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, worker
       "crater.#"
     ],
     "payload": {
-      "image": "ubuntu:13.10",
+      "image": "ubuntu:14.10",
       "command": [ "/bin/bash", "-c", cmd ],
       "env": env,
       "maxRunTime": maxRunTime,
