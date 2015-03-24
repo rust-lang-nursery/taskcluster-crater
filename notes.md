@@ -204,3 +204,11 @@ Show the top X packages in order and their build status, for all channels
 
 https://gist.github.com/jonasfj/91526a796c9f1cdc5c87
 http://docs.taskcluster.net/tools/task-inspector/#IDs5uUXuS9SGuqvYfaCQ9w/0
+
+# getting live logs
+
+http://docs.taskcluster.net/tools/task-inspector/#xW41f4pVTtm854sp_uX1nw/0
+
+18:47 < brson> while i've got your attention, what url will the uploaded artifacts be available at when they do upload?
+18:49 < garndt> https://queue.taskcluster.net/v1/task/<task_id>/runs/<run id>/artifacts/<path in task definition>
+18:50 < garndt> usually the path in the task definition is something like "public/some/path/some_file" or similar

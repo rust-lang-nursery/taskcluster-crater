@@ -128,3 +128,5 @@ You'll need to have a 'crater-test' database configured locally.
 * HTML frontend
 * CLI <-> REST frontend
 * Use customized docker containers to avoid huge dls
+* Fix urls in pop report
+* Crate DAGs with stability coloring

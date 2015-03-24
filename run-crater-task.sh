@@ -2,10 +2,16 @@
 
 set -u -e
 
+say() {
+    echo
+    echo "# $1"
+    echo
+}
+
 main() {
     local task_type="${CRATER_TASK_TYPE-}"
     if [ -z "$task_type" ]; then
-	echo "CRATER_TASK_TYPE not defined"
+	say "CRATER_TASK_TYPE not defined"
 	exit 1
     fi
 
@@ -14,23 +20,23 @@ main() {
 	local crate_file="${CRATER_CRATE_FILE-}"
 
 	if [ -z "$rust_installer" ]; then
-	    echo "CRATER_RUST_INSTALLER not defined"
+	    say "CRATER_RUST_INSTALLER not defined"
 	    exit 1
 	fi
 
 	if [ -z "$crate_file" ]; then
-	    echo "CRATER_CRATE_FILE not defined"
+	    say "CRATER_CRATE_FILE not defined"
 	    exit 1
 	fi
 
-	echo "Installing system packages"
+	say "Installing system packages"
 	apt-get install build-essential -y
 
-	echo "Installing various native libs"
+	say "Installing various native libs"
 	# As a temporary convience to make various popular libraries build
 	apt-get install libz-dev -y
 
-	echo "Installing Rust from $rust_installer"
+	say "Installing Rust from $rust_installer"
 	curl -f "$rust_installer" -o installer.tar.gz
 	mkdir ./rust-install
 	tar xzf installer.tar.gz -C ./rust-install --strip-components=1
@@ -38,19 +44,19 @@ main() {
 	rustc --version
 	cargo --version
 
-	echo "Downloading crate from $crate_file"
+	say "Downloading crate from $crate_file"
 	curl -fL "$crate_file" -o crate.tar.gz
 	mkdir ./crate
 	tar xzf crate.tar.gz -C ./crate --strip-components=1
 
-	echo "Replacing path dependencies in Cargo.toml"
+	say "Replacing path dependencies in Cargo.toml"
 	if [ -e ./crate/Cargo.toml ]; then
 	    sed -i /^\w*path/d ./crate/Cargo.toml
 	else
-	    echo "Cargo.toml does not exist!"
+	    say "Cargo.toml does not exist!"
 	fi
 
-	echo "Building and testing"
+	say "Building and testing"
 	(cd ./crate && cargo build)
 	(cd ./crate && cargo test)
     elif [ "$task_type" = "custom-build" ]; then
@@ -58,34 +64,36 @@ main() {
 	local commit_sha="${CRATER_TOOLCHAIN_GIT_SHA-}"
 
 	if [ -z "$git_repo" ]; then
-	    echo "CRATER_TOOLCHAIN_GIT_REPO not defined"
+	    say "CRATER_TOOLCHAIN_GIT_REPO not defined"
 	    exit 1
 	fi
 
 	if [ -z "$commit_sha" ]; then
-	    echo "CRATER_TOOLCHAIN_GIT_REPO not defined"
+	    say "CRATER_TOOLCHAIN_GIT_SHA not defined"
 	    exit 1
 	fi
 
-	echo "Installing system packages"
+	say "Installing system packages"
 	apt-get install build-essential -y
 	apt-get install git file python2.7 -y
+	apt-get install -y build-essential python perl curl git libc6-dev-i386 gcc-multilib g++-multilib llvm llvm-dev
+	apt-get build-dep -y clang llvm
 
-	echo "Cloning git repo"
+	say "Cloning git repo"
 	git clone "$git_repo" rust && (cd rust && git reset "$commit_sha" --hard)
 
-	echo "Configuring"
-	(cd rust && ./configure --build=x86_64-unknown-linux-gnu)
+	say "Configuring"
+	(cd rust && ./configure --build=x86_64-unknown-linux-gnu --host=x86_64-unknown-linux-gnu --target=x86_64-unknown-linux-gnu)
 
-	echo "Building"
-	(cd rust && make -j && make dist)
+	say "Building"
+	(cd rust && make && make dist)
 
-	echo "Renaming installer"
+	say "Renaming installer"
 	mv rust/dist/rustc-*-x86_64-unknown-linux-gnu.tar.gz \
            rust/dist/rustc-"$commit_sha"-x86_64-unknown-linux-gnu.tar.gz
 
     else
-	echo "unknown task type"
+	say "Unknown task type"
 	exit 1
     fi
 }

@@ -10,7 +10,7 @@ var tc = require('taskcluster-client');
 var assert = require('assert');
 var dist = require('./rust-dist');
 
-var customBuildMaxRunTimeInSeconds = 120 * 60;
+var customBuildMaxRunTimeInSeconds = 240 * 60;
 var crateBuildMaxRunTimeInSeconds = 30 * 60;
 
 /**
@@ -238,7 +238,7 @@ function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, worker
     "workerType": workerType,
     "created": createTime.toISOString(),
     "deadline": deadlineTime.toISOString(),
-    "retries": 8,
+    "retries": 5,
     "routes": [
       "crater.#"
     ],

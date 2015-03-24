@@ -77,8 +77,8 @@ function getAvailableToolchainsFromIndex(index) {
  * Each is sorted from most recent to oldest.
  * Returns a promise.
  */
-function getAvailableToolchains(distAddr) {
-  var p = downloadIndex(distAddr);
+function getAvailableToolchains(config) {
+  var p = downloadIndex(config);
   p = p.then(function(index) {
     return getAvailableToolchainsFromIndex(index);
   });
