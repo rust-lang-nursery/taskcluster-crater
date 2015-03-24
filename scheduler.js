@@ -228,7 +228,7 @@ function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, worker
   var createTime = new Date(Date.now());
   var deadlineTime = new Date(createTime.getTime() + deadlineInMinutes * 60000);
 
-  var cmd = "cd /home && apt-get update && apt-get install curl -y && (curl -sf https://raw.githubusercontent.com/brson/taskcluster-crater/master/run-crater-task.sh | sh)";
+  var cmd = "cd /home && apt-get update && apt-get install curl -y && (curl -sf https://raw.githubusercontent.com/brson/taskcluster-crater/test/run-crater-task.sh | sh)";
 
   env.CRATER_TASK_TYPE = taskType;
   extra.taskType = taskType;
@@ -238,7 +238,7 @@ function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, worker
     "workerType": workerType,
     "created": createTime.toISOString(),
     "deadline": deadlineTime.toISOString(),
-    "retries": 8,
+    "retries": 0,
     "routes": [
       "crater.#"
     ],
