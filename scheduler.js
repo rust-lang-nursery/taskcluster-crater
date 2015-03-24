@@ -218,12 +218,12 @@ function createTaskDescriptorForCrateBuild(schedule, config) {
 
     return createTaskDescriptor(taskName, env, extra,
 				"crate-build", crateBuildMaxRunTimeInSeconds, "cratertest",
-				{ });
+				{ }, 60 /* deadline in minutes */);
   });
 }
 
-function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, workerType, artifacts) {
-  var deadlineInMinutes = 60 * 8; // I'm in no hurry
+// FIXME Too many arguments
+function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, workerType, artifacts, deadlineInMinutes) {
 
   var createTime = new Date(Date.now());
   var deadlineTime = new Date(createTime.getTime() + deadlineInMinutes * 60000);
@@ -319,9 +319,11 @@ function createTaskDescriptorForCustomBuild(gitRepo, commitSha) {
     }
   };
 
+  var deadlineInMinutes = 60 * 24; // Rust can take a long time to build successfully
+
   return createTaskDescriptor(taskName, env, extra,
 			      "custom-build", customBuildMaxRunTimeInSeconds, "rustbuild",
-			      artifacts);
+			      artifacts, deadlineInMinutes);
 }
 
 exports.createSchedule = createSchedule;
