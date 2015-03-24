@@ -44,9 +44,18 @@ function createComparisonReport(fromToolchain, toToolchain, dbctx, config) {
  */
 function createWeeklyReport(date, dbctx, config) {
   return createCurrentReport(date, config).then(function(currentReport) {
-    var stableToolchain = { channel: "stable", archiveDate: currentReport.stable };
-    var betaToolchain = { channel: "beta", archiveDate: currentReport.beta };
-    var nightlyToolchain = { channel: "nightly", archiveDate: currentReport.nightly };
+    var stableToolchain = null;
+    if (currentReport.stable) {
+      stableToolchain = { channel: "stable", archiveDate: currentReport.stable };
+    }
+    var betaToolchain = null;
+    if (currentReport.beta) {
+      betaToolchain = { channel: "beta", archiveDate: currentReport.beta };
+    }
+    var nightlyToolchain = null;
+    if (currentReport.nightly) {
+      nightlyToolchain = { channel: "nightly", archiveDate: currentReport.nightly };
+    }
 
     var betaReport = createComparisonReport(stableToolchain, betaToolchain, dbctx, config);
     return betaReport.then(function(betaReport) {
@@ -55,16 +64,8 @@ function createWeeklyReport(date, dbctx, config) {
 	return {
 	  date: date,
 	  currentReport: currentReport,
-	  betaStatuses: betaReport.statuses,
-	  nightlyStatuses: nightlyReport.statuses,
-	  betaStatusSummary: betaReport.statusSummary,
-	  nightlyStatusSummary: nightlyReport.statusSummary,
-	  betaRegressions: betaReport.regressions,
-	  nightlyRegressions: nightlyReport.regressions,
-	  betaRootRegressions: betaReport.rootRegressions,
-	  nightlyRootRegressions: nightlyReport.rootRegressions,
-	  betaNonRootRegressions: betaReport.nonRootRegressions,
-	  nightlyNonRootRegressions: nightlyReport.nonRootRegressions
+	  beta: betaReport,
+	  nightly: nightlyReport
 	};
       });
     });
@@ -78,7 +79,7 @@ function createWeeklyReport(date, dbctx, config) {
  */ 
 function calculateStatuses(dbctx, fromToolchain, toToolchain) {
 
-  if (fromToolchain.archiveDate == null || toToolchain.archiveDate == null) {
+  if (fromToolchain == null || toToolchain == null) {
     return new Promise(function(resolve, reject) { resolve([]); });
   }
 
@@ -278,8 +279,13 @@ function makeRegistryUrl(name) {
   return "https://crates.io/crates/" + name;
 }
 
+function createScoreboardReport(toolchain, config) {
+  return 
+}
+
 exports.createWeeklyReport = createWeeklyReport;
 exports.createCurrentReport = createCurrentReport;
 exports.createComparisonReport = createComparisonReport;
 exports.createPopularityReport = createPopularityReport;
+exports.createScoreboardReport = createScoreboardReport;
 

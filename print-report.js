@@ -49,38 +49,38 @@ function printReport(config, reportSpec) {
 	console.log("## Coverage");
 	console.log();
 	console.log("From stable to beta:");
-	console.log("* " + report.betaStatuses.length + " crates tested: " +
-		    report.betaStatusSummary.working + " working / " +
-		    report.betaStatusSummary.notWorking + " not working / " +
-		    report.betaStatusSummary.regressed + " regressed / " +
-		    report.betaStatusSummary.fixed + " fixed.");
+	console.log("* " + report.beta.statuses.length + " crates tested: " +
+		    report.beta.statusSummary.working + " working / " +
+		    report.beta.statusSummary.notWorking + " not working / " +
+		    report.beta.statusSummary.regressed + " regressed / " +
+		    report.beta.statusSummary.fixed + " fixed.");
 	console.log();
 	console.log("From beta to nightly:");
-	console.log("* " + report.nightlyStatuses.length + " crates tested: " +
-		    report.nightlyStatusSummary.working + " working / " +
-		    report.nightlyStatusSummary.broken + " broken / " +
-		    report.nightlyStatusSummary.regressed + " regressed / " +
-		    report.nightlyStatusSummary.fixed + " fixed.");
+	console.log("* " + report.nightly.statuses.length + " crates tested: " +
+		    report.nightly.statusSummary.working + " working / " +
+		    report.nightly.statusSummary.broken + " broken / " +
+		    report.nightly.statusSummary.regressed + " regressed / " +
+		    report.nightly.statusSummary.fixed + " fixed.");
 	console.log();
 	console.log("## Regressions");
 	console.log();
-	console.log("* There are currently " + report.betaRootRegressions.length +
+	console.log("* There are currently " + report.beta.rootRegressions.length +
 		    " root regressions from stable to beta.");
-	console.log("* There are currently " + report.nightlyRootRegressions.length +
+	console.log("* There are currently " + report.nightly.rootRegressions.length +
 		    " root regressions from beta to nightly.");
-	console.log("* There are currently " + report.betaRegressions.length +
+	console.log("* There are currently " + report.beta.regressions.length +
 		    " regressions from stable to beta.");
-	console.log("* There are currently " + report.nightlyRegressions.length +
+	console.log("* There are currently " + report.nightly.regressions.length +
 		    " regressions from beta to nightly.");
 	console.log();
 	console.log("## Beta root regressions, sorted by popularity:");
-	printCrateList(report.betaRootRegressions);
+	printCrateList(report.beta.rootRegressions);
 	console.log("## Nightly root regressions, sorted by popularity:");
-	printCrateList(report.nightlyRootRegressions);
+	printCrateList(report.nightly.rootRegressions);
 	console.log("## Beta non-root regressions, sorted by popularity:");
-	printCrateList(report.betaRegressions);
+	printCrateList(report.beta.regressions);
 	console.log("## Nightly non-root regressions, sorted by popularity:");
-	printCrateList(report.nightlyRegressions);
+	printCrateList(report.nightly.regressions);
 	console.log("## Beta broken, sorted by popularity:");
 	printCrateList(report.beta.broken);
 	console.log("## Nightly broken, sorted by popularity:");
