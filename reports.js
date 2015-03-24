@@ -102,6 +102,7 @@ function calculateStatuses(dbctx, fromToolchain, toToolchain) {
       buildResult.status = status;
       buildResult.from.inspectorLink = inspectorRoot + buildResult.from.taskId;
       buildResult.to.inspectorLink = inspectorRoot + buildResult.to.taskId;
+      buildResult.registryUrl = makeRegistryUrl(buildResult.crateName);
 
       return buildResult;
     });
@@ -254,7 +255,7 @@ function createPopularityReport(config) {
     return crates.map(function(crate) {
       return {
 	crateName: crate.name,
-	url: "https://crates.io/crates/" + crate.name,
+	url: makeRegistryUrl(crate.name),
 	pop: popMap[crate.name]
       };
     });
@@ -273,7 +274,12 @@ function createPopularityReport(config) {
   });
 }
 
+function makeRegistryUrl(name) {
+  return "https://crates.io/crates/" + name;
+}
+
 exports.createWeeklyReport = createWeeklyReport;
 exports.createCurrentReport = createCurrentReport;
 exports.createComparisonReport = createComparisonReport;
 exports.createPopularityReport = createPopularityReport;
+

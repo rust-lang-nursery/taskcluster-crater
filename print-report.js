@@ -136,7 +136,7 @@ function printReport(config, reportSpec) {
       console.log("# Popularity report");
       console.log("");
       report.forEach(function(r) {
-	console.log("* " + r.pop + " [" + r.crateName + "](" + r.url + ")");
+	console.log("* " + r.pop + " [" + r.crateName + "](" + r.registryUrl + ")");
       });
     });
   } else {
@@ -149,7 +149,7 @@ function printCrateList(statuses) {
   statuses.forEach(function(reg) {
     var fromLink = reg.from.inspectorLink;
     var toLink = reg.to.inspectorLink;
-    var s = "* " + reg.crateName + "-" + reg.crateVers + " " +
+    var s = "* [" + reg.crateName + "-" + reg.crateVers + "](" + reg.registryUrl + ") " +
       "([before](" + fromLink + ")) " +
       "([after](" + toLink + "))";
     console.log(s);
