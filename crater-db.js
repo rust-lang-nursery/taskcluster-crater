@@ -204,6 +204,31 @@ function getResultPairs(dbctx, fromToolchain, toToolchain) {
   });
 }
 
+function getResults(dbctx, toolchain) {
+  var q = "select * from build_results \
+           where toolchain = $1 order by crate_name";
+  debug(q);
+  return new Promise(function(resolve, reject) {
+    var f = function(e, r) {
+      if (e) { reject(e); }
+      else {
+	var results = [];
+	r.rows.forEach(function(row) {
+	  results.push({
+	    crateName: row.crate_name,
+	    crateVers: row.crate_vers,
+	    success: row.success,
+	    taskId: row.task_id
+	  });
+	});
+	resolve(results);
+      }
+    };
+
+    dbctx.client.query(q, [util.toolchainToString(toolchain)], f);
+  });
+}
+
 exports.connect = connect;
 exports.disconnect = disconnect;
 exports.populate = populate;
@@ -211,3 +236,4 @@ exports.depopulate = depopulate;
 exports.addBuildResult = addBuildResult;
 exports.getBuildResult = getBuildResult;
 exports.getResultPairs = getResultPairs;
+exports.getResults = getResults;

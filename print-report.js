@@ -139,6 +139,31 @@ function printReport(config, reportSpec) {
 	console.log("* " + r.pop + " [" + r.crateName + "](" + r.registryUrl + ")");
       });
     });
+  } else if (reportSpec.type == "toolchain") {
+    db.connect(config).then(function(dbctx) {
+      return reports.createToolchainReport(reportSpec.toolchain, dbctx, config).then(function(report) {
+	console.log("# Toolchain report for " + util.toolchainToString(report.toolchain));
+	console.log("");
+	console.log("* " + report.successes.length + " successes / " + report.failures.length + " failures");
+	console.log("");
+	console.log("## Failures");
+	console.log("");
+	report.failures.forEach(function(r) {
+	  var s = "* [" + r.crateName + "-" + r.crateVers + "](" + r.inspectorLink + ")";
+	  console.log(s);
+	});
+	console.log("");
+	console.log("## Successes");
+	console.log("");
+	report.successes.forEach(function(r) {
+	  var s = "* [" + r.crateName + "-" + r.crateVers + "](" + r.inspectorLink + ")";
+	  console.log(s);
+	});
+	console.log("");
+
+	return db.disconnect(dbctx);
+      });
+    }).done();
   } else {
     console.log("unknown report type");
   }
@@ -180,6 +205,11 @@ function getReportSpecFromArgs() {
   } else if (process.argv[2] == "popularity") {
     return {
       type: "popularity"
+    };
+  } else if (process.argv[2] == "toolchain") {
+    return {
+      type: "toolchain",
+      toolchain: util.parseToolchain(process.argv[3])
     };
   } else {
     return null;

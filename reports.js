@@ -8,6 +8,40 @@ var db = require('./crater-db');
 var assert = require('assert');
 var dist = require('./rust-dist');
 
+function createToolchainReport(toolchain, dbctx, config) {
+  return db.getResults(dbctx, toolchain).then(function(results) {
+    return results.map(function(result) {
+      result.registryUrl = makeRegistryUrl(result.crateName);
+      result.inspectorLink = makeInspectorLink(result.taskId);
+      return result;
+    });
+  }).then(function(results) {
+    return sortByPopularity(results, config);
+  }).then(function(results) {
+    // Partition into successful results and failful results
+    var successes = [];
+    var failures = [];
+    results.forEach(function(result) {
+      if (result.success == true) {
+	successes.push(result);
+      } else {
+	failures.push(result);
+      }
+    });
+
+    return {
+      successes: successes,
+      failures: failures
+    }
+  }).then(function(results) {
+    return {
+      toolchain: toolchain,
+      successes: results.successes,
+      failures: results.failures
+    };
+  });
+}
+
 function createComparisonReport(fromToolchain, toToolchain, dbctx, config) {
   var statuses = calculateStatuses(dbctx, fromToolchain, toToolchain);
   return statuses.then(function(statuses) {
@@ -97,12 +131,10 @@ function calculateStatuses(dbctx, fromToolchain, toToolchain) {
 	status = "fixed";
       }
 
-      var inspectorRoot = "https://tools.taskcluster.net/task-inspector/#";
-
       // Just modify the intermediate result
       buildResult.status = status;
-      buildResult.from.inspectorLink = inspectorRoot + buildResult.from.taskId;
-      buildResult.to.inspectorLink = inspectorRoot + buildResult.to.taskId;
+      buildResult.from.inspectorLink = makeInspectorLink(buildResult.from.taskId);
+      buildResult.to.inspectorLink = makeInspectorLink(buildResult.to.taskId);
       buildResult.registryUrl = makeRegistryUrl(buildResult.crateName);
 
       return buildResult;
@@ -256,7 +288,7 @@ function createPopularityReport(config) {
     return crates.map(function(crate) {
       return {
 	crateName: crate.name,
-	url: makeRegistryUrl(crate.name),
+	registryUrl: makeRegistryUrl(crate.name),
 	pop: popMap[crate.name]
       };
     });
@@ -279,6 +311,11 @@ function makeRegistryUrl(name) {
   return "https://crates.io/crates/" + name;
 }
 
+function makeInspectorLink(taskId) {
+    var inspectorRoot = "https://tools.taskcluster.net/task-inspector/#";
+    return inspectorRoot + taskId;
+}
+
 function createScoreboardReport(toolchain, config) {
   return 
 }
@@ -288,4 +325,4 @@ exports.createCurrentReport = createCurrentReport;
 exports.createComparisonReport = createComparisonReport;
 exports.createPopularityReport = createPopularityReport;
 exports.createScoreboardReport = createScoreboardReport;
-
+exports.createToolchainReport = createToolchainReport;
