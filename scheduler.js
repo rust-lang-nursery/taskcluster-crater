@@ -312,9 +312,9 @@ function createTaskDescriptorForCustomBuild(gitRepo, commitSha) {
 
   // Upload the installer
   var artifacts = {
-    installer: {
+    "public/rustc-dev-x86_64-unknown-linux-gnu.tar.gz": {
       type: "file",
-      path: "./rust/dist/rustc-" + commitSha + "-x86_64-unknown-linux-gnu.tar.gz",
+      path: "/home/rust/dist/rustc-dev-x86_64-unknown-linux-gnu.tar.gz",
       expires: new Date((new Date(Date.now())) + twoMonths)
     }
   };

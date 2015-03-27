@@ -90,7 +90,7 @@ main() {
 
 	say "Renaming installer"
 	mv rust/dist/rustc-*-x86_64-unknown-linux-gnu.tar.gz \
-           rust/dist/rustc-"$commit_sha"-x86_64-unknown-linux-gnu.tar.gz
+           rust/dist/rustc-dev-x86_64-unknown-linux-gnu.tar.gz
 
     else
 	say "Unknown task type"
