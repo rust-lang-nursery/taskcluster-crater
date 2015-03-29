@@ -17,6 +17,7 @@ main() {
 
     if [ "$task_type" = "crate-build" ]; then
 	local rust_installer="${CRATER_RUST_INSTALLER-}"
+	local cargo_installer="${CRATER_CARGO_INSTALLER-}"
 	local crate_file="${CRATER_CRATE_FILE-}"
 
 	if [ -z "$rust_installer" ]; then
@@ -41,6 +42,17 @@ main() {
 	mkdir ./rust-install
 	tar xzf installer.tar.gz -C ./rust-install --strip-components=1
 	./rust-install/install.sh
+
+	if [ -n "$cargo_installer" ]; then
+	    say "Installing Cargo from $cargo_installer"
+	    curl -f "$cargo_installer" -o cargo-installer.tar.gz
+	    mkdir ./cargo-install
+	    tar xzf cargo-installer.tar.gz -C ./cargo-install --strip-components=1
+	    ./cargo-install/install.sh
+	fi
+
+	say "Printing toolchain versions"
+
 	rustc --version
 	cargo --version
 

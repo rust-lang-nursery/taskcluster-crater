@@ -200,13 +200,14 @@ function createTaskDescriptorForCrateBuild(schedule, config) {
   assert(crateName != null);
   assert(crateVers != null);
 
-  var p = installerUrlForToolchain(schedule.toolchain, config)
-  return p.then(function(rustInstallerUrl) {
+  var p = installerUrlsForToolchain(schedule.toolchain, config)
+  return p.then(function(installerUrls) {
     var crateUrl = dlRootAddr + "/" + crateName + "/" + crateVers + "/download";
     var taskName = util.toolchainToString(schedule.toolchain) + "-vs-" + crateName + "-" + crateVers;
 
     var env = {
-      "CRATER_RUST_INSTALLER": rustInstallerUrl,
+      "CRATER_RUST_INSTALLER": installerUrls.rustInstallerUrl,
+      "CRATER_CARGO_INSTALLER": instalerUrls.cargoInstallUrl,
       "CRATER_CRATE_FILE": crateUrl
     };
 
@@ -264,9 +265,21 @@ function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, worker
 
 function installerUrlForToolchain(toolchain, config) {
   if (toolchain.channel) {
-    return dist.installerUrlForToolchain(toolchain, "x86_64-unknown-linux-gnu", config);
+      return dist.installerUrlForToolchain(toolchain, "x86_64-unknown-linux-gnu", config)
+      .then(function(url) {
+	return {
+	  rustInstallerUrl: url,
+	  cargoInstallerUrl: null
+	};
+      });
   } else {
-    assert(false);
+    assert(toolchain.customSha);
+    return db.getCustomToolchain(dbctx, toolchain).then(function(custom) {
+      return {
+	rustInstallerUrl: url,
+	cargoInstallerUrl: "https://static.rust-lang.org/cargo-dist/cargo-nightly-x86_64-unknown-linux-gnu.tar.gz"
+      };
+    });
   }
 }
 
