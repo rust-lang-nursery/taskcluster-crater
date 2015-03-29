@@ -49,7 +49,7 @@ function createComparisonReport(fromToolchain, toToolchain, dbctx, config) {
   }).then(function(statuses) {
     var statusSummary = calculateStatusSummary(statuses);
     var regressions = extractWithStatus(statuses, "regressed");
-    var rootRegressions = pruneDependentRegressions(regressions, config);
+    var rootRegressions = pruneNonRootRegressions(regressions, config);
     return rootRegressions.then(function(rootRegressions) {
       var nonRootRegressions = pruneRootRegressions(regressions, rootRegressions);
 
@@ -195,7 +195,7 @@ function extractWithStatus(statuses, needed) {
   return result;
 }
 
-function pruneDependentRegressions(regressions, config) {
+function pruneNonRootRegressions(regressions, config) {
   var regressionMap = {};
   regressions.forEach(function(r) {
     regressionMap[r.crateName] = r;
