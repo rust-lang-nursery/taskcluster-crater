@@ -496,18 +496,18 @@ suite("report tests", function() {
       assert(report.currentReport.beta == "2015-02-20");
       assert(report.currentReport.stable == null);
 
-      assert(report.betaStatuses.length == 0);
-      assert(report.nightlyStatuses[0].status == "working");
-      assert(report.nightlyStatuses[1].status == "broken");
-      assert(report.nightlyStatuses[2].status == "regressed");
-      assert(report.nightlyStatuses[3].status == "fixed");
+      assert(report.beta.statuses.length == 0);
+      assert(report.nightly.statuses[0].status == "working");
+      assert(report.nightly.statuses[1].status == "broken");
+      assert(report.nightly.statuses[2].status == "regressed");
+      assert(report.nightly.statuses[3].status == "fixed");
 
-      assert(report.nightlyStatusSummary.working == 1);
-      assert(report.nightlyStatusSummary.broken == 1);
-      assert(report.nightlyStatusSummary.regressed == 1);
-      assert(report.nightlyStatusSummary.fixed == 1);
+      assert(report.nightly.statusSummary.working == 1);
+      assert(report.nightly.statusSummary.broken == 1);
+      assert(report.nightly.statusSummary.regressed == 1);
+      assert(report.nightly.statusSummary.fixed == 1);
 
-      assert(report.nightlyRegressions[0].crateName = "plot");
+      assert(report.nightly.regressions[0].crateName = "plot");
 
       done();
     }).catch(function(e) { done(e) });
@@ -550,8 +550,8 @@ suite("report tests", function() {
     }).then(function(report) {
 
       // 'piston' is not a root regression
-      assert(report.nightlyRootRegressions.length == 1);
-      assert(report.nightlyRootRegressions[0].crateName == "pistoncore-input");
+      assert(report.nightly.rootRegressions.length == 1);
+      assert(report.nightly.rootRegressions[0].crateName == "pistoncore-input");
 
       done();
     }).catch(function(e) { done(e) });
@@ -593,8 +593,8 @@ suite("report tests", function() {
       return reports.createWeeklyReport("2015-03-03", dbctx, testConfig);
     }).then(function(report) {
 
-      assert(report.nightlyRegressions[0].crateName == "url");
-      assert(report.nightlyRegressions[1].crateName == "piston");
+      assert(report.nightly.regressions[0].crateName == "url");
+      assert(report.nightly.regressions[1].crateName == "piston");
 
       done();
     }).catch(function(e) { done(e) });
