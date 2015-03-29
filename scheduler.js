@@ -210,7 +210,7 @@ function createTaskDescriptorForCrateBuild(dbctx, schedule, config) {
 
     var env = {
       "CRATER_RUST_INSTALLER": installerUrls.rustInstallerUrl,
-      "CRATER_CARGO_INSTALLER": installerUrls.cargoInstallUrl,
+      "CRATER_CARGO_INSTALLER": installerUrls.cargoInstallerUrl,
       "CRATER_CRATE_FILE": crateUrl
     };
 
