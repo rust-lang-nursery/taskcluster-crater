@@ -146,14 +146,14 @@ function printReport(config, reportSpec) {
 	console.log("");
 	console.log("* " + report.successes.length + " successes / " + report.failures.length + " failures");
 	console.log("");
-	console.log("## Failures");
+	console.log("## Failures, sorted by popularity");
 	console.log("");
 	report.failures.forEach(function(r) {
 	  var s = "* [" + r.crateName + "-" + r.crateVers + "](" + r.inspectorLink + ")";
 	  console.log(s);
 	});
 	console.log("");
-	console.log("## Successes");
+	console.log("## Successes, sorted by popularity");
 	console.log("");
 	report.successes.forEach(function(r) {
 	  var s = "* [" + r.crateName + "-" + r.crateVers + "](" + r.inspectorLink + ")";

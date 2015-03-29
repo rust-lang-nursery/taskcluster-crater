@@ -212,3 +212,14 @@ http://docs.taskcluster.net/tools/task-inspector/#xW41f4pVTtm854sp_uX1nw/0
 18:47 < brson> while i've got your attention, what url will the uploaded artifacts be available at when they do upload?
 18:49 < garndt> https://queue.taskcluster.net/v1/task/<task_id>/runs/<run id>/artifacts/<path in task definition>
 18:50 < garndt> usually the path in the task definition is something like "public/some/path/some_file" or similar
+
+# niko's commits
+
+after:
+242ed0b7c0f6a21096f2cc3e1ad1bdb176d02545
+
+https://tools.taskcluster.net/task-inspector/#y3yL15CwTe-Nl-0q9Kp_Dw/
+
+before:
+e03bbded2da5332f0628a169559051959076950e
+https://tools.taskcluster.net/task-inspector/#N44APbE1Tiq0Yxe7MVN6sQ/
