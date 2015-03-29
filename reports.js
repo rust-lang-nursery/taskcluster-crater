@@ -49,9 +49,9 @@ function createComparisonReport(fromToolchain, toToolchain, dbctx, config) {
   }).then(function(statuses) {
     var statusSummary = calculateStatusSummary(statuses);
     var regressions = extractWithStatus(statuses, "regressed");
-    var rootRegressions = pruneNonRootRegressions(regressions, config);
+    var rootRegressions = getRootFailures(regressions, config);
     return rootRegressions.then(function(rootRegressions) {
-      var nonRootRegressions = pruneRootRegressions(regressions, rootRegressions);
+      var nonRootRegressions = getNonRootFailures(regressions, rootRegressions);
 
       var working = extractWithStatus(statuses, "working");
       var broken = extractWithStatus(statuses, "broken");
@@ -195,7 +195,7 @@ function extractWithStatus(statuses, needed) {
   return result;
 }
 
-function pruneNonRootRegressions(regressions, config) {
+function getRootFailures(regressions, config) {
   var regressionMap = {};
   regressions.forEach(function(r) {
     regressionMap[r.crateName] = r;
@@ -232,7 +232,7 @@ function pruneNonRootRegressions(regressions, config) {
   });
 }
 
-function pruneRootRegressions(regs, rootRegs) {
+function getNonRootFailures(regs, rootRegs) {
   var rootRegMap = {};
   rootRegs.forEach(function(r) {
     rootRegMap[r.crateName] = r;
