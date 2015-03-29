@@ -38,14 +38,14 @@ main() {
 	apt-get install libz-dev -y
 
 	say "Installing Rust from $rust_installer"
-	curl -f "$rust_installer" -o installer.tar.gz
+	curl -Lf "$rust_installer" -o installer.tar.gz
 	mkdir ./rust-install
 	tar xzf installer.tar.gz -C ./rust-install --strip-components=1
 	./rust-install/install.sh
 
 	if [ -n "$cargo_installer" ]; then
 	    say "Installing Cargo from $cargo_installer"
-	    curl -f "$cargo_installer" -o cargo-installer.tar.gz
+	    curl -Lf "$cargo_installer" -o cargo-installer.tar.gz
 	    mkdir ./cargo-install
 	    tar xzf cargo-installer.tar.gz -C ./cargo-install --strip-components=1
 	    ./cargo-install/install.sh
