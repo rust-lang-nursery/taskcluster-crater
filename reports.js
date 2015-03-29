@@ -29,16 +29,16 @@ function createToolchainReport(toolchain, dbctx, config) {
       }
     });
 
-    return {
-      successes: successes,
-      failures: failures
-    }
-  }).then(function(results) {
-    return {
-      toolchain: toolchain,
-      successes: results.successes,
-      failures: results.failures
-    };
+    return getRootFailures(failures, config).then(function(rootFailures) {
+      var nonRootFailures = getNonRootFailures(failures, rootFailures);
+      return {
+	toolchain: toolchain,
+	successes: successes,
+	failures: failures,
+	rootFailures: rootFailures,
+	nonRootFailures: nonRootFailures
+      };
+    });
   });
 }
 

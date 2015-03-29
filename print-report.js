@@ -145,10 +145,18 @@ function printReport(config, reportSpec) {
 	console.log("# Toolchain report for " + util.toolchainToString(report.toolchain));
 	console.log("");
 	console.log("* " + report.successes.length + " successes / " + report.failures.length + " failures");
+	console.log("* " + report.rootFailures.length + " root failures / " + report.nonRootFailures.length + " non-root failures");
 	console.log("");
-	console.log("## Failures, sorted by popularity");
+	console.log("## Root failures, sorted by popularity");
 	console.log("");
-	report.failures.forEach(function(r) {
+	report.rootFailures.forEach(function(r) {
+	  var s = "* [" + r.crateName + "-" + r.crateVers + "](" + r.inspectorLink + ")";
+	  console.log(s);
+	});
+	console.log("");
+	console.log("## Non-root failures, sorted by popularity");
+	console.log("");
+	report.nonRootFailures.forEach(function(r) {
 	  var s = "* [" + r.crateName + "-" + r.crateVers + "](" + r.inspectorLink + ")";
 	  console.log(s);
 	});
