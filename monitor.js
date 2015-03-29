@@ -50,7 +50,7 @@ function main() {
 
       if (state == "completed" || state == "failed") {
 	var success = state == "completed";
-	recordResultForTask(dbctx, tcQueue, taskId, success);
+	recordResultForTask(dbctx, tcQueue, taskId, success, m);
       }
 
     });
@@ -61,7 +61,7 @@ function main() {
   }).catch(function(e) { console.log(e); });
 }
 
-function recordResultForTask(dbctx, tcQueue, taskId, success) {
+function recordResultForTask(dbctx, tcQueue, taskId, success, m) {
   // Get the task from TC
   debug("requesting task for " + taskId);
   var task = tcQueue.getTask(taskId);
@@ -89,7 +89,21 @@ function recordResultForTask(dbctx, tcQueue, taskId, success) {
       console.log("adding build result: " + JSON.stringify(buildResult));
       return db.addBuildResult(dbctx, buildResult);
     } else if (extra.taskType == "custom-build") {
-      // TODO
+      if (success) {
+	var run = m.payload.runs.length - 1;
+	var toolchain = util.parseToolchain(extra.toolchainGitSha);
+	var url = "https://queue.taskcluster.net/v1/task/" + taskId +
+	  "/runs/" + run + "/artifacts/public/rustc-dev-x86_64-unknown-linux-gnu.tar.gz";
+	var custom = {
+	  toolchain: toolchain,
+	  url: url,
+	  taskId: taskId
+	};
+	console.log("adding custom toolchain: " + JSON.stringify(custom));
+	return db.addCustomToolchain(dbctx, custom);
+      } else {
+	console.log("custom toolchain build failed: " + taskId);
+      }
     } else {
       console.log("unknown task type " + extra.taskType);
       return Promise.resolve();

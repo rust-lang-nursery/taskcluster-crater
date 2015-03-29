@@ -364,6 +364,24 @@ suite("database tests", function() {
     }).catch(function(e) { done(e); });
   });
 
+  test("add custom toolchain", function(done) {
+    db.connect(testConfig).then(function(dbctx) {
+      var toolchain = util.parseToolchain("aaaaabbbbbaaaaabbbbbaaaaabbbbbaaaaabbbbb");
+      var custom = {
+	toolchain: toolchain,
+	url: "http://foo",
+	taskId: "myTask"
+      };
+      var p = Promise.resolve();
+      var p = p.then(function() { return db.addCustomToolchain(dbctx, custom); });
+      var p = p.then(function() { return db.getCustomToolchain(dbctx, toolchain); });
+      var p = p.then(function(c) { assert(JSON.stringify(c) == JSON.stringify(custom)); });
+      var p = p.then(function() { return db.disconnect(dbctx); });
+      var p = p.then(function() { done(); });
+      return p;
+    }).catch(function(e) { done(e); });
+  });
+
 });
 
 suite("scheduler tests", function() {

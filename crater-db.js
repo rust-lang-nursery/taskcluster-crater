@@ -54,7 +54,7 @@ function populate(dbctx) {
            toolchain text not null, \
            crate_name text not null, crate_vers text not null, \
            success boolean not null, \
-           task_id text, \
+           task_id text not null, \
            primary key ( \
            toolchain, crate_name, crate_vers ) ) \
            ";
@@ -62,6 +62,19 @@ function populate(dbctx) {
     dbctx.client.query(q, function(e, r) {
       if (e) { reject(e); }
       else { resolve(r); }
+    });
+  }).then(function() {
+    return new Promise(function(resolve, reject) {
+      var q = "create table if not exists \
+               custom_toolchains ( \
+               toolchain text not null, \
+               url text not null, \
+               task_id text not null, \
+               primary key (toolchain) )";
+      dbctx.client.query(q, function(e, r) {
+	if (e) { reject(e); }
+	else { resolve(r); }
+      });
     });
   });
 }
@@ -76,6 +89,15 @@ function depopulate(dbctx) {
     dbctx.client.query(q, function(e, r) {
       if (e) { reject(e); }
       else { resolve(r); }
+    });
+  }).then(function() {
+    var q = "drop table if exists custom_toolchains";
+    debug(q);
+    return new Promise(function(resolve, reject) {
+      dbctx.client.query(q, function(e, r) {
+	if (e) { reject(e); }
+	else { resolve(r); }
+      });
     });
   });
 }
@@ -229,6 +251,64 @@ function getResults(dbctx, toolchain) {
   });
 }
 
+function addCustomToolchain(dbctx, custom) {
+  return new Promise(function(resolve, reject) {
+    var f = function(e, r) {
+      dbctx.client.query('commit', function(err, res) {
+	if (e) { reject(e); }
+	else { resolve(); }
+      });
+    };
+
+    dbctx.client.query('begin', function(err, res) {
+      if (err) { reject(err); return; }
+
+      var p = getCustomToolchain(dbctx, custom.toolchain);
+      p.then(function(r) {
+	if (r == null) {
+	  var q = "insert into custom_toolchains values ($1, $2, $3)";
+	  debug(q);
+	  dbctx.client.query(q, [util.toolchainToString(custom.toolchain),
+				 custom.url,
+				 custom.taskId], f);
+	} else {
+	  var q = "update custom_toolchains set url = $2, taskId = $3 where toolchain = $1";
+	  debug(q);
+	  dbctx.client.query(q, [util.toolchainToString(custom.toolchain),
+				 custom.url,
+				 custom.taskId], f);
+	}
+      }).catch(function(e) {
+	reject(e);
+      });
+    });
+  });
+}
+
+function getCustomToolchain(dbctx, toolchain) {
+  var q = "select * from custom_toolchains where toolchain = $1";
+  debug(q);
+  return new Promise(function(resolve, reject) {
+    var f = function(e, r) {
+      if (e) { reject(e); }
+      else {
+	if (r.rows.length > 0) {
+	  var row = r.rows[0];
+	  resolve({
+	    toolchain: toolchain,
+	    url: row.url,
+	    taskId: row.task_id
+	  });
+	} else {
+	  resolve(null);
+	}
+      }
+    };
+
+    dbctx.client.query(q, [util.toolchainToString(toolchain)], f);
+  });
+}
+
 exports.connect = connect;
 exports.disconnect = disconnect;
 exports.populate = populate;
@@ -237,3 +317,5 @@ exports.addBuildResult = addBuildResult;
 exports.getBuildResult = getBuildResult;
 exports.getResultPairs = getResultPairs;
 exports.getResults = getResults;
+exports.addCustomToolchain = addCustomToolchain;
+exports.getCustomToolchain = getCustomToolchain;
