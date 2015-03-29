@@ -9,6 +9,7 @@ var slugid = require('slugid');
 var tc = require('taskcluster-client');
 var assert = require('assert');
 var dist = require('./rust-dist');
+var db = require('./crater-db');
 
 var customBuildMaxRunTimeInSeconds = 240 * 60;
 var crateBuildMaxRunTimeInSeconds = 30 * 60;
@@ -146,7 +147,7 @@ function createScheduleForCratesForToolchain(crates, toolchain) {
   return tasks;
 }
 
-function scheduleBuilds(schedule, config) {
+function scheduleBuilds(dbctx, schedule, config) {
   var tcCredentials = config.tcCredentials;
 
   assert(tcCredentials != null);
@@ -164,7 +165,7 @@ function scheduleBuilds(schedule, config) {
   var i = 1;
 
   return Promise.denodeify(async.mapLimit)(schedule, 100, function(schedule, cb) {
-    createTaskDescriptorForCrateBuild(schedule, config).then(function(taskDesc) {
+    createTaskDescriptorForCrateBuild(dbctx, schedule, config).then(function(taskDesc) {
       debug("createTask payload: " + JSON.stringify(taskDesc));
 
       var taskId = slugid.v4();
@@ -183,13 +184,15 @@ function scheduleBuilds(schedule, config) {
 	  console.log("inspector link: https://tools.taskcluster.net/task-inspector/#" + taskId);
 	  cb(null, result);
 	});
+    }).catch(function(e) {
+      cb(e, null);
     }).done();
   });
 
   return p;
 }
 
-function createTaskDescriptorForCrateBuild(schedule, config) {
+function createTaskDescriptorForCrateBuild(dbctx, schedule, config) {
   var dlRootAddr = config.dlRootAddr;
 
   debug("creating task descriptor for " + JSON.stringify(schedule));
@@ -200,14 +203,14 @@ function createTaskDescriptorForCrateBuild(schedule, config) {
   assert(crateName != null);
   assert(crateVers != null);
 
-  var p = installerUrlsForToolchain(schedule.toolchain, config)
+  var p = installerUrlsForToolchain(dbctx, schedule.toolchain, config)
   return p.then(function(installerUrls) {
     var crateUrl = dlRootAddr + "/" + crateName + "/" + crateVers + "/download";
     var taskName = util.toolchainToString(schedule.toolchain) + "-vs-" + crateName + "-" + crateVers;
 
     var env = {
       "CRATER_RUST_INSTALLER": installerUrls.rustInstallerUrl,
-      "CRATER_CARGO_INSTALLER": instalerUrls.cargoInstallUrl,
+      "CRATER_CARGO_INSTALLER": installerUrls.cargoInstallUrl,
       "CRATER_CRATE_FILE": crateUrl
     };
 
@@ -263,9 +266,9 @@ function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, worker
   return task;
 }
 
-function installerUrlForToolchain(toolchain, config) {
+function installerUrlsForToolchain(dbctx, toolchain, config) {
   if (toolchain.channel) {
-      return dist.installerUrlForToolchain(toolchain, "x86_64-unknown-linux-gnu", config)
+    return dist.installerUrlForToolchain(toolchain, "x86_64-unknown-linux-gnu", config)
       .then(function(url) {
 	return {
 	  rustInstallerUrl: url,
@@ -273,10 +276,11 @@ function installerUrlForToolchain(toolchain, config) {
 	};
       });
   } else {
+    debug(toolchain);
     assert(toolchain.customSha);
     return db.getCustomToolchain(dbctx, toolchain).then(function(custom) {
       return {
-	rustInstallerUrl: url,
+	rustInstallerUrl: custom.url,
 	cargoInstallerUrl: "https://static.rust-lang.org/cargo-dist/cargo-nightly-x86_64-unknown-linux-gnu.tar.gz"
       };
     });

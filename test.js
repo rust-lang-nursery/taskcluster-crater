@@ -450,49 +450,57 @@ suite("report tests", function() {
       toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "num",
       crateVers: "1.0",
-      success: true
+      success: true,
+      taskId: "t"
     };
     var newResultWorking = {
       toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "num",
       crateVers: "1.0",
-      success: true
+      success: true,
+      taskId: "t"
     };
     var oldResultNotWorking = {
       toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "op",
       crateVers: "1.0",
-      success: false
+      success: false,
+      taskId: "t"
     };
     var newResultNotWorking = {
       toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "op",
       crateVers: "1.0",
-      success: false
+      success: false,
+      taskId: "t"
     };
     var oldResultRegressed = {
       toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "plot",
       crateVers: "1.0",
-      success: true
+      success: true,
+      taskId: "t"
     };
     var newResultRegressed = {
       toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "plot",
       crateVers: "1.0",
-      success: false
+      success: false,
+      taskId: "t"
     };
     var oldResultFixed = {
       toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "quux",
       crateVers: "1.0",
-      success: false
+      success: false,
+      taskId: "t"
     };
     var newResultFixed = {
       toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "quux",
       crateVers: "1.0",
-      success: true
+      success: true,
+      taskId: "t"
     };
     var dbctx;
     db.connect(testConfig).then(function(d) {
@@ -536,25 +544,29 @@ suite("report tests", function() {
       toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "piston",
       crateVers: "0.0.7",
-      success: true
+      success: true,
+      taskId: "t"
     };
     var newResultRegressed = {
       toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "piston",
       crateVers: "0.0.7",
-      success: false
+      success: false,
+      taskId: "t"
     };
     var oldResultRegressedDep = {
       toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "pistoncore-input",
       crateVers: "0.0.5",
-      success: true
+      success: true,
+      taskId: "t"
     };
     var newResultRegressedDep = {
       toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "pistoncore-input",
       crateVers: "0.0.5",
-      success: false
+      success: false,
+      taskId: "t"
     };
     var dbctx;
     db.connect(testConfig).then(function(d) {
@@ -580,25 +592,29 @@ suite("report tests", function() {
       toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "piston",
       crateVers: "0.0.7",
-      success: true
+      success: true,
+      taskId: "t"
     };
     var newResultRegressed = {
       toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "piston",
       crateVers: "0.0.7",
-      success: false
+      success: false,
+      taskId: "t"
     };
     var oldResultRegressedDep = {
       toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "url",
       crateVers: "0.0.5",
-      success: true
+      success: true,
+      taskId: "t"
     };
     var newResultRegressedDep = {
       toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "url",
       crateVers: "0.0.5",
-      success: false
+      success: false,
+      taskId: "t"
     };
     var dbctx;
     db.connect(testConfig).then(function(d) {

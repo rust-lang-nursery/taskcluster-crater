@@ -8,6 +8,7 @@ var Promise = require('promise');
 var slugid = require('slugid');
 var scheduler = require('./scheduler');
 var crateIndex = require('./crate-index');
+var db = require('./crater-db');
 
 function main() {
   var options = parseOptionsFromArgs();
@@ -22,16 +23,25 @@ function main() {
 
   crateIndex.updateCaches(config).then(function() {
     if (options.type == "crate-build") {
-      Promise.resolve().then(function() {
-	return scheduler.createSchedule(options, config);
-      }).then(function(schedule) {
-	return scheduler.scheduleBuilds(schedule, config);
-      }).then(function(tasks) {
-	console.log("created " + tasks.length + " tasks");
-      }).done();
+      db.connect(config).then(function(dbctx) {
+	Promise.resolve().then(function() {
+	  return scheduler.createSchedule(options, config);
+	}).then(function(schedule) {
+	  return scheduler.scheduleBuilds(dbctx, schedule, config);
+	}).then(function(tasks) {
+	  console.log("created " + tasks.length + " tasks");
+	}).then(function() {
+	  db.disconnect(dbctx);
+	}).catch(function(e) {
+	  console.log("error: " + e);
+	  db.disconnect(dbctx);
+	}).done();
+      });
     } else {
       Promise.resolve().then(function() {
 	return scheduler.scheduleCustomBuild(options, config);
+      }).catch(function(e) {
+	console.log("error: " + e);
       }).done();
     }
   });
