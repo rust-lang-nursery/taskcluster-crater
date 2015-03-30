@@ -63,7 +63,9 @@ main() {
 
 	say "Replacing path dependencies in Cargo.toml"
 	if [ -e ./crate/Cargo.toml ]; then
-	    sed -i /^\w*path/d ./crate/Cargo.toml
+	    # Replaces any line beginning with 'path' with an empty line, if that line
+	    # occurs inside a [dependencies.*] section
+	    sed -i '/\[dependencies.*\]/,/\[.*\]/ s/^\w*path.*//' Cargo.toml
 	else
 	    say "Cargo.toml does not exist!"
 	fi
