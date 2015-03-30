@@ -72,7 +72,8 @@ main() {
 
 	say "Building and testing"
 	(cd ./crate && cargo build)
-	(cd ./crate && cargo test)
+	# FIXME
+	#(cd ./crate && cargo test)
     elif [ "$task_type" = "custom-build" ]; then
 	local git_repo="${CRATER_TOOLCHAIN_GIT_REPO-}"
 	local commit_sha="${CRATER_TOOLCHAIN_GIT_SHA-}"
