@@ -40,7 +40,7 @@ function main() {
     pulseListener.bind(queueEvents.taskException("route.crater.#"));
 
     pulseListener.on('message', function(m) {
-      console.log("msg: " + JSON.stringify(m));
+      debug("msg: " + JSON.stringify(m));
 
       var taskId = m.payload.status.taskId;
       var state = m.payload.status.state;
@@ -64,7 +64,7 @@ function main() {
 function recordResultForTask(dbctx, tcQueue, taskId, success, m) {
   // Get the task from TC
   debug("requesting task for " + taskId);
-  var task = tcQueue.getTask(taskId);
+  var task = tcQueue.task(taskId);
   task.then(function(task) {
     debug("task: " + JSON.stringify(task));
     var extra = task.extra.crater;
@@ -108,7 +108,7 @@ function recordResultForTask(dbctx, tcQueue, taskId, success, m) {
       console.log("unknown task type " + extra.taskType);
       return Promise.resolve();
     }
-  }).catch(function(e) { console.log(e) });
+  }).catch(function(e) { console.log("error: " + e) });
 }
 
 main();

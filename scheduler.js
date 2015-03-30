@@ -210,9 +210,12 @@ function createTaskDescriptorForCrateBuild(dbctx, schedule, config) {
 
     var env = {
       "CRATER_RUST_INSTALLER": installerUrls.rustInstallerUrl,
-      "CRATER_CARGO_INSTALLER": installerUrls.cargoInstallerUrl,
       "CRATER_CRATE_FILE": crateUrl
     };
+
+    if (installerUrls.cargoInstallerUrl) {
+      env["CRATER_CARGO_INSTALLER"] = installerUrls.cargoInstallerUrl;
+    }
 
     var extra = {
       "toolchain": schedule.toolchain,
@@ -232,7 +235,7 @@ function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, worker
   var createTime = new Date(Date.now());
   var deadlineTime = new Date(createTime.getTime() + deadlineInMinutes * 60000);
 
-  var cmd = "cd /home && apt-get update && apt-get install curl -y && (curl -sf https://raw.githubusercontent.com/brson/taskcluster-crater/master/run-crater-task.sh | sh)";
+  var cmd = "cd /home && apt-get update && apt-get install curl -y && (curl -sfL https://raw.githubusercontent.com/brson/taskcluster-crater/master/run-crater-task.sh | sh)";
 
   env.CRATER_TASK_TYPE = taskType;
   extra.taskType = taskType;
