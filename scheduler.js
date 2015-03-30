@@ -96,7 +96,7 @@ function retainTop(crates, count) {
   for (var i = 0; i < sorted.length; i++) {
     var crate = sorted[i];
     seenCrateNames[crate.name] = 0;
-    if (Object.keys(seenCrateNames).length > count) {
+    if (Object.keys(seenCrateNames).length >= count) {
       break;
     }
 
@@ -235,7 +235,7 @@ function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, worker
   var createTime = new Date(Date.now());
   var deadlineTime = new Date(createTime.getTime() + deadlineInMinutes * 60000);
 
-  var cmd = "cd /home && apt-get update && apt-get install curl -y && (curl -sfL https://raw.githubusercontent.com/brson/taskcluster-crater/master/run-crater-task.sh | sh)";
+  var cmd = "cd /home && apt-get update && apt-get install curl -y && curl -sfL https://raw.githubusercontent.com/brson/taskcluster-crater/master/run-crater-task.sh -o ./run.sh && sh ./run.sh";
 
   env.CRATER_TASK_TYPE = taskType;
   extra.taskType = taskType;
