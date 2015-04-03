@@ -70,7 +70,7 @@ main() {
 	    say "Cargo.toml does not exist!"
 	fi
 
-	say "Building and testing"
+	say "Building"
 	(cd ./crate && cargo build)
 	# FIXME
 	#(cd ./crate && cargo test)
