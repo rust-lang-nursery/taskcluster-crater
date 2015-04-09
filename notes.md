@@ -213,15 +213,3 @@ http://docs.taskcluster.net/tools/task-inspector/#xW41f4pVTtm854sp_uX1nw/0
 18:49 < garndt> https://queue.taskcluster.net/v1/task/<task_id>/runs/<run id>/artifacts/<path in task definition>
 18:50 < garndt> usually the path in the task definition is something like "public/some/path/some_file" or similar
 
-# niko's commits
-
-after:
-242ed0b7c0f6a21096f2cc3e1ad1bdb176d02545
-
-https://tools.taskcluster.net/task-inspector/#y3yL15CwTe-Nl-0q9Kp_Dw/
-https://queue.taskcluster.net/v1/task/y3yL15CwTe-Nl-0q9Kp_Dw/runs/0/artifacts/public/rustc-dev-x86_64-unknown-linux-gnu.tar.gz
-
-before:
-e03bbded2da5332f0628a169559051959076950e
-https://tools.taskcluster.net/task-inspector/#N44APbE1Tiq0Yxe7MVN6sQ/
-https://queue.taskcluster.net/v1/task/N44APbE1Tiq0Yxe7MVN6sQ/runs/0/artifacts/public/rustc-dev-x86_64-unknown-linux-gnu.tar.gz

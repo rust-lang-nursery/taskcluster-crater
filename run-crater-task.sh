@@ -102,7 +102,7 @@ main() {
 	(cd rust && ./configure --build=x86_64-unknown-linux-gnu --host=x86_64-unknown-linux-gnu --target=x86_64-unknown-linux-gnu)
 
 	say "Building"
-	(cd rust && make && make dist)
+	(cd rust && make -j2 && make dist)
 
 	say "Renaming installer"
 	mv rust/dist/rustc-*-x86_64-unknown-linux-gnu.tar.gz \
