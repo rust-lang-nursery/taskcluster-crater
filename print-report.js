@@ -99,10 +99,12 @@ function printReport(config, reportSpec) {
       var p = reports.createComparisonReport(reportSpec.fromToolchain, reportSpec.toToolchain,
 					     dbctx, config);
       return p.then(function(report) {
-	console.log("# Comparison report");
+	var from = util.toolchainToString(report.fromToolchain);
+	var to = util.toolchainToString(report.toToolchain);
+	console.log("# Regression report " + from + " vs. " + to);;
 	console.log();
-	console.log("* From: " + util.toolchainToString(report.fromToolchain));
-	console.log("* To: " + util.toolchainToString(report.toToolchain));
+	console.log("* From: " + from);
+	console.log("* To: " + to);
 	console.log();
 	console.log("## Coverage");
 	console.log();
