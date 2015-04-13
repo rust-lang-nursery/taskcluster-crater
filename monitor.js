@@ -90,7 +90,8 @@ function recordResultForTask(dbctx, tcQueue, taskId, success, m) {
       return db.addBuildResult(dbctx, buildResult);
     } else if (extra.taskType == "custom-build") {
       if (success) {
-	var run = m.payload.runs.length - 1;
+	debug("custom build success")
+	var run = m.payload.status.runs.length - 1;
 	var toolchain = util.parseToolchain(extra.toolchainGitSha);
 	var url = "https://queue.taskcluster.net/v1/task/" + taskId +
 	  "/runs/" + run + "/artifacts/public/rustc-dev-x86_64-unknown-linux-gnu.tar.gz";
