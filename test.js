@@ -116,8 +116,8 @@ suite("local crate-index tests", function() {
     p.then(function(crateData) {
       return crates.getMostRecentRevs(crateData);
     }).then(function(recent) {
-      assert(recent["toml"].vers == "0.1.18");
-      assert(recent["obj-rs"].vers == "0.4.2");
+      assert(recent["toml"].vers == "0.1.20");
+      assert(recent["obj-rs"].vers == "0.4.7");
       done();
     }).catch(function(e) { done(e); });
   });
@@ -136,9 +136,9 @@ suite("local crate-index tests", function() {
     var p = crates.loadCrates(testConfig);
     p.then(function(crateData) {
       var pop = crates.getPopularityMap(crateData);
-      assert(pop.time == 72);
-      assert(pop.num == 17);
-      assert(pop.piston == 0);
+      assert(pop.time == 92);
+      assert(pop.num == 66);
+      assert(pop.piston == 1);
       done();
     }).catch(function(e) { done(e); });
   });

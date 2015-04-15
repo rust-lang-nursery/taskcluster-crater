@@ -15,13 +15,14 @@ var util = require('./crater-util');
  */
 function connect(config) {
   var credentials = config.dbCredentials;
-  var dbname = config.dbName;
 
   var dbctx = new Promise(function(resolve, reject) {
     var client = new pg.Client({
+      database: config.dbName,
       user: credentials.username,
       password: credentials.password,
-      database: dbname
+      host: credentials.host || null,
+      port: credentials.port || null
     });
 
     client.connect(function(err) {
