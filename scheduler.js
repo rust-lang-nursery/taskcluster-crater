@@ -96,7 +96,7 @@ function retainTop(crates, count) {
   for (var i = 0; i < sorted.length; i++) {
     var crate = sorted[i];
     seenCrateNames[crate.name] = 0;
-    if (Object.keys(seenCrateNames).length >= count) {
+    if (Object.keys(seenCrateNames).length > count) {
       break;
     }
 
