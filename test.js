@@ -147,11 +147,11 @@ suite("local crate-index tests", function() {
   // of interleaved I/O.
   test("concurrent no clobber", function(done) {
     var responses = 0;
-    for (var i = 0; i < 1; i++) {
+    for (var i = 0; i < 4; i++) {
       crates.loadCrates(testConfig).then(function(crateData) {
 	assert(crateData.length == 8827);
 	responses += 1;
-	if (responses == 10) {
+	if (responses == 4) {
 	  done();
 	}
       }).catch(function(e) { done(e); });
@@ -413,7 +413,6 @@ suite("scheduler tests", function() {
     var options = { toolchain: { channel: "nightly", date: "2015-03-03" }, top: 2 };
     var p = scheduler.createSchedule(options, testConfig);
     p.then(function(schedule) {
-      console.log(schedule.length);
       assert(schedule[0].crateName == "winapi");
       assert(schedule[schedule.length - 1].crateName == "libc");
       done();
