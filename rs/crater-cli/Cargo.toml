@@ -1,0 +1,15 @@
+[package]
+name = "crater-cli"
+version = "0.1.0"
+authors = ["Brian Anderson <banderson@mozilla.com>"]
+
+[[bin]]
+name = "crater-cli"
+path = "main.rs"
+
+[dependencies]
+docopt = "*"
+docopt_macros = "*"
+rustc-serialize = "*"
+
+

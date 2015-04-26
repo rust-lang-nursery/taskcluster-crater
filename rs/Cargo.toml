@@ -1,0 +1,15 @@
+[package]
+name = "crater"
+version = "0.1.0"
+authors = ["Brian Anderson <banderson@mozilla.com>"]
+
+[[bin]]
+name = "crater-web"
+path = "crater-web/main.rs"
+
+[[bin]]
+name = "crater-cli"
+path = "crater-cli/main.rs"
+
+[dependencies.crater-db]
+path = "crater-db"

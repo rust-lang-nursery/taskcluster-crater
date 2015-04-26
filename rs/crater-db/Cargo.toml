@@ -1,0 +1,11 @@
+[package]
+name = "crater-db"
+version = "0.1.0"
+authors = ["Brian Anderson <banderson@mozilla.com>"]
+
+[lib]
+name = "crater_db"
+path = "lib.rs"
+
+[dependencies]
+postgres = "^0.8.7"
