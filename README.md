@@ -122,6 +122,13 @@ The credentials need to be in `pg-credentials.js`:
 You'll need to have a 'crater-test' database configured locally,
 for user 'crater-test' with password 'crater-test'.
 
+# Creating the docker image
+
+```
+$ docker build -t brson/crater:1 .
+$ docker push brson/crater
+```
+
 # Future work
 
 * Use task graphs that mirror the crate dependency structure.

@@ -199,7 +199,7 @@ function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, worker
   var createTime = new Date(Date.now());
   var deadlineTime = new Date(createTime.getTime() + deadlineInMinutes * 60000);
 
-  var cmd = "cd /home && apt-get update && apt-get install curl -y && curl -sfL https://raw.githubusercontent.com/brson/taskcluster-crater/master/run-crater-task.sh -o ./run.sh && sh ./run.sh";
+  var cmd = "cd /home && curl -sfL https://raw.githubusercontent.com/brson/taskcluster-crater/master/run-crater-task.sh -o ./run.sh && sh ./run.sh";
 
   env.CRATER_TASK_TYPE = taskType;
   extra.taskType = taskType;
@@ -214,7 +214,7 @@ function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, worker
       "crater.#"
     ],
     "payload": {
-      "image": "ubuntu:14.10",
+      "image": "brson/crater:1",
       "command": [ "/bin/bash", "-c", cmd ],
       "env": env,
       "maxRunTime": maxRunTime,

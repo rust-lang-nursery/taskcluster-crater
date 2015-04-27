@@ -81,10 +81,10 @@ function recordResultForTask(dbctx, tcQueue, taskId, state, m) {
 	status = "success";
       } else if (state == "failed") {
 	status = "failure";
-      } else if (state == "pending") {
-	status = "unknown";
-      } else {
+      } else if (state == "exception") {
 	status = "exception";
+      } else /*if (state == "pending" || state == "running")*/ {
+	status = "unknown";
       }
       
       var buildResult = {

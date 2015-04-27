@@ -30,13 +30,6 @@ main() {
 	    exit 1
 	fi
 
-	say "Installing system packages"
-	apt-get install build-essential -y
-
-	say "Installing various native libs"
-	# As a temporary convience to make various popular libraries build
-	apt-get install libz-dev -y
-
 	say "Installing Rust from $rust_installer"
 	curl -Lf "$rust_installer" -o installer.tar.gz
 	mkdir ./rust-install
@@ -88,12 +81,6 @@ main() {
 	    say "CRATER_TOOLCHAIN_GIT_SHA not defined"
 	    exit 1
 	fi
-
-	say "Installing system packages"
-	apt-get install build-essential -y
-	apt-get install git file python2.7 -y
-	apt-get install -y build-essential python perl curl git libc6-dev-i386 gcc-multilib g++-multilib llvm llvm-dev
-	apt-get build-dep -y clang llvm
 
 	say "Cloning git repo"
 	git clone "$git_repo" rust && (cd rust && git reset "$commit_sha" --hard)
