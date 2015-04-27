@@ -19,8 +19,6 @@ var crateBuildMaxRunTimeInSeconds = 30 * 60;
  */
 function createSchedule(schedOpts, config) {
   return crateIndex.loadCrates(config).then(function(crates) {
-    return filterOutOld(crates, config);
-  }).then(function(crates) {
     if (schedOpts.crateName) {
       return retainMatchingNames(crates, schedOpts.crateName);
     } else {
@@ -41,41 +39,6 @@ function createSchedule(schedOpts, config) {
   }).then(function(crates) {
     return createScheduleForCratesForToolchain(crates, schedOpts.toolchain);
   });
-}
-
-function filterOutOld(crates, config) {
-  var original_length = crates.length;
-
-  // Convert any old crates to nulls
-  var p = Promise.denodeify(async.mapLimit)(crates, 100, function(crate, cb) {
-    var name = crate.name;
-    var vers = crate.vers;
-    var p = crateIndex.getVersionMetadata(name, vers, config);
-    p = p.then(function(data) {
-      var date = new Date(data.version.created_at);
-      var earlyDate = new Date("2015-02-01");
-      if (date < earlyDate) {
-	cb(null, null);
-      } else {
-	cb(null, crate);
-      }
-    });
-    p = p.catch(function(e) {
-      // If we can't get the date then assume we should test this one
-      cb(null, crate);
-    });
-    p.done();
-  });
-
-  // Filter out the nulls
-  p = p.then(function(crates) {
-    var remaining = crates.filter(function(crate) { return crate != null; });
-    var final_length = remaining.length
-    debug("filtered out " + (original_length - final_length) + " old crates");
-    debug("remaining crates " + final_length);
-    return remaining;
-  });
-  return p;
 }
 
 function retainTop(crates, count) {

@@ -13,7 +13,6 @@ var reports = require('./reports');
 var testDataDir = "./test";
 var testDistDir = testDataDir + "/dist";
 var testCrateIndexAddr = testDataDir + "/crates.io-index";
-var testDlRootAddrForVersions = testDataDir + "/versions";
 
 var tmpDir = "./testtmp";
 
@@ -83,30 +82,6 @@ suite("local crate-index tests", function() {
     var p = crates.loadCrates(testConfig);
     p = p.then(function(crates) {
       assert(crates.length > 0);
-      done();
-    });
-    p = p.catch(function(e) { done(e) });
-  });
-
-  test("get version metadata", function(done) {
-    var p = crates.getVersionMetadata("toml", "0.1.18", testConfig);
-    p = p.then(function(meta) {
-      assert(meta.version.created_at == "2015-02-25T22:53:39Z");
-      done();
-    });
-    p = p.catch(function(e) { done(e) });
-  });
-
-  test("get cached version metadata", function(done) {
-    var p = crates.getVersionMetadata("toml", "0.1.18", testConfig);
-    p = p.then(function(meta) {
-      assert(meta.version.created_at == "2015-02-25T22:53:39Z");
-    });
-    p = p.then(function() {
-      return crates.getVersionMetadata("toml", "0.1.18", testConfig);
-    });
-    p = p.then(function(meta) {
-      assert(meta.version.created_at == "2015-02-25T22:53:39Z");
       done();
     });
     p = p.catch(function(e) { done(e) });
@@ -390,26 +365,6 @@ suite("scheduler tests", function() {
   beforeEach(runBeforeEach);
   afterEach(runAfterEach);
 
-  test("schedule all crates", function(done) {
-    var options = { toolchain: { channel: "nightly", date: "2015-03-03" }, top: null };;
-    var p = scheduler.createSchedule(options, testConfig);
-    p = p.then(function(schedule) {
-      var errors = false;
-      schedule.forEach(function(build) {
-	// In test/versions/toml/0.1.7 this has an old created_at date
-	if (build.crateName == "toml" && build.crateVers == "0.1.7") {
-	  errors = true;
-	}
-      });
-      if (errors) {
-	done("error");
-      } else {
-	done();
-      }
-    });
-    p.done();
-  });
-
   test("schedule top crates", function(done) {
     var options = { toolchain: { channel: "nightly", date: "2015-03-03" }, top: 2 };
     var p = scheduler.createSchedule(options, testConfig);
@@ -655,16 +610,6 @@ suite("live network tests", function() {
     p = p.then(function() { return crates.loadCrates(liveConfig); });
     p = p.then(function(crates) {
       assert(crates.length > 0);
-      done();
-    });
-    p = p.catch(function(e) { done(e) });
-  });
-
-  test("get version metadata", function(done) {
-    var p = crates.cloneIndex(liveConfig);
-    p = p.then(function() { return crates.getVersionMetadata("toml", "0.1.18", liveConfig); });
-    p = p.then(function(meta) {
-      assert(meta.version.created_at == "2015-02-25T22:53:39Z");
       done();
     });
     p = p.catch(function(e) { done(e) });

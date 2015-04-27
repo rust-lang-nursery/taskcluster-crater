@@ -18,7 +18,6 @@ var async = require('async');
 var localIndexName = "crate-index"
 var crateCacheName = "crate-cache"
 var sourceCacheName = "source-cache"
-var versionCacheName = "version-cache"
 
 function workDispatcher(task, cb) {
   task(cb);
@@ -167,50 +166,6 @@ function loadCrates(config) {
 }
 
 /**
- * Downloads the version metadata from crates.io and returns it.
- *
- * May return promised errors.
- */
-function getVersionMetadata(crateName, crateVers, config) {
-  return serial(function() {
-    var dlRootAddr = config.dlRootAddr;
-    var cacheDir = config.cacheDir;
-
-    var versionCache = path.join(cacheDir, versionCacheName);
-
-    var url = dlRootAddr + "/" + crateName + "/" + crateVers;
-    var cacheDir = versionCache + "/" + crateName;
-    var cacheFile = cacheDir + "/" + crateVers;
-
-    if (fs.existsSync(cacheFile)) {
-      debug("using cache for metadata " + crateName + " " + crateVers);
-      return fs.readFile(cacheFile, 'utf-8').then(function(filedata) {
-	return JSON.parse(filedata);
-      });
-    } else {
-      debug("downloading metadata " + crateName + " " + crateVers);
-      var json = null;
-      var p = util.downloadToMem(url);
-      p = p.catch(function(e) {
-	debug("error downloading metadata for " + crateName + "-" + crateVers);
-	return Promise.reject(e);
-      });
-      p = p.then(function(data) {
-	json = JSON.parse(data);
-      });
-      p = p.then(function() {
-	return util.runCmd('mkdir -p ' + cacheDir);
-      });
-      p = p.then(function() {
-	return fs.writeFile(cacheFile, JSON.stringify(json));
-      });
-      p = p.then(function() { return json; });
-      return p;
-    }
-  });
-}
-
-/**
  * Given the resolved output from `loadCrates`, return a map from crate
  * names to arrays of crate data.
  */
@@ -284,7 +239,6 @@ function getPopularityMap(crates) {
 exports.updateCaches = updateCaches;
 exports.cloneIndex = cloneIndex;
 exports.loadCrates = loadCrates;
-exports.getVersionMetadata = getVersionMetadata;
 exports.getMostRecentRevs = getMostRecentRevs;
 exports.getDag = getDag;
 exports.getPopularityMap = getPopularityMap;
