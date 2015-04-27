@@ -146,21 +146,7 @@ function scheduleBuilds(dbctx, schedule, config) {
 	  console.log("created task for " + JSON.stringify(schedule));
 	  console.log("inspector link: https://tools.taskcluster.net/task-inspector/#" + taskId);
 
-	  // Add the initial 'unknown' build result
-	  var buildResult = {
-	    toolchain: schedule.toolchain,
-	    crateName: schedule.crateName,
-	    crateVers: schedule.crateVers,
-	    status: "unknown",
-	    taskId: taskId
-	  };
-	  
-	  db.addBuildResult(dbctx, buildResult)
-	    .then(function() {
-	      cb(null, result);
-	    }).catch(function(e) {
-	      cb(e, null);
-	    });
+	  cb(null, result);
 	});
     }).catch(function(e) {
       cb(e, null);
