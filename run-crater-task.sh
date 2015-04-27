@@ -63,9 +63,9 @@ main() {
 	    # Remove any 'path = "...",' text from inside {   }, with trailing comma
 	    sed -i '/\[dependencies.*\]/,/\[[^d].*\]/ s/path *= *\"[^ ]*" *,//' ./crate/Cargo.toml
 	    sed -i '/\[dev-dependencies.*\]/,/\[[^d].*\]/ s/path *= *\"[^ ]*" *,//' ./crate/Cargo.toml
-	    # Same, but w/o trailing comma
-	    sed -i '/\[dependencies.*\]/,/\[[^d].*\]/ s/path *= *\"[^ ]*" *//' ./crate/Cargo.toml
-	    sed -i '/\[dev-dependencies.*\]/,/\[[^d].*\]/ s/path *= *\"[^ ]*" *//' ./crate/Cargo.toml
+	    # Same, but w/ leading trailing comma
+	    sed -i '/\[dependencies.*\]/,/\[[^d].*\]/ s/, *path *= *\"[^ ]*"//' ./crate/Cargo.toml
+	    sed -i '/\[dev-dependencies.*\]/,/\[[^d].*\]/ s/, *path *= *\"[^ ]*"//' ./crate/Cargo.toml
 	else
 	    say "Cargo.toml does not exist!"
 	fi
