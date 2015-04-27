@@ -58,17 +58,17 @@ main() {
 	if [ -e ./crate/Cargo.toml ]; then
 	    # Replaces any line beginning with 'path' with an empty line, if that line
 	    # occurs inside a [dependencies.*] section
-	    sed -i '/\[dependencies.*\]/,/\[[^d].*\]/ s/^\w*path.*//' ./crate/Cargo.toml
-	    sed -i '/\[dev-dependencies.*\]/,/\[[^d].*\]/ s/^\w*path.*//' ./crate/Cargo.toml
-	    sed -i '/\[build-dependencies.*\]/,/\[[^d].*\]/ s/^\w*path.*//' ./crate/Cargo.toml
+	    sed -i '/\[dependencies.*\]/,/\[[^db].*\]/ s/^\w*path.*//' ./crate/Cargo.toml
+	    sed -i '/\[dev-dependencies.*\]/,/\[[^db].*\]/ s/^\w*path.*//' ./crate/Cargo.toml
+	    sed -i '/\[build-dependencies.*\]/,/\[[^db].*\]/ s/^\w*path.*//' ./crate/Cargo.toml
 	    # Remove any 'path = "...",' text from inside {   }, with trailing comma
-	    sed -i '/\[dependencies.*\]/,/\[[^d].*\]/ s/path *= *\"[^ ]*" *,//' ./crate/Cargo.toml
-	    sed -i '/\[dev-dependencies.*\]/,/\[[^d].*\]/ s/path *= *\"[^ ]*" *,//' ./crate/Cargo.toml
-	    sed -i '/\[build-dependencies.*\]/,/\[[^d].*\]/ s/path *= *\"[^ ]*" *,//' ./crate/Cargo.toml
+	    sed -i '/\[dependencies.*\]/,/\[[^db].*\]/ s/path *= *\"[^ ]*" *,//' ./crate/Cargo.toml
+	    sed -i '/\[dev-dependencies.*\]/,/\[[^db].*\]/ s/path *= *\"[^ ]*" *,//' ./crate/Cargo.toml
+	    sed -i '/\[build-dependencies.*\]/,/\[[^db].*\]/ s/path *= *\"[^ ]*" *,//' ./crate/Cargo.toml
 	    # Same, but w/ leading trailing comma
-	    sed -i '/\[dependencies.*\]/,/\[[^d].*\]/ s/, *path *= *\"[^ ]*"//' ./crate/Cargo.toml
-	    sed -i '/\[dev-dependencies.*\]/,/\[[^d].*\]/ s/, *path *= *\"[^ ]*"//' ./crate/Cargo.toml
-	    sed -i '/\[build-dependencies.*\]/,/\[[^d].*\]/ s/, *path *= *\"[^ ]*"//' ./crate/Cargo.toml
+	    sed -i '/\[dependencies.*\]/,/\[[^db].*\]/ s/, *path *= *\"[^ ]*"//' ./crate/Cargo.toml
+	    sed -i '/\[dev-dependencies.*\]/,/\[[^db].*\]/ s/, *path *= *\"[^ ]*"//' ./crate/Cargo.toml
+	    sed -i '/\[build-dependencies.*\]/,/\[[^db].*\]/ s/, *path *= *\"[^ ]*"//' ./crate/Cargo.toml
 	else
 	    say "Cargo.toml does not exist!"
 	fi
