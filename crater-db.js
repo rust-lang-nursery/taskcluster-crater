@@ -54,7 +54,7 @@ function populate(dbctx) {
            build_results ( \
            toolchain text not null, \
            crate_name text not null, crate_vers text not null, \
-           success boolean not null, \
+           status text not null, \
            task_id text not null, \
            primary key ( \
            toolchain, crate_name, crate_vers ) ) \
@@ -105,7 +105,7 @@ function depopulate(dbctx) {
 
 /**
  * Adds a build result and returns a promise of nothing. buildResult should
- * look like `{ toolchain: ..., crateName: ..., crateVers: ..., success: ...,
+ * look like `{ toolchain: ..., crateName: ..., crateVers: ..., status: ...,
  * taskId: ... }`.
  */
 function addBuildResult(dbctx, buildResult) {
@@ -130,17 +130,17 @@ function addBuildResult(dbctx, buildResult) {
 	  dbctx.client.query(q, [util.toolchainToString(buildResult.toolchain),
 				 buildResult.crateName,
 				 buildResult.crateVers,
-				 buildResult.success,
+				 buildResult.status,
 				 buildResult.taskId],
 			     f);
 	} else {
-	  var q = "update build_results set success = $4, task_id = $5 where \
+	  var q = "update build_results set status = $4, task_id = $5 where \
                    toolchain = $1 and crate_name = $2 and crate_vers = $3";
 	  debug(q);
 	  dbctx.client.query(q, [util.toolchainToString(buildResult.toolchain),
 				 buildResult.crateName,
 				 buildResult.crateVers,
-				 buildResult.success,
+				 buildResult.status,
 				 buildResult.taskId],
 			     f);
 	}
@@ -173,7 +173,7 @@ function getBuildResult(dbctx, buildResultKey) {
 	    toolchain: util.parseToolchain(row.toolchain),
 	    crateName: row.crate_name,
 	    crateVers: row.crate_vers,
-	    success: row.success,
+	    status: row.status,
 	    taskId: row.task_id
 	  });
 	} else {
@@ -196,7 +196,7 @@ function getBuildResult(dbctx, buildResultKey) {
  * and `from` and `to` look like `{ succes: bool }`.
  */
 function getResultPairs(dbctx, fromToolchain, toToolchain) {
-  var q = "select a.crate_name, a.crate_vers, a.success as from_success, b.success as to_success, \
+  var q = "select a.crate_name, a.crate_vers, a.status as from_status, b.status as to_status, \
            a.task_id as from_task_id, b.task_id as to_task_id \
            from build_results a, build_results b \
            where a.toolchain = $1 and b.toolchain = $2 \
@@ -213,8 +213,8 @@ function getResultPairs(dbctx, fromToolchain, toToolchain) {
 	  results.push({
 	    crateName: row.crate_name,
 	    crateVers: row.crate_vers,
-	    from: { success: row.from_success, taskId: row.from_task_id },
-	    to: { success: row.to_success, taskId: row.to_task_id }
+	    from: { status: row.from_status, taskId: row.from_task_id },
+	    to: { status: row.to_status, taskId: row.to_task_id }
 	  });
 	});
 	resolve(results);
@@ -240,7 +240,7 @@ function getResults(dbctx, toolchain) {
 	  results.push({
 	    crateName: row.crate_name,
 	    crateVers: row.crate_vers,
-	    success: row.success,
+	    status: row.status,
 	    taskId: row.task_id
 	  });
 	});

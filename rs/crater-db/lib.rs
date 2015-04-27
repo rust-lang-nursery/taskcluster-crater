@@ -11,7 +11,7 @@ pub struct BuildResult {
     pub toolchain: String,
     pub crate_name: String,
     pub crate_vers: String,
-    pub success: bool,
+    pub status: String,
     pub task_id: String
 }
 
@@ -47,7 +47,7 @@ impl Database {
                  build_results ( \
                  toolchain text not null, \
                  crate_name text not null, crate_vers text not null, \
-                 success boolean not null, \
+                 status text not null, \
                  task_id text not null, \
                  primary key ( \
                  toolchain, crate_name, crate_vers ) )";
@@ -56,7 +56,7 @@ impl Database {
         let q = "create table if not exists \
                  custom_toolchains ( \
                  toolchain text not null, \
-                 url text not null, \
+                 status text not null, \
                  task_id text not null, \
                  primary key (toolchain) )";
         try!(self.conn.execute(q, &[]));
@@ -77,14 +77,14 @@ impl Database {
     pub fn add_build_result(&self, build_result: &BuildResult) -> Result<(), Box<Error>> {
         let upsert_retry_limit = 10;
         for _ in &[0 .. upsert_retry_limit] {
-            let update_q = "update build_results set success = $4, task_id = $5 where \
+            let update_q = "update build_results set status = $4, task_id = $5 where \
                             toolchain = $1 and crate_name = $2 and crate_vers = $3";
 
             let r = self.conn.execute(update_q, &[
                 &build_result.toolchain,
                 &build_result.crate_name,
                 &build_result.crate_vers,
-                &build_result.success,
+                &build_result.status,
                 &build_result.task_id]);
             match r {
                 Ok(rows) if rows > 0 => return Ok(()),
@@ -98,7 +98,7 @@ impl Database {
                 &build_result.toolchain,
                 &build_result.crate_name,
                 &build_result.crate_vers,
-                &build_result.success,
+                &build_result.status,
                 &build_result.task_id]);
             if r.is_ok() { return Ok(()) }
         }
@@ -115,7 +115,7 @@ impl Database {
                 toolchain: row.get(0),
                 crate_name: row.get(1),
                 crate_vers: row.get(2),
-                success: row.get(3),
+                status: row.get(3),
                 task_id: row.get(4)
             })
         }
@@ -160,7 +160,7 @@ mod test {
                 toolchain: String::from("nightly-2015-01-01"),
                 crate_name: String::from("num"),
                 crate_vers: String::from("1.0.0"),
-                success: true,
+                status: String::from("success"),
                 task_id: String::from("my-task-id")
             };
             let db = connect();
@@ -183,7 +183,7 @@ mod test {
                 toolchain: String::from("nightly-2015-01-01"),
                 crate_name: String::from("num"),
                 crate_vers: String::from("1.0.0"),
-                success: true,
+                status: String::from("success"),
                 task_id: String::from("my-task-id")
             };
             let db = connect();
@@ -193,7 +193,7 @@ mod test {
                 toolchain: String::from("nightly-2015-01-01"),
                 crate_name: String::from("num"),
                 crate_vers: String::from("1.0.0"),
-                success: false,
+                status: String::from("failure"),
                 task_id: String::from("my-task-id-2")
             };
 

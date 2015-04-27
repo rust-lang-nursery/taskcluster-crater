@@ -53,14 +53,15 @@ function printReport(config, reportSpec) {
 		    report.beta.statusSummary.working + " working / " +
 		    report.beta.statusSummary.notWorking + " not working / " +
 		    report.beta.statusSummary.regressed + " regressed / " +
-		    report.beta.statusSummary.fixed + " fixed.");
+		    report.beta.statusSummary.fixed + " fixed / " +
+		    report.beta.statusSummary.unknown + " unknown.");
 	console.log();
 	console.log("From beta to nightly:");
 	console.log("* " + report.nightly.statuses.length + " crates tested: " +
 		    report.nightly.statusSummary.working + " working / " +
 		    report.nightly.statusSummary.broken + " broken / " +
-		    report.nightly.statusSummary.regressed + " regressed / " +
-		    report.nightly.statusSummary.fixed + " fixed.");
+		    report.nightly.statusSummary.fixed + " fixed / " +
+		    report.nightly.statusSummary.unknown + " unknown.");
 	console.log();
 	console.log("## Regressions");
 	console.log();
@@ -112,7 +113,8 @@ function printReport(config, reportSpec) {
 		    report.statusSummary.working + " working / " +
 		    report.statusSummary.broken + " broken / " +
 		    report.statusSummary.regressed + " regressed / " +
-		    report.statusSummary.fixed + " fixed.");
+		    report.statusSummary.fixed + " fixed / " +
+		    report.statusSummary.unknown + " unknown.");
 	console.log();
 	console.log("## Regressions");
 	console.log();

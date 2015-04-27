@@ -22,9 +22,9 @@ function createToolchainReport(toolchain, dbctx, config) {
     var successes = [];
     var failures = [];
     results.forEach(function(result) {
-      if (result.success == true) {
+      if (result.status == "success") {
 	successes.push(result);
-      } else {
+      } else if (result.status == "failure") {
 	failures.push(result);
       }
     });
@@ -120,15 +120,16 @@ function calculateStatuses(dbctx, fromToolchain, toToolchain) {
   return db.getResultPairs(dbctx, fromToolchain, toToolchain).then(function(buildResults) {
     return buildResults.map(function(buildResult) {
       var status = null;
-      if (buildResult.from.success && buildResult.to.success) {
+      if (buildResult.from.status == "success" && buildResult.to.status == "success") {
 	status = "working";
-      } else if (!buildResult.from.success && !buildResult.to.success) {
+      } else if (buildResult.from.status == "failure" && buildResult.to.status == "failure") {
 	status = "broken";
-      } else if (buildResult.from.success && !buildResult.to.success) {
+      } else if (buildResult.from.status == "success" && buildResult.to.status == "failure") {
 	status = "regressed";
-      } else {
-	assert(!buildResult.from.success && buildResult.to.success);
+      } else if (buildResult.from.status == "failure" && buildResult.to.status == "success") {
 	status = "fixed";
+      } else {
+	status = "unknown";
       }
 
       // Just modify the intermediate result
@@ -164,6 +165,7 @@ function calculateStatusSummary(statuses) {
   var broken = 0;
   var regressed = 0;
   var fixed = 0;
+  var unknown = 0;
   statuses.forEach(function(status) {
     if (status.status == "working") {
       working += 1;
@@ -171,9 +173,11 @@ function calculateStatusSummary(statuses) {
       broken += 1;
     } else if (status.status == "regressed") {
       regressed += 1;
-    } else {
-      assert(status.status == "fixed");
+    } else if (status.status == "fixed") {
       fixed += 1;
+    } else {
+      assert(status.status == "unknown");
+      unknown += 1;
     }
   });
 
@@ -181,7 +185,8 @@ function calculateStatusSummary(statuses) {
     working: working,
     broken: broken,
     regressed: regressed,
-    fixed: fixed
+    fixed: fixed,
+    unknown: unknown
   };
 }
 

@@ -48,10 +48,7 @@ function main() {
       assert(taskId);
       assert(state);
 
-      if (state == "completed" || state == "failed") {
-	var success = state == "completed";
-	recordResultForTask(dbctx, tcQueue, taskId, success, m);
-      }
+      recordResultForTask(dbctx, tcQueue, taskId, state, m);
 
     });
 
@@ -61,7 +58,7 @@ function main() {
   }).catch(function(e) { console.log(e); });
 }
 
-function recordResultForTask(dbctx, tcQueue, taskId, success, m) {
+function recordResultForTask(dbctx, tcQueue, taskId, state, m) {
   // Get the task from TC
   debug("requesting task for " + taskId);
   var task = tcQueue.task(taskId);
@@ -79,17 +76,28 @@ function recordResultForTask(dbctx, tcQueue, taskId, success, m) {
       assert(crateName);
       assert(crateVers);
 
+      var status = "unknown";
+      if (state == "completed") {
+	status = "success";
+      } else if (state == "failed") {
+	status = "failure";
+      } else if (state == "pending") {
+	status = "unknown";
+      } else {
+	status = "exception";
+      }
+      
       var buildResult = {
 	toolchain: toolchain,
 	crateName: crateName,
 	crateVers: crateVers,
-	success: success,
+	status: status,
 	taskId: taskId
       };
       console.log("adding build result: " + JSON.stringify(buildResult));
       return db.addBuildResult(dbctx, buildResult);
     } else if (extra.taskType == "custom-build") {
-      if (success) {
+      if (state == "completed") {
 	debug("custom build success")
 	var run = m.payload.status.runs.length - 1;
 	var toolchain = util.parseToolchain(extra.toolchainGitSha);

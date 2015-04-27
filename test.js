@@ -236,7 +236,7 @@ suite("database tests", function() {
 	toolchain: util.parseToolchain("nightly-2015-03-01"),
 	crateName: "toml",
 	crateVers: "1.0",
-	success: true,
+	status: "success",
 	taskId: "foo"
       };
       var p = Promise.resolve();
@@ -255,7 +255,7 @@ suite("database tests", function() {
 	toolchain: util.parseToolchain("nightly-2015-03-01"),
 	crateName: "toml",
 	crateVers: "1.0",
-	success: true,
+	status: "success",
 	taskId: "foo"
       };
       var p = Promise.resolve();
@@ -292,28 +292,28 @@ suite("database tests", function() {
 	toolchain: util.parseToolchain("beta-2015-03-01"),
 	crateName: "num",
 	crateVers: "1.0",
-	success: true,
+	status: "success",
 	taskId: "t1"
       };
       var oldResult2 = {
 	toolchain: util.parseToolchain("beta-2015-03-01"),
 	crateName: "toml",
 	crateVers: "1.1",
-	success: true,
+	status: "success",
 	taskId: "t2"
       };
       var newResult1 = {
 	toolchain: util.parseToolchain("nightly-2015-03-02"),
 	crateName: "num",
 	crateVers: "1.0",
-	success: false,
+	status: 'failure',
 	taskId: "t3"
       };
       var newResult2 = {
 	toolchain: util.parseToolchain("nightly-2015-03-02"),
 	crateName: "toml",
 	crateVers: "1.1",
-	success: true,
+	status: "success",
 	taskId: "t2"
       };
       var fromToolchain = util.parseToolchain("beta-2015-03-01");
@@ -327,12 +327,12 @@ suite("database tests", function() {
       var p = p.then(function(results) {
 	assert(results[0].crateName == "num");
 	assert(results[0].crateVers == "1.0");
-	assert(results[0].from.success == true);
-	assert(results[0].to.success == false);
+	assert(results[0].from.status == "success");
+	assert(results[0].to.status == "failure");
 	assert(results[1].crateName == "toml");
 	assert(results[1].crateVers == "1.1");
-	assert(results[1].from.success == true);
-	assert(results[1].to.success == true);
+	assert(results[1].from.status == "success");
+	assert(results[1].to.status == "success");
       });
       var p = p.then(function() { return db.disconnect(dbctx); });
       var p = p.then(function() { done(); });
@@ -406,56 +406,56 @@ suite("report tests", function() {
       toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "num",
       crateVers: "1.0",
-      success: true,
+      status: "success",
       taskId: "t"
     };
     var newResultWorking = {
       toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "num",
       crateVers: "1.0",
-      success: true,
+      status: "success",
       taskId: "t"
     };
     var oldResultNotWorking = {
       toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "op",
       crateVers: "1.0",
-      success: false,
+      status: 'failure',
       taskId: "t"
     };
     var newResultNotWorking = {
       toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "op",
       crateVers: "1.0",
-      success: false,
+      status: 'failure',
       taskId: "t"
     };
     var oldResultRegressed = {
       toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "plot",
       crateVers: "1.0",
-      success: true,
+      status: "success",
       taskId: "t"
     };
     var newResultRegressed = {
       toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "plot",
       crateVers: "1.0",
-      success: false,
+      status: 'failure',
       taskId: "t"
     };
     var oldResultFixed = {
       toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "quux",
       crateVers: "1.0",
-      success: false,
+      status: 'failure',
       taskId: "t"
     };
     var newResultFixed = {
       toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "quux",
       crateVers: "1.0",
-      success: true,
+      status: "success",
       taskId: "t"
     };
     var dbctx;
@@ -500,28 +500,28 @@ suite("report tests", function() {
       toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "piston",
       crateVers: "0.0.7",
-      success: true,
+      status: "success",
       taskId: "t"
     };
     var newResultRegressed = {
       toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "piston",
       crateVers: "0.0.7",
-      success: false,
+      status: 'failure',
       taskId: "t"
     };
     var oldResultRegressedDep = {
       toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "pistoncore-input",
       crateVers: "0.0.5",
-      success: true,
+      status: "success",
       taskId: "t"
     };
     var newResultRegressedDep = {
       toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "pistoncore-input",
       crateVers: "0.0.5",
-      success: false,
+      status: 'failure',
       taskId: "t"
     };
     var dbctx;
@@ -548,28 +548,28 @@ suite("report tests", function() {
       toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "piston",
       crateVers: "0.0.7",
-      success: true,
+      status: "success",
       taskId: "t"
     };
     var newResultRegressed = {
       toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "piston",
       crateVers: "0.0.7",
-      success: false,
+      status: 'failure',
       taskId: "t"
     };
     var oldResultRegressedDep = {
       toolchain: util.parseToolchain("beta-2015-02-20"),
       crateName: "url",
       crateVers: "0.0.5",
-      success: true,
+      status: "success",
       taskId: "t"
     };
     var newResultRegressedDep = {
       toolchain: util.parseToolchain("nightly-2015-02-26"),
       crateName: "url",
       crateVers: "0.0.5",
-      success: false,
+      status: 'failure',
       taskId: "t"
     };
     var dbctx;
