@@ -16,10 +16,6 @@ var testCrateIndexAddr = testDataDir + "/crates.io-index";
 var testDlRootAddrForVersions = testDataDir + "/versions";
 
 var tmpDir = "./testtmp";
-var tmpCacheDir = tmpDir + "/cache";
-
-var testDbName = "crater-test";
-var testDbCredentials = JSON.parse(fs.readFileSync(util.defaultDbCredentialsFile, "utf8"));
 
 var testConfig = {
   rustDistAddr: testDataDir + "/dist",
@@ -27,7 +23,12 @@ var testConfig = {
   dlRootAddr: testDataDir + "/versions",
   cacheDir: tmpDir + "/cache",
   dbName: "crater-test",
-  dbCredentials: JSON.parse(fs.readFileSync(util.defaultDbCredentialsFile, "utf8"))
+  dbCredentials: {
+    username: "crater-test",
+    password: "crater-test",
+    host: "localhost",
+    port: 5432
+  }
 };
 
 var liveConfig = util.loadDefaultConfig();

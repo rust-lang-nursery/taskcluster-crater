@@ -109,7 +109,9 @@ The credentials need to be in `pg-credentials.js`:
 ```
 {
   "username": "...",
-  "password": "..."
+  "password": "...",
+  "host": "...",
+  "port": 5432
 }
 ```
 
@@ -117,7 +119,8 @@ The credentials need to be in `pg-credentials.js`:
 
     $ npm test
 
-You'll need to have a 'crater-test' database configured locally.    
+You'll need to have a 'crater-test' database configured locally,
+for user 'crater-test' with password 'crater-test'.
 
 # Future work
 
