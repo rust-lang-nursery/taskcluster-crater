@@ -13,3 +13,10 @@ path = "crater-cli/main.rs"
 
 [dependencies.crater-db]
 path = "crater-db"
+
+[dependencies]
+iron = "*"
+router = "*"
+mount = "*"
+log = "*"
+env_logger = "*"
