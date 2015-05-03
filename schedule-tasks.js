@@ -25,7 +25,7 @@ function main() {
     if (options.type == "crate-build") {
       db.connect(config).then(function(dbctx) {
 	Promise.resolve().then(function() {
-	  return scheduler.createSchedule(options, config);
+	  return scheduler.createSchedule(options, config, dbctx);
 	}).then(function(schedule) {
 	  return scheduler.scheduleBuilds(dbctx, schedule, config);
 	}).then(function(tasks) {
@@ -44,7 +44,9 @@ function main() {
 	console.log("error: " + e);
       }).done();
     }
-  });
+  }).catch(function(e) {
+    console.log("error: " + e);
+  }).done();
 }
 
 function parseOptionsFromArgs() {

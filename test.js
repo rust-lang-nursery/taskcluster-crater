@@ -366,25 +366,69 @@ suite("scheduler tests", function() {
   afterEach(runAfterEach);
 
   test("schedule top crates", function(done) {
-    var options = { toolchain: { channel: "nightly", date: "2015-03-03" }, top: 2 };
-    var p = scheduler.createSchedule(options, testConfig);
-    p.then(function(schedule) {
+    var dbctx;
+    db.connect(testConfig).then(function(d) {
+      dbctx = d;
+    }).then(function() {
+      var options = { toolchain: { channel: "nightly", archiveDate: "2015-03-03" }, top: 2 };
+      return scheduler.createSchedule(options, testConfig, dbctx);
+    }).then(function(schedule) {
+      return db.disconnect(dbctx).then(function() { return schedule; } );
+    }).then(function(schedule) {
       assert(schedule[0].crateName == "winapi");
       assert(schedule[schedule.length - 1].crateName == "libc");
       done();
-    }).catch(function(e) { done(e); });
+    }).catch(function(e) { done(e); }).done();
   });
 
   test("schedule most recent", function(done) {
-    var options = { toolchain: { channel: "nightly", date: "2015-03-03" }, top: 2, mostRecentOnly: true };
-    var p = scheduler.createSchedule(options, testConfig);
-    p.then(function(schedule) {
+    var dbctx;
+    db.connect(testConfig).then(function(d) {
+      dbctx = d;
+    }).then(function() {
+      var options = { toolchain: { channel: "nightly", archiveDate: "2015-03-03" }, top: 2, mostRecentOnly: true };
+      return scheduler.createSchedule(options, testConfig, dbctx);
+    }).then(function(schedule) {
+      return db.disconnect(dbctx).then(function() { return schedule; } );
+    }).then(function(schedule) {
       assert(schedule.length == 2);
       assert(schedule[0].crateName == "winapi");
       assert(schedule[1].crateName == "libc");
       done();
-    }).catch(function(e) { done(e); });
+    }).catch(function(e) { done(e); }).done();
   });
+
+  test("schedule skip existing results", function(done) {
+    var toolchain = { channel: "nightly", archiveDate: "2015-03-03" };
+    var dbctx;
+    db.connect(testConfig).then(function(d) {
+      dbctx = d;
+
+      // Add a successful result, that we don't want rescheduled again
+      var buildResult = {
+	toolchain: toolchain,
+	crateName: "libc",
+	crateVers: "0.1.6",
+	status: "success",
+	taskId: "whatever"
+      };
+      return db.addBuildResult(dbctx, buildResult);
+    }).then(function() {
+      var options = {
+	toolchain: toolchain,
+	top: 2,
+	mostRecentOnly: true
+      };
+      return scheduler.createSchedule(options, testConfig, dbctx);
+    }).then(function(schedule) {
+      return db.disconnect(dbctx).then(function() { return schedule; } );
+    }).then(function(schedule) {
+      assert(schedule.length == 1);
+      assert(schedule[0].crateName == "winapi");
+      done();
+    }).catch(function(e) { done(e); }).done();
+  });
+
 });
 
 suite("report tests", function() {

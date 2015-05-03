@@ -17,7 +17,7 @@ var crateBuildMaxRunTimeInSeconds = 30 * 60;
 /**
  * Create a schedule of tasks for execution by `scheduleBuilds`.
  */
-function createSchedule(schedOpts, config) {
+function createSchedule(schedOpts, config, dbctx) {
   return crateIndex.loadCrates(config).then(function(crates) {
     if (schedOpts.crateName) {
       return retainMatchingNames(crates, schedOpts.crateName);
@@ -37,7 +37,41 @@ function createSchedule(schedOpts, config) {
       return crates;
     }
   }).then(function(crates) {
+    return removeCratesWithCompleteResults(crates, dbctx, schedOpts.toolchain);
+  }).then(function(crates) {
     return createScheduleForCratesForToolchain(crates, schedOpts.toolchain);
+  });
+}
+
+function removeCratesWithCompleteResults(crates, dbctx, toolchain) {
+  // Look up every crate's results and throw out the build request
+  // if it exists, by first setting it to null then filtering it out.
+  // (async doesn't have 'filterLimit').
+  return Promise.denodeify(async.mapLimit)(crates, 1, function(crate, cb) {
+    var buildResultKey = {
+      toolchain: toolchain,
+      crateName: crate.name,
+      crateVers: crate.vers
+    };
+    db.getBuildResult(dbctx, buildResultKey).then(function(buildResult) {
+      if (buildResult) {
+	if (buildResult.status == "success" || buildResult.status == "failure") {
+	  // Already have a result, map this crate to null
+	  cb(null, null);
+	} else {
+	  // Have a result, but not a usable one. Possibly an exception
+	  cb(null, crate);
+	}
+      } else {
+	cb(null, crate);
+      }
+    }).catch(function(e) {
+      cb(e, null);
+    });
+  }).then(function(crates) {
+    return crates.filter(function(crate) {
+      if (crate) { return true; } else { return false; }
+    });
   });
 }
 
