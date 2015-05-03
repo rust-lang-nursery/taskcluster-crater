@@ -77,6 +77,42 @@ function populate(dbctx) {
 	else { resolve(r); }
       });
     });
+  }).then(function() {
+    return new Promise(function(resolve, reject) {
+      var q = "create table if not exists \
+               crate_versions ( \
+               name text not null, \
+               version text not null, \
+               primary key (name, version) )";
+      dbctx.client.query(q, function(e, r) {
+	if (e) { reject(e); }
+	else { resolve(r); }
+      });
+    });
+  }).then(function() {
+    return new Promise(function(resolve, reject) {
+      var q = "create table if not exists \
+               crate_rank ( \
+               name text not null, \
+               rank integer not null, \
+               primary key (name) )";
+      dbctx.client.query(q, function(e, r) {
+	if (e) { reject(e); }
+	else { resolve(r); }
+      });
+    });
+  }).then(function() {
+    return new Promise(function(resolve, reject) {
+      var q = "create table if not exists \
+               dep_edges ( \
+               name text not null, \
+               dep text not null, \
+               primary key (name, dep) )";
+      dbctx.client.query(q, function(e, r) {
+	if (e) { reject(e); }
+	else { resolve(r); }
+      });
+    });
   });
 }
 
@@ -94,6 +130,30 @@ function depopulate(dbctx) {
   }).then(function() {
     var q = "drop table if exists custom_toolchains";
     debug(q);
+    return new Promise(function(resolve, reject) {
+      dbctx.client.query(q, function(e, r) {
+	if (e) { reject(e); }
+	else { resolve(r); }
+      });
+    });
+  }).then(function() {
+    var q = "drop table if exists crate_versions";
+    return new Promise(function(resolve, reject) {
+      dbctx.client.query(q, function(e, r) {
+	if (e) { reject(e); }
+	else { resolve(r); }
+      });
+    });
+  }).then(function() {
+    var q = "drop table if exists crate_rank";
+    return new Promise(function(resolve, reject) {
+      dbctx.client.query(q, function(e, r) {
+	if (e) { reject(e); }
+	else { resolve(r); }
+      });
+    });
+  }).then(function() {
+    var q = "drop table if exists dep_edges";
     return new Promise(function(resolve, reject) {
       dbctx.client.query(q, function(e, r) {
 	if (e) { reject(e); }

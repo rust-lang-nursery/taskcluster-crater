@@ -61,6 +61,27 @@ impl Database {
                  primary key (toolchain) )";
         try!(self.conn.execute(q, &[]));
 
+        let q = "create table if not exists \
+                 crate_versions ( \
+                 name text not null, \
+                 version text not null, \
+                 primary key (name, version) )";
+        try!(self.conn.execute(q, &[]));
+
+        let q = "create table if not exists \
+                 crate_rank ( \
+                 name text not null, \
+                 rank integer not null, \
+                 primary key (name) )";
+        try!(self.conn.execute(q, &[]));
+
+        let q = "create table if not exists \
+                 dep_edges ( \
+                 name text not null, \
+                 dep text not null, \
+                 primary key (name, dep) )";
+        try!(self.conn.execute(q, &[]));
+
         Ok(())
     }
 
@@ -69,6 +90,15 @@ impl Database {
         try!(self.conn.execute(q, &[]));
 
         let q = "drop table if exists custom_toolchains";
+        try!(self.conn.execute(q, &[]));
+
+        let q = "drop table if exists crate_versions";
+        try!(self.conn.execute(q, &[]));
+
+        let q = "drop table if exists crate_rank";
+        try!(self.conn.execute(q, &[]));
+
+        let q = "drop table if exists dep_edges";
         try!(self.conn.execute(q, &[]));
 
         Ok(())
