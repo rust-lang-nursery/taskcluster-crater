@@ -472,6 +472,8 @@ suite("report tests", function() {
     }).then(function() {
       return reports.createWeeklyReport("2015-03-03", dbctx, testConfig);
     }).then(function(report) {
+      return db.disconnect(dbctx).then(function() { return report; } );
+    }).then(function(report) {
       assert(report.date == "2015-03-03");
 
       assert(report.currentReport.nightly == "2015-02-26");
@@ -534,6 +536,8 @@ suite("report tests", function() {
     }).then(function() {
       return reports.createWeeklyReport("2015-03-03", dbctx, testConfig);
     }).then(function(report) {
+      return db.disconnect(dbctx).then(function() { return report; } );
+    }).then(function(report) {
 
       // 'piston' is not a root regression
       assert(report.nightly.rootRegressions.length == 1);
@@ -581,6 +585,8 @@ suite("report tests", function() {
     }).then(function() { return db.addBuildResult(dbctx, newResultRegressedDep);
     }).then(function() {
       return reports.createWeeklyReport("2015-03-03", dbctx, testConfig);
+    }).then(function(report) {
+      return db.disconnect(dbctx).then(function() { return report; } );
     }).then(function(report) {
 
       assert(report.nightly.regressions[0].crateName == "url");
