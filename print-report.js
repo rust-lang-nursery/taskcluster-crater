@@ -74,21 +74,21 @@ function printReport(config, reportSpec) {
 	console.log("* There are currently " + report.nightly.regressions.length +
 		    " regressions from beta to nightly.");
 	console.log();
-	console.log("## Beta root regressions, sorted by popularity:");
+	console.log("## Beta root regressions, sorted by weight:");
 	printCrateList(report.beta.rootRegressions);
-	console.log("## Nightly root regressions, sorted by popularity:");
+	console.log("## Nightly root regressions, sorted by weight:");
 	printCrateList(report.nightly.rootRegressions);
-	console.log("## Beta non-root regressions, sorted by popularity:");
+	console.log("## Beta non-root regressions, sorted by weight:");
 	printCrateList(report.beta.regressions);
-	console.log("## Nightly non-root regressions, sorted by popularity:");
+	console.log("## Nightly non-root regressions, sorted by weight:");
 	printCrateList(report.nightly.regressions);
-	console.log("## Beta broken, sorted by popularity:");
+	console.log("## Beta broken, sorted by weight:");
 	printCrateList(report.beta.broken);
-	console.log("## Nightly broken, sorted by popularity:");
+	console.log("## Nightly broken, sorted by weight:");
 	printCrateList(report.nightly.broken);
-	console.log("## Beta fixed, sorted by popularity:");
+	console.log("## Beta fixed, sorted by weight:");
 	printCrateList(report.beta.fixed);
-	console.log("## Nightly fixed, sorted by popularity:");
+	console.log("## Nightly fixed, sorted by weight:");
 	printCrateList(report.nightly.fixed);
       }).then(function() {
 	return db.disconnect(dbctx);
@@ -121,15 +121,15 @@ function printReport(config, reportSpec) {
 	console.log("* There are " + report.rootRegressions.length + " root regressions");
 	console.log("* There are " + report.regressions.length + " regressions");
 	console.log();
-	console.log("## Root regressions, sorted by popularity:");
+	console.log("## Root regressions, sorted by weight:");
 	printCrateList(report.rootRegressions);
-	console.log("## Non-root regressions, sorted by popularity:");
+	console.log("## Non-root regressions, sorted by weight:");
 	printCrateList(report.nonRootRegressions);
-	console.log("## Broken, sorted by popularity:");
+	console.log("## Broken, sorted by weight:");
 	printCrateList(report.broken);
-	console.log("## Fixed, sorted by popularity:");
+	console.log("## Fixed, sorted by weight:");
 	printCrateList(report.fixed);
-	console.log("## Working, sorted by popularity:");
+	console.log("## Working, sorted by weight:");
 	printCrateList(report.working);
       }).then(function() {
 	return db.disconnect(dbctx);
@@ -151,21 +151,21 @@ function printReport(config, reportSpec) {
 	console.log("* " + report.successes.length + " successes / " + report.failures.length + " failures");
 	console.log("* " + report.rootFailures.length + " root failures / " + report.nonRootFailures.length + " non-root failures");
 	console.log("");
-	console.log("## Root failures, sorted by popularity");
+	console.log("## Root failures, sorted by weight");
 	console.log("");
 	report.rootFailures.forEach(function(r) {
 	  var s = "* [" + r.crateName + "-" + r.crateVers + "](" + r.inspectorLink + ")";
 	  console.log(s);
 	});
 	console.log("");
-	console.log("## Non-root failures, sorted by popularity");
+	console.log("## Non-root failures, sorted by weight");
 	console.log("");
 	report.nonRootFailures.forEach(function(r) {
 	  var s = "* [" + r.crateName + "-" + r.crateVers + "](" + r.inspectorLink + ")";
 	  console.log(s);
 	});
 	console.log("");
-	console.log("## Successes, sorted by popularity");
+	console.log("## Successes, sorted by weight");
 	console.log("");
 	report.successes.forEach(function(r) {
 	  var s = "* [" + r.crateName + "-" + r.crateVers + "](" + r.inspectorLink + ")";
