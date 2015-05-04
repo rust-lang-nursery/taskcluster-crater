@@ -1,6 +1,9 @@
 #![cfg_attr(test, feature(std_misc))]
+#![feature(custom_derive, plugin)]
+#![plugin(serde_macros)]
 
 extern crate postgres;
+extern crate serde;
 
 use std::error::Error;
 
@@ -21,18 +24,28 @@ pub struct BuildResultKey {
     pub crate_vers: String
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct DatabaseCredentials {
+    pub dbname: String,
+    pub username: String,
+    pub password: String,
+    pub host: String,
+    pub port: u16
+}
+
 pub struct Database {
     conn: Connection
 }
 
 impl Database {
     /// Connects and updates the db to the correct scheme
-    pub fn connect(dbname: &str,
-                   username: &str,
-                   password: &str,
-                   host: &str,
-                   port: u16) -> Result<Database, Box<Error>> {
-        let url = make_url(dbname, username, password, host, port);
+    pub fn connect(credentials: &DatabaseCredentials
+                   ) -> Result<Database, Box<Error>> {
+        let url = make_url(&credentials.dbname,
+                           &credentials.username,
+                           &credentials.password,
+                           &credentials.host,
+                           credentials.port);
         let conn = try!(Connection::connect(&url[..], &SslMode::None));
 
         let db = Database { conn: conn };
@@ -167,7 +180,14 @@ mod test {
     static LOCK: StaticMutex = MUTEX_INIT;
     
     fn connect() -> Database {
-        Database::connect("crater-test", "crater-test", "crater-test", "localhost", 5432).unwrap()
+        let credentials = DatabaseCredentials {
+            dbname: "crater-test".to_string(),
+            username: "crater-test".to_string(),
+            password: "crater-test".to_string(),
+            host: "localhost".to_string(),
+            port: 5432
+        };
+        Database::connect(&credentials).unwrap()
     }
 
     fn dbtest(f: &Fn()) {
