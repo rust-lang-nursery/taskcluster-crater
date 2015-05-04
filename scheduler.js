@@ -57,12 +57,15 @@ function removeCratesWithCompleteResults(crates, dbctx, toolchain) {
       if (buildResult) {
 	if (buildResult.status == "success" || buildResult.status == "failure") {
 	  // Already have a result, map this crate to null
+	  debug("existing result for " + crate.name + "-" + crate.vers);
 	  cb(null, null);
 	} else {
 	  // Have a result, but not a usable one. Possibly an exception
+	  debug("bad existing result for " + crate.name + "-" + crate.vers);
 	  cb(null, crate);
 	}
       } else {
+	debug("no existing result for " + crate.name + "-" + crate.vers);
 	cb(null, crate);
       }
     }).catch(function(e) {
