@@ -110,7 +110,7 @@ function recordResultForTask(dbctx, tcQueue, taskId, state, m) {
 	};
 	console.log("adding custom toolchain: " + JSON.stringify(custom));
 	return db.addCustomToolchain(dbctx, custom);
-      } else {
+      } else if (state == "failure" || state == "exception") {
 	console.log("custom toolchain build failed: " + taskId);
       }
     } else {
