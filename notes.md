@@ -213,3 +213,16 @@ http://docs.taskcluster.net/tools/task-inspector/#xW41f4pVTtm854sp_uX1nw/0
 18:49 < garndt> https://queue.taskcluster.net/v1/task/<task_id>/runs/<run id>/artifacts/<path in task definition>
 18:50 < garndt> usually the path in the task definition is something like "public/some/path/some_file" or similar
 
+# switching aws provisioner
+
+11:25 < lightsofapollo> brson: ah have we had you switch to new provisioner yet ?
+11:26 < lightsofapollo> brson: pmoore|sick wrote the go bindings (he should be alive again hopefully by monday :))
+11:26 < lightsofapollo> bhearsum|mtg: ah nice :) I can't wait until we get all of this in the tree ... it's going to be so good
+11:26 -!- kgrandon [Adium@moz-tqj7vj.2rkg.9kg1.0101.2620.IP] has quit [Quit: Leaving.]
+11:32 < brson> lightsofapollo: no, i haven't switched provisioners
+11:32 < lightsofapollo> brson: okay- we are going to keep old one around but the new one now supports us-east-1/us-west-1/us-west-2
+11:33 < lightsofapollo> (i.e. your not going to run out of nodes anytime soon...)
+11:40 < brson> lightsofapollo: how do i switch?
+11:41 < lightsofapollo> brson: change "aws-provisioner" to "aws-provisioner-v1"
+11:41 < lightsofapollo> brson: then the new home for the UI is https://tools.taskcluster.net/aws-provisioner/
+11:42 < lightsofapollo> brson: bunch of new features... so you can configure multiple instances use ondemand (in addition to spot) and we are expanding to new regions (frankfurt is next...)
