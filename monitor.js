@@ -48,7 +48,13 @@ function main() {
       assert(taskId);
       assert(state);
 
-      recordResultForTask(dbctx, tcQueue, taskId, state, m);
+      // Using a single db connection, don't clobber it with concurrency
+      util.serial(function() {
+	  return new Promise(function(resolve, reject) {
+	    recordResultForTask(dbctx, tcQueue, taskId, state, m);
+	    resolve(null);
+	  }).catch(function(e) { reject(e); })
+      })
 
     });
 

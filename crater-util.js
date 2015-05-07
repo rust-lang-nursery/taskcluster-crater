@@ -10,6 +10,7 @@ var exec = require('child_process').exec;
 var http = require('http');
 var https = require('https');
 var assert = require('assert');
+var async = require('async');
 
 var defaultRustDistAddr = "http://static-rust-lang-org.s3-us-west-1.amazonaws.com/dist";
 var defaultCrateIndexAddr = "https://github.com/rust-lang/crates.io-index";
@@ -134,6 +135,32 @@ function loadCredentials(credentialsFile) {
   return JSON.parse(fs.readFileSync(credentialsFile, "utf8"));
 }
 
+function workDispatcher(task, cb) {
+  task(cb);
+}
+
+// A queue used to serialize access to the on-disk git repo and caches,
+// to avoid corruption.
+var actionQueue = async.queue(workDispatcher, 1);
+
+/**
+ * Takes a function that returns a promise and ensures that no other serial promises execute
+ * until is resolved. Returns a promise of that resolved value.
+ */
+function serial(f) {
+  return new Promise(function(resolve, reject) {
+    actionQueue.push(function(dispatcherCb) {
+      f().then(function(r) {
+	dispatcherCb();
+	resolve(r);
+      }).catch(function(e) {
+	dispatcherCb();
+	reject(e);
+      });
+    });
+  });
+}
+
 exports.parseToolchain = parseToolchain;
 exports.toolchainToString = toolchainToString;
 exports.downloadToMem = downloadToMem;
@@ -143,3 +170,4 @@ exports.loadDefaultConfig = loadDefaultConfig;
 exports.defaultDbCredentialsFile = defaultDbCredentialsFile;
 exports.defaultPulseCredentialsFile = defaultPulseCredentialsFile;
 exports.defaultTcCredentialsFile = defaultTcCredentialsFile;
+exports.serial = serial;

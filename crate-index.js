@@ -13,37 +13,10 @@ var path = require('path');
 var semver = require('semver');
 var util = require('./crater-util');
 var assert = require('assert');
-var async = require('async');
 
 var localIndexName = "crate-index"
 var crateCacheName = "crate-cache"
 var sourceCacheName = "source-cache"
-
-function workDispatcher(task, cb) {
-  task(cb);
-}
-
-// A queue used to serialize access to the on-disk git repo and caches,
-// to avoid corruption.
-var actionQueue = async.queue(workDispatcher, 1);
-
-/**
- * Takes a function that returns a promise and ensures that no other serial promises execute
- * until is resolved. Returns a promise of that resolved value.
- */
-function serial(f) {
-  return new Promise(function(resolve, reject) {
-    actionQueue.push(function(dispatcherCb) {
-      f().then(function(r) {
-	dispatcherCb();
-	resolve(r);
-      }).catch(function(e) {
-	dispatcherCb();
-	reject(e);
-      });
-    });
-  });
-}
 
 /**
  * Ensures the index is fresh and metadata for all crates is cached.
@@ -132,7 +105,7 @@ function readFile(dir, filename) {
  * Load the crate index from the remote address.
  */
 function loadCrates(config) {
-  return serial(function() {
+  return util.serial(function() {
     var indexAddr = config.crateIndexAddr;
     var cacheDir = config.cacheDir;
 
