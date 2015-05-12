@@ -123,7 +123,6 @@ function loadDefaultConfig() {
     dbName: defaultDbName,
     rustDistAddr: defaultRustDistAddr,
     crateIndexAddr: defaultCrateIndexAddr,
-    dlRootAddr: defaultDlRootAddr,
     cacheDir: defaultCacheDir,
     dbCredentials: loadCredentials(defaultDbCredentialsFile),
     pulseCredentials: loadCredentials(defaultPulseCredentialsFile),

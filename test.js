@@ -19,7 +19,6 @@ var tmpDir = "./testtmp";
 var testConfig = {
   rustDistAddr: testDataDir + "/dist",
   crateIndexAddr: testDataDir + "/crates.io-index",
-  dlRootAddr: testDataDir + "/versions",
   cacheDir: tmpDir + "/cache",
   dbName: "crater-test",
   dbCredentials: {

@@ -198,8 +198,6 @@ function scheduleBuilds(dbctx, schedule, config) {
 }
 
 function createTaskDescriptorForCrateBuild(dbctx, schedule, config) {
-  var dlRootAddr = config.dlRootAddr;
-
   debug("creating task descriptor for " + JSON.stringify(schedule));
 
   var crateName = schedule.crateName;
@@ -210,7 +208,8 @@ function createTaskDescriptorForCrateBuild(dbctx, schedule, config) {
 
   var p = installerUrlsForToolchain(dbctx, schedule.toolchain, config)
   return p.then(function(installerUrls) {
-    var crateUrl = dlRootAddr + "/" + crateName + "/" + crateVers + "/download";
+    var crateRoot = "http://crates-io.s3-us-west-1.amazonaws.com/crates"
+    var crateUrl = crateRoot + "/" + crateName + "/" + crateName + "-" + crateVers + ".crate"
     var taskName = util.toolchainToString(schedule.toolchain) + "-vs-" + crateName + "-" + crateVers;
 
     var env = {
