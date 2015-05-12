@@ -333,7 +333,7 @@ function addCustomToolchain(dbctx, custom) {
 				 custom.url,
 				 custom.taskId], f);
 	} else {
-	  var q = "update custom_toolchains set url = $2, taskId = $3 where toolchain = $1";
+	  var q = "update custom_toolchains set url = $2, task_id = $3 where toolchain = $1";
 	  debug(q);
 	  dbctx.client.query(q, [util.toolchainToString(custom.toolchain),
 				 custom.url,
