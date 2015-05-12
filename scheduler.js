@@ -37,7 +37,11 @@ function createSchedule(schedOpts, config, dbctx) {
       return crates;
     }
   }).then(function(crates) {
-    return removeCratesWithCompleteResults(crates, dbctx, schedOpts.toolchain);
+    if (schedOpts.skipExisting) {
+      return removeCratesWithCompleteResults(crates, dbctx, schedOpts.toolchain);
+    } else {
+      return crates;
+    }
   }).then(function(crates) {
     return createScheduleForCratesForToolchain(crates, schedOpts.toolchain);
   });

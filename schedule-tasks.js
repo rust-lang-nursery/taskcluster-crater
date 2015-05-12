@@ -56,6 +56,7 @@ function parseOptionsFromArgs() {
     var top = null;
     var mostRecentOnly = false;
     var crateName = null;
+    var skipExisting = false;
     for (var i = 4; i < process.argv.length; i++) {
       if (process.argv[i] == "--top") {
 	top = parseInt(process.argv[i + 1]);
@@ -66,6 +67,9 @@ function parseOptionsFromArgs() {
       if (process.argv[i] == "--name") {
 	crateName = process.argv[i + 1];
       } 
+      if (process.argv[i] == "--skip-existing") {
+	skipExisting = true;
+      }
     }
 
     return {
@@ -73,7 +77,8 @@ function parseOptionsFromArgs() {
       toolchain: toolchain,
       top: top,
       mostRecentOnly: mostRecentOnly,
-      crateName: crateName
+      crateName: crateName,
+      skipExisting: skipExisting
     };
   } else if (type == "custom-build") {
     var gitRepo = process.argv[3];
