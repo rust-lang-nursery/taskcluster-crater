@@ -416,7 +416,8 @@ suite("scheduler tests", function() {
       var options = {
 	toolchain: toolchain,
 	top: 2,
-	mostRecentOnly: true
+	mostRecentOnly: true,
+	skipExisting: true
       };
       return scheduler.createSchedule(options, testConfig, dbctx);
     }).then(function(schedule) {
