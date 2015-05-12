@@ -73,9 +73,29 @@ main() {
 	    say "Cargo.toml does not exist!"
 	fi
 
-	say "Building"
+	say "Fetching dependencies"
+	local count=0
+	local max=5
+	local sleep_time=1
+	for i in 1 2 4 8 16; do
+	    set +e
+	    (cd ./crate && cargo fetch)
+	    set -e
+	    if [ $? = 0 ]; then
+		break
+	    fi
+	    say "Cargo fetch failed. Trying again in $i s."
+	    sleep "$i"
+	done
+	if [ $? != 0 ]; then
+	    say "Cargo fetch failed completely!"
+	    exit 1
+	fi
+
+	say "Building crate"
 	(cd ./crate && cargo build)
-	# FIXME
+
+	# FIXME would like to test
 	#(cd ./crate && cargo test)
     elif [ "$task_type" = "custom-build" ]; then
 	local git_repo="${CRATER_TOOLCHAIN_GIT_REPO-}"
