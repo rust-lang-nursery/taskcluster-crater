@@ -31,14 +31,14 @@ main() {
 	fi
 
 	say "Installing Rust from $rust_installer"
-	curl -Lf "$rust_installer" -o installer.tar.gz
+	curl --retry 5 -Lf "$rust_installer" -o installer.tar.gz
 	mkdir ./rust-install
 	tar xzf installer.tar.gz -C ./rust-install --strip-components=1
 	./rust-install/install.sh
 
 	if [ -n "$cargo_installer" ]; then
 	    say "Installing Cargo from $cargo_installer"
-	    curl -Lf "$cargo_installer" -o cargo-installer.tar.gz
+	    curl --retry 5 -Lf "$cargo_installer" -o cargo-installer.tar.gz
 	    mkdir ./cargo-install
 	    tar xzf cargo-installer.tar.gz -C ./cargo-install --strip-components=1
 	    ./cargo-install/install.sh
@@ -50,7 +50,7 @@ main() {
 	cargo --version
 
 	say "Downloading crate from $crate_file"
-	curl -fL "$crate_file" -o crate.tar.gz
+	curl --retry 5 -fL "$crate_file" -o crate.tar.gz
 	mkdir ./crate
 	tar xzf crate.tar.gz -C ./crate --strip-components=1
 
