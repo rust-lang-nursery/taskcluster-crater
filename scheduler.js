@@ -246,7 +246,7 @@ function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, worker
   extra.taskType = taskType;
 
   var task = {
-    "provisionerId": "aws-provisioner",
+    "provisionerId": "aws-provisioner-v1",
     "workerType": workerType,
     "created": createTime.toISOString(),
     "deadline": deadlineTime.toISOString(),
