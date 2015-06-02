@@ -98,7 +98,8 @@ function installerUrlForToolchain(toolchain, triple, config) {
     var lines = data.match(/^.*([\n\r]+|$)/gm);
     var res = null;
     lines.forEach(function(line) {
-      if (line.indexOf(triple) != -1) {
+      var line = line.trim();
+      if (line.indexOf(triple) != -1 && line.indexOf(".tar.gz", line.length - ".tar.gz".length) !== -1) {
 	res = line.trim();
       }
     });
