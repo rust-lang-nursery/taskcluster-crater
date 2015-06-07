@@ -23,7 +23,7 @@ pub struct BuildResultKey {
 }
 
 #[derive(RustcEncodable, RustcDecodable)]
-pub struct DatabaseCredentials {
+pub struct Config {
     pub dbname: String,
     pub username: String,
     pub password: String,
@@ -37,7 +37,7 @@ pub struct Database {
 
 impl Database {
     /// Connects and updates the db to the correct scheme
-    pub fn connect(credentials: &DatabaseCredentials
+    pub fn connect(credentials: &Config
                    ) -> Result<Database, Box<Error>> {
         let url = make_url(&credentials.dbname,
                            &credentials.username,
@@ -178,7 +178,7 @@ mod test {
     static LOCK: StaticMutex = MUTEX_INIT;
     
     fn connect() -> Database {
-        let credentials = DatabaseCredentials {
+        let credentials = Config {
             dbname: "crater-test".to_string(),
             username: "crater-test".to_string(),
             password: "crater-test".to_string(),

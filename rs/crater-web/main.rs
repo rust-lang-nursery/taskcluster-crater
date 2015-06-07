@@ -21,7 +21,6 @@ use iron::status;
 use iron::mime::Mime;
 use router::Router;
 use mount::Mount;
-use crater_db::*;
 use rustc_serialize::json;
 
 fn main() {
@@ -34,12 +33,12 @@ fn run() -> Result<(), Error> {
     let config = try!(load_config());
 
     // Blocks until process is killed
-    run_web_server(config.db_credentials)
+    run_web_server(config.db)
 }
 
-fn run_web_server(db_credentials: DatabaseCredentials) -> Result<(), Error> {
+fn run_web_server(db_config: crater_db::Config) -> Result<(), Error> {
     let static_router = static_router();
-    let api_router = api_router(db_credentials);
+    let api_router = api_router(db_config);
 
     let mut mount = Mount::new();
     mount.mount("/api/v1/", api_router);
@@ -52,7 +51,7 @@ fn run_web_server(db_credentials: DatabaseCredentials) -> Result<(), Error> {
 
 #[derive(RustcEncodable, RustcDecodable)]
 struct Config {
-    db_credentials: DatabaseCredentials
+    db: crater_db::Config
 }
 
 fn load_config() -> Result<Config, Error> {
@@ -186,8 +185,8 @@ impl From<log::SetLoggerError> for Error {
     }
 }
 
-fn api_router(db_credentials: DatabaseCredentials) -> Router {
-    let api_ctxt_master = Arc::new(api::Ctxt::new(db_credentials));
+fn api_router(db_config: crater_db::Config) -> Router {
+    let api_ctxt_master = Arc::new(api::Ctxt::new(db_config));
     let mut router = Router::new();
 
     let api_ctxt = api_ctxt_master.clone();
@@ -203,16 +202,16 @@ fn api_router(db_credentials: DatabaseCredentials) -> Router {
 
 mod api {
     use super::Error;
-    use crater_db::*;
+    use crater_db;
 
     pub struct Ctxt {
-        db_credentials: DatabaseCredentials
+        db_config: crater_db::Config
     }
 
     impl Ctxt {
-        pub fn new(db_credentials: DatabaseCredentials) -> Ctxt {
+        pub fn new(db_config: crater_db::Config) -> Ctxt {
             Ctxt {
-                db_credentials: db_credentials
+                db_config: db_config
             }
         }
 
