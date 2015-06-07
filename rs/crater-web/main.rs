@@ -7,6 +7,7 @@ extern crate log;
 extern crate env_logger;
 extern crate crater_db;
 extern crate rustc_serialize;
+extern crate crater_engine;
 
 use std::error::Error as StdError;
 use std::fmt::{Display, Formatter};
@@ -32,8 +33,16 @@ fn run() -> Result<(), Error> {
 
     let config = try!(load_config());
 
-    // Blocks until process is killed
+    // Start the job engine that listens to the pulse server, creates
+    // taskcluster tasks, and updates the database with results.
+    try!(start_engine(config.engine));
+
+    // Blocks until the process is killed
     run_web_server(config.db)
+}
+
+fn start_engine(engine_config: crater_engine::Config) -> Result<(), Error> {
+    Ok(())
 }
 
 fn run_web_server(db_config: crater_db::Config) -> Result<(), Error> {
@@ -51,7 +60,8 @@ fn run_web_server(db_config: crater_db::Config) -> Result<(), Error> {
 
 #[derive(RustcEncodable, RustcDecodable)]
 struct Config {
-    db: crater_db::Config
+    db: crater_db::Config,
+    engine: crater_engine::Config
 }
 
 fn load_config() -> Result<Config, Error> {

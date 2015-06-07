@@ -8,3 +8,4 @@ name = "crater_engine"
 path = "lib.rs"
 
 [dependencies]
+rustc-serialize = "*"

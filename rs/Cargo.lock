@@ -73,6 +73,9 @@ dependencies = [
 [[package]]
 name = "crater-engine"
 version = "0.1.0"
+dependencies = [
+ "rustc-serialize 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "crater-msgbus"
