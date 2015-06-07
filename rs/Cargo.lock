@@ -7,6 +7,7 @@ dependencies = [
  "crater-msgbus 0.1.0",
  "crater-taskman 0.1.0",
  "env_logger 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hyper 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "log 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "mount 0.0.7 (registry+https://github.com/rust-lang/crates.io-index)",

@@ -19,6 +19,7 @@ path = "crater-cli/main.rs"
 # be built without building iron.
 [dependencies]
 iron = "*"
+hyper = "*"
 router = "*"
 mount = "*"
 log = "*"

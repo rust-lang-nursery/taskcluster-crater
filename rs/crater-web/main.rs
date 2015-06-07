@@ -1,4 +1,5 @@
 extern crate iron;
+extern crate hyper;
 extern crate router;
 extern crate mount;
 #[macro_use]
@@ -24,15 +25,19 @@ use crater_db::*;
 use rustc_serialize::json;
 
 fn main() {
-    env_logger::init().unwrap();
-
-    let config = load_config().unwrap();
-
-    // Blocks until process is killed
-    run_web_server(config.db_credentials);
+    run().unwrap();
 }
 
-fn run_web_server(db_credentials: DatabaseCredentials) {    
+fn run() -> Result<(), Error> {
+    try!(env_logger::init());
+
+    let config = try!(load_config());
+
+    // Blocks until process is killed
+    run_web_server(config.db_credentials)
+}
+
+fn run_web_server(db_credentials: DatabaseCredentials) -> Result<(), Error> {
     let static_router = static_router();
     let api_router = api_router(db_credentials);
 
@@ -40,7 +45,9 @@ fn run_web_server(db_credentials: DatabaseCredentials) {
     mount.mount("/api/v1/", api_router);
     mount.mount("/", static_router);
 
-    Iron::new(mount).http("localhost:3000").unwrap();
+    let _ = try!(Iron::new(mount).http("localhost:3000"));
+
+    return Ok(());
 }
 
 #[derive(RustcEncodable, RustcDecodable)]
@@ -50,7 +57,7 @@ struct Config {
 
 fn load_config() -> Result<Config, Error> {
     let mut path = try!(::std::env::current_dir());
-    path.push("crater-config.json");
+    path.push("crater-web-config.json");
 
     let mut file = try!(File::open(path));
 
@@ -126,7 +133,9 @@ fn get_mime_type(name: &str) -> Result<&'static str, Error> {
 pub enum Error {
     FileNotFound,
     BadMimeType,
-    JsonError
+    JsonError,
+    HyperError,
+    LoggerError
 }
 
 impl StdError for Error {
@@ -134,7 +143,9 @@ impl StdError for Error {
         match *self {
             Error::FileNotFound => "file not found",
             Error::BadMimeType => "bad mime type",
-            Error::JsonError => "json error"
+            Error::JsonError => "json error",
+            Error::HyperError => "hyper error",
+            Error::LoggerError => "logger error"
         }
     }
 }
@@ -160,6 +171,18 @@ impl From<IoError> for Error {
 impl From<json::DecoderError> for Error {
     fn from(_: json::DecoderError) -> Error {
         Error::JsonError
+    }
+}
+
+impl From<hyper::Error> for Error {
+    fn from(_: hyper::Error) -> Error {
+        Error::HyperError
+    }
+}
+
+impl From<log::SetLoggerError> for Error {
+    fn from(_: log::SetLoggerError) -> Error {
+        Error::LoggerError
     }
 }
 
