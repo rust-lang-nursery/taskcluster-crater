@@ -1,6 +1,3 @@
-#![feature(custom_derive, plugin)]
-#![plugin(serde_macros)]
-
 extern crate iron;
 extern crate router;
 extern crate mount;
@@ -8,7 +5,7 @@ extern crate mount;
 extern crate log;
 extern crate env_logger;
 extern crate crater_db;
-extern crate serde;
+extern crate rustc_serialize;
 
 use std::error::Error as StdError;
 use std::fmt::{Display, Formatter};
@@ -24,7 +21,7 @@ use iron::mime::Mime;
 use router::Router;
 use mount::Mount;
 use crater_db::*;
-use serde::json;
+use rustc_serialize::json;
 
 fn main() {
     env_logger::init().unwrap();
@@ -136,8 +133,8 @@ impl From<IoError> for Error {
     }
 }
 
-impl From<json::error::Error> for Error {
-    fn from(_: json::error::Error) -> Error {
+impl From<json::DecoderError> for Error {
+    fn from(_: json::DecoderError) -> Error {
         Error::JsonError
     }
 }
@@ -168,7 +165,7 @@ fn load_db_credentials() -> Result<DatabaseCredentials, Error> {
     let mut s = String::new();
     try!(file.read_to_string(&mut s));
 
-    return Ok(try!(json::from_str(&s)));
+    return Ok(try!(json::decode(&s)));
 }
 
 mod api {

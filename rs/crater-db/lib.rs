@@ -1,9 +1,7 @@
 #![cfg_attr(test, feature(std_misc))]
-#![feature(custom_derive, plugin)]
-#![plugin(serde_macros)]
 
 extern crate postgres;
-extern crate serde;
+extern crate rustc_serialize;
 
 use std::error::Error;
 
@@ -24,7 +22,7 @@ pub struct BuildResultKey {
     pub crate_vers: String
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(RustcEncodable, RustcDecodable)]
 pub struct DatabaseCredentials {
     pub dbname: String,
     pub username: String,

@@ -9,5 +9,4 @@ path = "lib.rs"
 
 [dependencies]
 postgres = "^0.8.7"
-serde = "*"
-serde_macros = "*"
+rustc-serialize = "*"
