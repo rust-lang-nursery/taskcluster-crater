@@ -1,0 +1,11 @@
+[package]
+name = "crater-msgbus"
+version = "0.1.0"
+authors = ["Brian Anderson <banderson@mozilla.com>"]
+
+[lib]
+name = "crater_msgbus"
+path = "lib.rs"
+
+[dependencies.amqp]
+git = "https://github.com/Antti/rust-amqp"

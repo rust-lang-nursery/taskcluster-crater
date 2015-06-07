@@ -26,14 +26,38 @@ use rustc_serialize::json;
 fn main() {
     env_logger::init().unwrap();
 
+    let config = load_config().unwrap();
+
+    // Blocks until process is killed
+    run_web_server(config.db_credentials);
+}
+
+fn run_web_server(db_credentials: DatabaseCredentials) {    
     let static_router = static_router();
-    let api_router = api_router();
+    let api_router = api_router(db_credentials);
 
     let mut mount = Mount::new();
     mount.mount("/api/v1/", api_router);
     mount.mount("/", static_router);
 
     Iron::new(mount).http("localhost:3000").unwrap();
+}
+
+#[derive(RustcEncodable, RustcDecodable)]
+struct Config {
+    db_credentials: DatabaseCredentials
+}
+
+fn load_config() -> Result<Config, Error> {
+    let mut path = try!(::std::env::current_dir());
+    path.push("crater-config.json");
+
+    let mut file = try!(File::open(path));
+
+    let mut s = String::new();
+    try!(file.read_to_string(&mut s));
+
+    return Ok(try!(json::decode(&s)));
 }
 
 fn static_router() -> Router {
@@ -139,9 +163,7 @@ impl From<json::DecoderError> for Error {
     }
 }
 
-fn api_router() -> Router {
-    let db_credentials = load_db_credentials().ok()
-        .expect("unable to load db credentials");
+fn api_router(db_credentials: DatabaseCredentials) -> Router {
     let api_ctxt_master = Arc::new(api::Ctxt::new(db_credentials));
     let mut router = Router::new();
 
@@ -154,18 +176,6 @@ fn api_router() -> Router {
     });
 
     return router;
-}
-
-fn load_db_credentials() -> Result<DatabaseCredentials, Error> {
-    let mut path = try!(::std::env::current_dir());
-    path.push("crater-db-credentials.json");
-
-    let mut file = try!(File::open(path));
-
-    let mut s = String::new();
-    try!(file.read_to_string(&mut s));
-
-    return Ok(try!(json::decode(&s)));
 }
 
 mod api {

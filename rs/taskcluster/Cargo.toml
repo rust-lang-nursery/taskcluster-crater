@@ -1,0 +1,10 @@
+[package]
+name = "taskcluster"
+version = "0.1.0"
+authors = ["Brian Anderson <banderson@mozilla.com>"]
+
+[lib]
+name = "taskcluster"
+path = "lib.rs"
+
+[dependencies]

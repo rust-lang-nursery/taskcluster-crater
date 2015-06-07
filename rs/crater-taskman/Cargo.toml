@@ -1,0 +1,10 @@
+[package]
+name = "crater-taskman"
+version = "0.1.0"
+authors = ["Brian Anderson <banderson@mozilla.com>"]
+
+[lib]
+name = "crater_taskman"
+path = "lib.rs"
+
+[dependencies]
