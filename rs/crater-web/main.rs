@@ -10,12 +10,10 @@ extern crate rustc_serialize;
 extern crate crater_engine;
 
 use std::error::Error as StdError;
-use std::fmt::{Display, Formatter};
-use std::fmt::Error as FmtError;
+use std::fmt::{self, Display, Formatter};
 use std::convert::From;
-use std::io::Error as IoError;
 use std::fs::File;
-use std::io::Read;
+use std::io::{self, Read};
 use std::sync::Arc;
 use std::thread;
 use iron::prelude::*;
@@ -149,29 +147,40 @@ fn get_mime_type(name: &str) -> Result<&'static str, Error> {
 
 #[derive(Debug)]
 pub enum Error {
-    FileNotFound,
     BadMimeType,
-    JsonError,
-    HyperError,
-    LoggerError,
-    EngineError
+    IoError(io::Error),
+    JsonError(json::DecoderError),
+    HyperError(hyper::Error),
+    LoggerError(log::SetLoggerError),
+    EngineError(crater_engine::Error)
 }
 
 impl StdError for Error {
     fn description(&self) -> &str {
         match *self {
-            Error::FileNotFound => "file not found",
             Error::BadMimeType => "bad mime type",
-            Error::JsonError => "json error",
-            Error::HyperError => "hyper error",
-            Error::LoggerError => "logger error",
-            Error::EngineError => "engine error"
+            Error::IoError(ref e) => e.description(),
+            Error::JsonError(ref e) => e.description(),
+            Error::HyperError(ref e) => e.description(),
+            Error::LoggerError(ref e) => e.description(),
+            Error::EngineError(ref e) => e.description()
+        }
+    }
+
+    fn cause(&self) -> Option<&StdError> {
+        match *self {
+            Error::IoError(ref e) => Some(e),
+            Error::JsonError(ref e) => Some(e),
+            Error::HyperError(ref e) => Some(e),
+            Error::LoggerError(ref e) => Some(e),
+            Error::EngineError(ref e) => Some(e),
+            _ => None
         }
     }
 }
 
 impl Display for Error {
-    fn fmt(&self, f: &mut Formatter) -> Result<(), FmtError> {
+    fn fmt(&self, f: &mut Formatter) -> Result<(), fmt::Error> {
         f.write_str(self.description())
     }
 }
@@ -182,33 +191,33 @@ impl From<Error> for IronError {
     }
 }
 
-impl From<IoError> for Error {
-    fn from(_: IoError) -> Error {
-        Error::FileNotFound
+impl From<io::Error> for Error {
+    fn from(e: io::Error) -> Error {
+        Error::IoError(e)
     }
 }
 
 impl From<json::DecoderError> for Error {
-    fn from(_: json::DecoderError) -> Error {
-        Error::JsonError
+    fn from(e: json::DecoderError) -> Error {
+        Error::JsonError(e)
     }
 }
 
 impl From<hyper::Error> for Error {
-    fn from(_: hyper::Error) -> Error {
-        Error::HyperError
+    fn from(e: hyper::Error) -> Error {
+        Error::HyperError(e)
     }
 }
 
 impl From<log::SetLoggerError> for Error {
-    fn from(_: log::SetLoggerError) -> Error {
-        Error::LoggerError
+    fn from(e: log::SetLoggerError) -> Error {
+        Error::LoggerError(e)
     }
 }
 
 impl From<crater_engine::Error> for Error {
-    fn from(_: crater_engine::Error) -> Error {
-        Error::EngineError
+    fn from(e: crater_engine::Error) -> Error {
+        Error::EngineError(e)
     }
 }
 
