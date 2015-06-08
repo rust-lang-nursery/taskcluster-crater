@@ -74,6 +74,7 @@ dependencies = [
 name = "crater-engine"
 version = "0.1.0"
 dependencies = [
+ "crater-msgbus 0.1.0",
  "rustc-serialize 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -82,6 +83,7 @@ name = "crater-msgbus"
 version = "0.1.0"
 dependencies = [
  "amqp 0.0.7 (git+https://github.com/Antti/rust-amqp)",
+ "rustc-serialize 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

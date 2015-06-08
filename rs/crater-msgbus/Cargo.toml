@@ -7,5 +7,8 @@ authors = ["Brian Anderson <banderson@mozilla.com>"]
 name = "crater_msgbus"
 path = "lib.rs"
 
+[dependencies]
+rustc-serialize = "*"
+
 [dependencies.amqp]
 git = "https://github.com/Antti/rust-amqp"

@@ -17,6 +17,7 @@ use std::io::Error as IoError;
 use std::fs::File;
 use std::io::Read;
 use std::sync::Arc;
+use std::thread;
 use iron::prelude::*;
 use iron::status;
 use iron::mime::Mime;
@@ -42,6 +43,14 @@ fn run() -> Result<(), Error> {
 }
 
 fn start_engine(engine_config: crater_engine::Config) -> Result<(), Error> {
+
+    let engine = try!(crater_engine::initialize(engine_config));
+
+    thread::spawn(|| {
+        // FIXME: error handling
+        engine.run().unwrap();
+    });
+
     Ok(())
 }
 
@@ -144,7 +153,8 @@ pub enum Error {
     BadMimeType,
     JsonError,
     HyperError,
-    LoggerError
+    LoggerError,
+    EngineError
 }
 
 impl StdError for Error {
@@ -154,7 +164,8 @@ impl StdError for Error {
             Error::BadMimeType => "bad mime type",
             Error::JsonError => "json error",
             Error::HyperError => "hyper error",
-            Error::LoggerError => "logger error"
+            Error::LoggerError => "logger error",
+            Error::EngineError => "engine error"
         }
     }
 }
@@ -192,6 +203,12 @@ impl From<hyper::Error> for Error {
 impl From<log::SetLoggerError> for Error {
     fn from(_: log::SetLoggerError) -> Error {
         Error::LoggerError
+    }
+}
+
+impl From<crater_engine::Error> for Error {
+    fn from(_: crater_engine::Error) -> Error {
+        Error::EngineError
     }
 }
 
