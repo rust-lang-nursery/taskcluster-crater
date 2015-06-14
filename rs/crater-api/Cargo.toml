@@ -1,10 +1,11 @@
 [package]
-name = "crater-taskman"
+name = "crater-api"
 version = "0.1.0"
 authors = ["Brian Anderson <banderson@mozilla.com>"]
 
 [lib]
-name = "crater_taskman"
+name = "crater_api"
 path = "lib.rs"
 
 [dependencies]
+rustc-serialize = "*"

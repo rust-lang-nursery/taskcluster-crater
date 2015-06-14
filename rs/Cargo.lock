@@ -2,10 +2,10 @@
 name = "crater"
 version = "0.1.0"
 dependencies = [
+ "crater-api 0.1.0",
+ "crater-bus 0.1.0",
  "crater-db 0.1.0",
  "crater-engine 0.1.0",
- "crater-msgbus 0.1.0",
- "crater-taskman 0.1.0",
  "env_logger 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "iron 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -14,18 +14,6 @@ dependencies = [
  "router 0.0.10 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "taskcluster 0.1.0",
-]
-
-[[package]]
-name = "amqp"
-version = "0.0.7"
-source = "git+https://github.com/Antti/rust-amqp#6bd20d80f8f5751409c59d52d8083dbf63a87574"
-dependencies = [
- "byteorder 0.3.10 (registry+https://github.com/rust-lang/crates.io-index)",
- "enum_primitive 0.0.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "env_logger 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "log 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "url 0.2.35 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -63,6 +51,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "crater-api"
+version = "0.1.0"
+dependencies = [
+ "rustc-serialize 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "crater-bus"
+version = "0.1.0"
+dependencies = [
+ "rustc-serialize 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "crater-db"
 version = "0.1.0"
 dependencies = [
@@ -74,34 +76,15 @@ dependencies = [
 name = "crater-engine"
 version = "0.1.0"
 dependencies = [
- "crater-msgbus 0.1.0",
+ "crater-bus 0.1.0",
+ "log 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "rustc-serialize 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
-
-[[package]]
-name = "crater-msgbus"
-version = "0.1.0"
-dependencies = [
- "amqp 0.0.7 (git+https://github.com/Antti/rust-amqp)",
- "rustc-serialize 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "crater-taskman"
-version = "0.1.0"
 
 [[package]]
 name = "debug-builders"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-
-[[package]]
-name = "enum_primitive"
-version = "0.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "num 0.1.25 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
 [[package]]
 name = "env_logger"
@@ -219,15 +202,6 @@ dependencies = [
  "iron 0.1.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "sequence_trie 0.0.12 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 0.2.35 (registry+https://github.com/rust-lang/crates.io-index)",
-]
-
-[[package]]
-name = "num"
-version = "0.1.25"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-dependencies = [
- "rand 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
- "rustc-serialize 0.3.15 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

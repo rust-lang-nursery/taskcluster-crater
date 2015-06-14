@@ -1,14 +1,14 @@
 [package]
-name = "crater-msgbus"
+name = "crater-bus"
 version = "0.1.0"
 authors = ["Brian Anderson <banderson@mozilla.com>"]
 
 [lib]
-name = "crater_msgbus"
+name = "crater_bus"
 path = "lib.rs"
 
 [dependencies]
 rustc-serialize = "*"
 
-[dependencies.amqp]
-git = "https://github.com/Antti/rust-amqp"
+#[dependencies.amqp]
+#git = "https://github.com/Antti/rust-amqp"

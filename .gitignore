@@ -6,3 +6,4 @@ pulse-credentials.json
 pg-credentials.json
 rs/target/*
 crater-web-config.json
+crater-cli-config.json

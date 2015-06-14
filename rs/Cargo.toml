@@ -31,18 +31,17 @@ rustc-serialize = "*"
 path = "crater-engine"
 
 # Abstracts the AMQP implementation
-[dependencies.crater-msgbus]
-path = "crater-msgbus"
+[dependencies.crater-bus]
+path = "crater-bus"
 
 # Abstracts the PostgreSQL database
 [dependencies.crater-db]
 path = "crater-db"
 
-# Abstracts TaskCluster
-[dependencies.crater-taskman]
-path = "crater-taskman"
+# Shared defs for the HTTP API
+[dependencies.crater-api]
+path = "crater-api"
 
 # Bindings to TaskCluster
 [dependencies.taskcluster]
 path = "taskcluster"
-

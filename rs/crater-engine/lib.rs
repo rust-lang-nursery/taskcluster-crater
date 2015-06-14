@@ -1,35 +1,48 @@
 extern crate rustc_serialize;
-extern crate crater_msgbus;
+extern crate crater_bus as bus;
+#[macro_use]
+extern crate log;
 
 use std::error::Error as StdError;
 use std::fmt::{self, Display, Formatter};
 
 #[derive(RustcEncodable, RustcDecodable)]
 pub struct Config {
-    msgbus_config: crater_msgbus::Config
+    bus_config: bus::Config
 }
 
 pub fn initialize(config: Config) -> Result<Engine, Error> {
-    let msgbus = try!(crater_msgbus::connect(config.msgbus_config));
+    let bus = try!(bus::connect(config.bus_config));
 
     Ok(Engine {
-        msgbus: msgbus
+        bus: bus
     })
 }
 
 pub struct Engine {
-    msgbus: crater_msgbus::MsgBus
+    bus: bus::Bus
 }
 
 impl Engine {
     pub fn run(self) -> Result<(), Error> {
-        Ok(())
+        info!("starting crater engine");
+        let listener = try!(self.bus.listen());
+
+        loop {
+            match try!(listener.recv()) {
+                Some(_) => {
+                }
+                None => {
+                    return Ok(());
+                }
+            }
+        }
     }
 }
 
 #[derive(Debug)]
 pub enum Error {
-    MsgBusError(crater_msgbus::Error)
+    BusError(bus::Error)
 }
 
 impl StdError for Error {
@@ -44,8 +57,8 @@ impl Display for Error {
     }
 }
 
-impl From<crater_msgbus::Error> for Error {
-    fn from(e: crater_msgbus::Error) -> Error {
-        Error::MsgBusError(e)
+impl From<bus::Error> for Error {
+    fn from(e: bus::Error) -> Error {
+        Error::BusError(e)
     }
 }
