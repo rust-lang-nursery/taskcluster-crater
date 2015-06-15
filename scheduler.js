@@ -12,7 +12,7 @@ var dist = require('./rust-dist');
 var db = require('./crater-db');
 
 var customBuildMaxRunTimeInSeconds = 240 * 60;
-var crateBuildMaxRunTimeInSeconds = 30 * 60;
+var crateBuildMaxRunTimeInSeconds = 5 * 60;
 
 /**
  * Create a schedule of tasks for execution by `scheduleBuilds`.
@@ -230,7 +230,7 @@ function createTaskDescriptorForCrateBuild(dbctx, schedule, config) {
 
     return createTaskDescriptor(taskName, env, extra,
 				"crate-build", crateBuildMaxRunTimeInSeconds, "cratertest",
-				{ }, 60 /* deadline in minutes */);
+				{ }, 120 /* deadline in minutes */);
   });
 }
 
