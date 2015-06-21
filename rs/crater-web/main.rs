@@ -88,7 +88,7 @@ fn api_router_v1(db_config: db::Config) -> Router {
     let mut router = Router::new();
 
     let api_ctxt = api_ctxt_master.clone();
-    router.get("/custom_build/", move |r: &mut Request| {
+    router.post("/custom_build/", move |r: &mut Request| {
         let mut body = String::new();
         try!(r.body.read_to_string(&mut body).map_err(|e| Error::from(e)));
         let payload = try!(api_ctxt.custom_build(&body));

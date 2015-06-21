@@ -142,6 +142,12 @@ impl From<json::DecoderError> for Error {
     }
 }
 
+impl From<json::EncoderError> for Error {
+    fn from(e: json::EncoderError) -> Error {
+        Error::StdError(Box::new(e))
+    }
+}
+
 impl From<hyper::Error> for Error {
     fn from(e: hyper::Error) -> Error {
         Error::StdError(Box::new(e))
@@ -154,10 +160,18 @@ impl From<log::SetLoggerError> for Error {
     }
 }
 
+impl From<api::v1::StdIoResponse> for Error {
+    fn from(e: api::v1::StdIoResponse) -> Error {
+        Error::StdError(Box::new(e))
+    }
+}
+
 mod client_v1 {
     use super::{Config, Error};
     use hyper::Client;
     use api::v1;
+    use rustc_serialize::json;
+    use std::io::Read;
 
     pub struct Ctxt {
         config: Config
@@ -168,12 +182,24 @@ mod client_v1 {
             Ctxt { config: config }
         }
 
+        /// Returns the stdout from `node schedule-tasks.js custom-build`
         pub fn custom_build(&self, url: String, sha: String) -> Result<String, Error> {
-            let req = v1::CustomBuildRequest {
-                url: url, sha: sha
+            let ref url = format!("{}/api/v1/custom_build", self.config.server_url);
+            info!("api endpoint: {}", url);
+            let ref req = v1::CustomBuildRequest {
+                url: url.clone(), sha: sha
             };
-            let client = Client::new();
-            Err(Error::OptParse)
+            let ref req_str = try!(json::encode(req));
+
+            let mut client = Client::new();
+            let mut http_res = try!(client.post(url).body(req_str).send());
+            let ref mut res_str = String::new();
+            try!(http_res.read_to_string(res_str));
+
+            let res: v1::StdIoResponse = try!(json::decode(res_str));
+            let stdout = try!(Result::from(res));
+
+            Ok(stdout)
         }
     }
 
