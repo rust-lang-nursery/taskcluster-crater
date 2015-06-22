@@ -8,6 +8,7 @@ extern crate env_logger;
 extern crate crater_db as db;
 extern crate rustc_serialize;
 extern crate crater_engine as engine;
+extern crate crater_api as api;
 
 use iron::mime::Mime;
 use iron::prelude::*;
@@ -92,6 +93,20 @@ fn api_router_v1(db_config: db::Config) -> Router {
         let mut body = String::new();
         try!(r.body.read_to_string(&mut body).map_err(|e| Error::from(e)));
         let payload = try!(api_ctxt.custom_build(&body));
+        Ok(Response::with((status::Ok, payload)).set(known_mime_type("application/json")))
+    });
+    let api_ctxt = api_ctxt_master.clone();
+    router.post("/crate_build/", move |r: &mut Request| {
+        let mut body = String::new();
+        try!(r.body.read_to_string(&mut body).map_err(|e| Error::from(e)));
+        let payload = try!(api_ctxt.crate_build(&body));
+        Ok(Response::with((status::Ok, payload)).set(known_mime_type("application/json")))
+    });
+    let api_ctxt = api_ctxt_master.clone();
+    router.post("/report/", move |r: &mut Request| {
+        let mut body = String::new();
+        try!(r.body.read_to_string(&mut body).map_err(|e| Error::from(e)));
+        let payload = try!(api_ctxt.report(&body));
         Ok(Response::with((status::Ok, payload)).set(known_mime_type("application/json")))
     });
     let api_ctxt = api_ctxt_master.clone();
@@ -240,6 +255,7 @@ mod api_v1 {
     use super::Error;
     use db;
     use rustc_serialize::json;
+    use api::v1;
 
     pub struct Ctxt {
         db_config: db::Config
@@ -251,6 +267,21 @@ mod api_v1 {
         }
 
         pub fn custom_build(&self, req: &str) -> Result<String, Error> {
+            let ref req: v1::CustomBuildRequest = try!(json::decode(req));
+
+            info!("custom_build: {:?}", req);
+            
+            let ref res = node_exec("schedule-tasks.js", &["custom-build", &req.url, &req.sha]);
+            let res = try!(json::encode(res));
+
+            Ok(res)
+        }
+
+        pub fn crate_build(&self, req: &str) -> Result<String, Error> {
+            unimplemented!()
+        }
+
+        pub fn report(&self, req: &str) -> Result<String, Error> {
             unimplemented!()
         }
 
@@ -262,6 +293,10 @@ mod api_v1 {
 
             Ok(try!(json::encode(&SelfTest)))
         }
+    }
+
+    fn node_exec(script: &str, args: &[&str]) -> v1::StdIoResponse {
+        unimplemented!()
     }
 }
 

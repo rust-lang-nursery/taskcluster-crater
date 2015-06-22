@@ -6,9 +6,17 @@ pub mod v1 {
 
     /// Build a compiler from a git repo and a commit sha
     #[derive(RustcEncodable, RustcDecodable)]
+    #[derive(Debug)]
     pub struct CustomBuildRequest {
         pub url: String,
         pub sha: String
+    }
+
+    pub enum ReportKind {
+        Comparison {
+            toolchain_from: String,
+            toolchain_to: String
+        }
     }
 
     /// Responses from running one of the v1 nodejs scripts

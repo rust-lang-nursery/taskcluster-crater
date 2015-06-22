@@ -12,15 +12,12 @@ use std::error::Error as StdError;
 use std::fmt::{self, Display, Formatter};
 use std::fs::File;
 use std::io::{self, Read};
+use api::v1;
 
 enum Opts {
     CustomBuild { url: String, sha: String },
     CrateBuild { toolchain: String },
-    Report { kind: ReportKind }
-}
-
-enum ReportKind {
-    Comparison { toolchain_from: String, toolchain_to: String }
+    Report { kind: v1::ReportKind }
 }
 
 #[derive(RustcEncodable, RustcDecodable)]
@@ -78,12 +75,12 @@ fn parse_opts(args: &[String]) -> Result<Opts, Error> {
     }
 }
 
-fn parse_report_kind(kind: &str, args: &[String]) -> Result<ReportKind, Error> {
+fn parse_report_kind(kind: &str, args: &[String]) -> Result<v1::ReportKind, Error> {
     if kind == "comparison" {
         let from = try!(args.get(0).ok_or(Error::OptParse));
         let to = try!(args.get(1).ok_or(Error::OptParse));
-        Ok(ReportKind::Comparison { toolchain_from: from.clone(),
-                                    toolchain_to: to.clone() })
+        Ok(v1::ReportKind::Comparison { toolchain_from: from.clone(),
+                                        toolchain_to: to.clone() })
     } else {
         Err(Error::OptParse)
     }
@@ -95,7 +92,12 @@ fn run_run(config: Config, opts: Opts) -> Result<(), Error> {
         Opts::CustomBuild { url, sha } => {
             println!("{}", try!(client_v1.custom_build(url, sha)));
         }
-        _ => unimplemented!()
+        Opts::CrateBuild { toolchain } => {
+            println!("{}", try!(client_v1.crate_build(toolchain)));
+        }
+        Opts::Report { kind } => {
+            println!("{}", try!(client_v1.report(kind)));
+        }
     }
 
     Ok(())
@@ -160,8 +162,8 @@ impl From<log::SetLoggerError> for Error {
     }
 }
 
-impl From<api::v1::StdIoResponse> for Error {
-    fn from(e: api::v1::StdIoResponse) -> Error {
+impl From<v1::StdIoResponse> for Error {
+    fn from(e: v1::StdIoResponse) -> Error {
         Error::StdError(Box::new(e))
     }
 }
@@ -200,6 +202,14 @@ mod client_v1 {
             let stdout = try!(Result::from(res));
 
             Ok(stdout)
+        }
+
+        pub fn crate_build(&self, toolchain: String) -> Result<String, Error> {
+            unimplemented!()
+        }
+
+        pub fn report(&self, kind: v1::ReportKind) -> Result<String, Error> {
+            unimplemented!()
         }
     }
 
