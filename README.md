@@ -1,4 +1,49 @@
-Let's test Rust crates!
+# Crater - The Rust crate tester
+
+This is a tool for testing builds of the Rust compiler against massive numbers of Rust crates.
+
+It is in a very rough state and is accessible by invitation only.
+
+# Getting started
+
+Clone the repo and cd to the 'rs' directory.
+
+```sh
+$ git clone https://github.com/brson/taskcluster-crater
+$ cd taskcluster-crater/rs
+```
+
+In this directory create crater-cli-config.json. It looks like:
+
+```json
+{
+    "server_url": "https://TODO",
+    "username": "your_username",
+    "auth_token": "your_token"
+}
+```
+
+Get your credentials from brson.
+
+Test your configuration.
+
+```sh
+$ crater run --bin crater-cli self-test
+```
+
+Yay! Now you can test some crates.
+
+There are three steps to running crater:
+
+1) Build two custom toolchains (optional).
+2) Build crates against two toolchains.
+3) Run a 'comparison' report.
+
+## Step 1
+
+
+
+# Older docs
 
 This is a collection of node.js tools for testing large numbers of
 Rust crates against arbitrary builds of Rust in parallel.

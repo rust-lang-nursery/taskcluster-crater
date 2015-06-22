@@ -13,11 +13,13 @@ use std::fmt::{self, Display, Formatter};
 use std::fs::File;
 use std::io::{self, Read};
 use api::v1;
+use std::io::Write;
 
 enum Opts {
-    CustomBuild { url: String, sha: String },
+    CustomBuild { repo_url: String, commit_sha: String },
     CrateBuild { toolchain: String },
-    Report { kind: v1::ReportKind }
+    Report { kind: v1::ReportKind },
+    SelfTest
 }
 
 #[derive(RustcEncodable, RustcDecodable)]
@@ -60,9 +62,10 @@ fn parse_opts(args: &[String]) -> Result<Opts, Error> {
     if args.len() < 2 { return Err(Error::OptParse) }
 
     if args[1] == "custom-build" {
-        let url = try!(args.get(2).ok_or(Error::OptParse));
-        let sha = try!(args.get(3).ok_or(Error::OptParse));
-        Ok(Opts::CustomBuild { url: url.clone(), sha: sha.clone() })
+        let repo_url = try!(args.get(2).ok_or(Error::OptParse));
+        let commit_sha = try!(args.get(3).ok_or(Error::OptParse));
+        Ok(Opts::CustomBuild { repo_url: repo_url.clone(),
+                               commit_sha: commit_sha.clone() })
     } else if args[1] == "crate-build" {
         let toolchain = try!(args.get(2).ok_or(Error::OptParse));
         Ok(Opts::CrateBuild { toolchain: toolchain.clone() })
@@ -70,6 +73,8 @@ fn parse_opts(args: &[String]) -> Result<Opts, Error> {
         let ref kind = try!(args.get(2).ok_or(Error::OptParse));
         let kind = try!(parse_report_kind(kind, &args[3..]));
         Ok(Opts::Report { kind: kind })
+    } else if args[1] == "self-test" {
+        Ok(Opts::SelfTest)
     } else {
         Err(Error::OptParse)
     }
@@ -81,6 +86,9 @@ fn parse_report_kind(kind: &str, args: &[String]) -> Result<v1::ReportKind, Erro
         let to = try!(args.get(1).ok_or(Error::OptParse));
         Ok(v1::ReportKind::Comparison { toolchain_from: from.clone(),
                                         toolchain_to: to.clone() })
+    } else if kind == "toolchain" {
+        let toolchain = try!(args.get(0).ok_or(Error::OptParse));
+        Ok(v1::ReportKind::Toolchain(toolchain.clone()))
     } else {
         Err(Error::OptParse)
     }
@@ -88,25 +96,42 @@ fn parse_report_kind(kind: &str, args: &[String]) -> Result<v1::ReportKind, Erro
 
 fn run_run(config: Config, opts: Opts) -> Result<(), Error> {
     let client_v1 = client_v1::Ctxt::new(config);
-    match opts {
-        Opts::CustomBuild { url, sha } => {
-            println!("{}", try!(client_v1.custom_build(url, sha)));
+    let res = match opts {
+        Opts::CustomBuild { repo_url, commit_sha } => {
+            client_v1.custom_build(repo_url, commit_sha)
         }
         Opts::CrateBuild { toolchain } => {
-            println!("{}", try!(client_v1.crate_build(toolchain)));
+            client_v1.crate_build(toolchain)
         }
         Opts::Report { kind } => {
-            println!("{}", try!(client_v1.report(kind)));
+            client_v1.report(kind)
         }
-    }
+        Opts::SelfTest => {
+            client_v1.self_test()
+        }
+    };
 
-    Ok(())
+    match res {
+        Ok(s) => {
+            println!("{}", s);
+            Ok(())
+        }
+        Err(Error::StdIoError(ref e)) => {
+            try!(writeln!(std::io::stderr(),
+                     "server reported an error executing node.js process"));
+            try!(writeln!(std::io::stderr(), ""));
+            try!(writeln!(std::io::stderr(), "{}", e.stderr));
+            Ok(())
+        }
+        Err(e) => Err(e)
+    }
 }
 
 #[derive(Debug)]
 enum Error {
     OptParse,
     StdError(Box<StdError + Send>),
+    StdIoError(v1::StdIoResponse)
 }
 
 impl StdError for Error {
@@ -114,6 +139,7 @@ impl StdError for Error {
         match *self {
             Error::OptParse => "bad arguments",
             Error::StdError(ref e) => e.description(),
+            Error::StdIoError(ref e) => &*e.stderr
         }
     }
 
@@ -164,7 +190,7 @@ impl From<log::SetLoggerError> for Error {
 
 impl From<v1::StdIoResponse> for Error {
     fn from(e: v1::StdIoResponse) -> Error {
-        Error::StdError(Box::new(e))
+        Error::StdIoError(e)
     }
 }
 
@@ -174,6 +200,7 @@ mod client_v1 {
     use api::v1;
     use rustc_serialize::json;
     use std::io::Read;
+    use rustc_serialize::Encodable;
 
     pub struct Ctxt {
         config: Config
@@ -185,32 +212,59 @@ mod client_v1 {
         }
 
         /// Returns the stdout from `node schedule-tasks.js custom-build`
-        pub fn custom_build(&self, url: String, sha: String) -> Result<String, Error> {
-            let ref url = format!("{}/api/v1/custom_build", self.config.server_url);
-            info!("api endpoint: {}", url);
-            let ref req = v1::CustomBuildRequest {
-                url: url.clone(), sha: sha
+        pub fn custom_build(&self, repo_url: String, commit_sha: String) -> Result<String, Error> {
+            let req = v1::CustomBuildRequest {
+                auth: self.auth(),
+                repo_url: repo_url, commit_sha: commit_sha
             };
-            let ref req_str = try!(json::encode(req));
-
-            let mut client = Client::new();
-            let mut http_res = try!(client.post(url).body(req_str).send());
-            let ref mut res_str = String::new();
-            try!(http_res.read_to_string(res_str));
-
-            let res: v1::StdIoResponse = try!(json::decode(res_str));
-            let stdout = try!(Result::from(res));
-
-            Ok(stdout)
+            stdio_req(&self.config, "custom_build", req)
         }
 
         pub fn crate_build(&self, toolchain: String) -> Result<String, Error> {
-            unimplemented!()
+            let req = v1::CrateBuildRequest {
+                auth: self.auth(),
+                toolchain: toolchain
+            };
+            stdio_req(&self.config, "crate_build", req)
         }
 
         pub fn report(&self, kind: v1::ReportKind) -> Result<String, Error> {
-            unimplemented!()
+            let req = v1::ReportRequest {
+                auth: self.auth(),
+                kind: kind
+            };
+            stdio_req(&self.config, "report", req)
+        }
+
+        pub fn self_test(&self) -> Result<String, Error> {
+            let req = v1::SelfTestRequest {
+                auth: self.auth()
+            };
+            stdio_req(&self.config, "self-test", req)
+        }
+
+        fn auth(&self) -> v1::Auth {
+            v1::Auth {
+                name: self.config.username.clone(),
+                token: self.config.auth_token.clone()
+            }
         }
     }
 
+    fn stdio_req<T>(config: &Config, name: &str, ref req: T) -> Result<String, Error>
+        where T: Encodable {
+        let ref api_url = format!("{}/api/v1/{}", config.server_url, name);
+        info!("api endpoint: {}", api_url);
+        let ref req_str = try!(json::encode(req));
+
+        let mut client = Client::new();
+        let mut http_res = try!(client.post(api_url).body(req_str).send());
+        let ref mut res_str = String::new();
+        try!(http_res.read_to_string(res_str));
+
+        let res: v1::StdIoResponse = try!(json::decode(res_str));
+        let stdout = try!(Result::from(res));
+
+        Ok(stdout)
+    }
 }

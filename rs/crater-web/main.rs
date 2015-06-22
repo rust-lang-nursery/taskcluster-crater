@@ -1,3 +1,5 @@
+#![feature(vec_push_all)]
+
 extern crate iron;
 extern crate hyper;
 extern crate router;
@@ -27,7 +29,8 @@ use std::thread;
 #[derive(RustcEncodable, RustcDecodable)]
 struct Config {
     db: db::Config,
-    engine: engine::Config
+    engine: engine::Config,
+    users: Vec<(String, String)>
 }
 
 fn main() {
@@ -44,7 +47,7 @@ fn run() -> Result<(), Error> {
     try!(start_engine(config.engine));
 
     // Blocks until the process is killed
-    run_web_server(config.db)
+    run_web_server(config.users)
 }
 
 fn load_config() -> Result<Config, Error> {
@@ -71,9 +74,9 @@ fn start_engine(engine_config: engine::Config) -> Result<(), Error> {
     Ok(())
 }
 
-fn run_web_server(db_config: db::Config) -> Result<(), Error> {
+fn run_web_server(users: Vec<(String, String)>) -> Result<(), Error> {
     let static_router = static_router();
-    let api_router_v1 = api_router_v1(db_config);
+    let api_router_v1 = api_router_v1(users);
 
     let mut mount = Mount::new();
     mount.mount("/api/v1/", api_router_v1);
@@ -84,8 +87,8 @@ fn run_web_server(db_config: db::Config) -> Result<(), Error> {
     return Ok(());
 }
 
-fn api_router_v1(db_config: db::Config) -> Router {
-    let api_ctxt_master = Arc::new(api_v1::Ctxt::new(db_config));
+fn api_router_v1(users: Vec<(String, String)>) -> Router {
+    let api_ctxt_master = Arc::new(api_v1::Ctxt::new(users));
     let mut router = Router::new();
 
     let api_ctxt = api_ctxt_master.clone();
@@ -110,8 +113,10 @@ fn api_router_v1(db_config: db::Config) -> Router {
         Ok(Response::with((status::Ok, payload)).set(known_mime_type("application/json")))
     });
     let api_ctxt = api_ctxt_master.clone();
-    router.get("/self_test", move |r: &mut Request| {
-        let payload = try!(api_ctxt.self_test());
+    router.post("/self-test/", move |r: &mut Request| {
+        let mut body = String::new();
+        try!(r.body.read_to_string(&mut body).map_err(|e| Error::from(e)));
+        let payload = try!(api_ctxt.self_test(&body));
         Ok(Response::with((status::Ok, payload)).set(known_mime_type("application/json")))
     });
 
@@ -184,6 +189,7 @@ fn get_mime_type(name: &str) -> Result<&'static str, Error> {
 pub enum Error {
     BadMimeType,
     StdError(Box<StdError + Send>),
+    AuthError
 }
 
 impl StdError for Error {
@@ -191,6 +197,7 @@ impl StdError for Error {
         match *self {
             Error::BadMimeType => "bad mime type",
             Error::StdError(ref e) => e.description(),
+            Error::AuthError => "authentication failure"
         }
     }
 
@@ -251,52 +258,127 @@ impl From<engine::Error> for Error {
     }
 }
 
+impl From<std::string::FromUtf8Error> for Error {
+    fn from(e: std::string::FromUtf8Error) -> Error {
+        Error::StdError(Box::new(e))
+    }
+}
+
 mod api_v1 {
     use super::Error;
-    use db;
     use rustc_serialize::json;
     use api::v1;
 
     pub struct Ctxt {
-        db_config: db::Config
+        users: Vec<(String, String)>
     }
 
     impl Ctxt {
-        pub fn new(db_config: db::Config) -> Ctxt {
-            Ctxt { db_config: db_config }
+        pub fn new(users: Vec<(String, String)>) -> Ctxt {
+            Ctxt { users: users }
         }
 
         pub fn custom_build(&self, req: &str) -> Result<String, Error> {
             let ref req: v1::CustomBuildRequest = try!(json::decode(req));
 
             info!("custom_build: {:?}", req);
-            
-            let ref res = node_exec("schedule-tasks.js", &["custom-build", &req.url, &req.sha]);
-            let res = try!(json::encode(res));
 
+            try!(self.authorize(&req.auth));
+
+            let script = "schedule-tasks.js";
+            let ref args = ["custom-build", &*req.repo_url, &*req.commit_sha];
+            let res = try!(node_exec(script, args));
             Ok(res)
         }
 
         pub fn crate_build(&self, req: &str) -> Result<String, Error> {
-            unimplemented!()
+            let ref req: v1::CrateBuildRequest = try!(json::decode(req));
+
+            info!("crate_build: {:?}", req);
+
+            try!(self.authorize(&req.auth));
+
+            let script = "schedule-tasks.js";
+            let ref args = ["crate-build", &*req.toolchain, "--most-recent-only"];
+            let res = try!(node_exec(script, args));
+            Ok(res)
         }
 
         pub fn report(&self, req: &str) -> Result<String, Error> {
-            unimplemented!()
+            let ref req: v1::ReportRequest = try!(json::decode(req));
+
+            info!("report: {:?}", req);
+
+            try!(self.authorize(&req.auth));
+
+            let script = "print-report.js";
+            let res = match req.kind {
+                v1::ReportKind::Comparison {
+                    ref toolchain_from, ref toolchain_to
+                } => {
+                    let ref args = ["comparison", &**toolchain_from, &**toolchain_to];
+                    try!(node_exec(script, args))
+                }
+                v1::ReportKind::Toolchain(ref t) => {
+                    let ref args = ["toolchain", &**t];
+                    try!(node_exec(script, args))
+                }
+            };
+            Ok(res)
         }
 
-        pub fn self_test(&self) -> Result<String, Error> {
-            info!("self test");
+        pub fn self_test(&self, req: &str) -> Result<String, Error> {
+            let ref req: v1::SelfTestRequest = try!(json::decode(req));
 
-            #[derive(RustcEncodable, RustcDecodable)]
-            struct SelfTest;
+            info!("self-test: {:?}", req);
 
-            Ok(try!(json::encode(&SelfTest)))
+            try!(self.authorize(&req.auth));
+
+            let ref res = v1::StdIoResponse {
+                stdout: String::from("self-test succeeded"),
+                stderr: String::from(""),
+                success: true
+            };
+
+            Ok(try!(json::encode(res)))
         }
+
+        fn authorize(&self, auth: &v1::Auth) -> Result<(), Error> {
+            for &(ref name, ref token) in &self.users {
+                if name == &auth.name && token == &auth.token {
+                    return Ok(());
+                }
+            }
+
+            Err(Error::AuthError)
+        }
+
     }
 
-    fn node_exec(script: &str, args: &[&str]) -> v1::StdIoResponse {
-        unimplemented!()
+    fn node_exec(script: &str, args: &[&str]) -> Result<String, Error> {
+        use std::process::Command;
+
+        info!("running node: {} {:?}", script, args);
+
+        let script_slice: &[&str] = &[script];
+        let ref mut real_args = Vec::from(script_slice);
+        real_args.push_all(args);
+
+        // Back up from the 'rs' directory to get to the js stuff
+        let dir = "..";
+        
+        let output = try!(Command::new("node")
+                          .args(real_args)
+                          .current_dir(dir)
+                          .output());
+
+        let ref res = v1::StdIoResponse {
+            stdout: try!(String::from_utf8(output.stdout)),
+            stderr: try!(String::from_utf8(output.stderr)),
+            success: output.status.success()
+        };
+
+        Ok(try!(json::encode(res)))
     }
 }
 
