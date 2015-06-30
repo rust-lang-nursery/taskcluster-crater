@@ -1,8 +1,10 @@
 # Crater - The Rust crate tester
 
-This is a tool for testing builds of the Rust compiler against massive numbers of Rust crates.
+This is a tool for testing builds of the Rust compiler against massive
+numbers of Rust crates.
 
-It is in a very rough state and is accessible by invitation only.
+It is in a very rough state and the official deployment is
+presently accessible by invitation only.
 
 # Getting started
 
@@ -13,7 +15,7 @@ $ git clone https://github.com/brson/taskcluster-crater
 $ cd taskcluster-crater/rs
 ```
 
-In this directory create crater-cli-config.json. It looks like:
+In this directory create crater-cli-config.json. It looks like this:
 
 ```json
 {
@@ -25,23 +27,104 @@ In this directory create crater-cli-config.json. It looks like:
 
 Get your credentials from brson.
 
-Test your configuration.
+Test your configuration:
 
 ```sh
-$ crater run --bin crater-cli self-test
+$ cargo run --bin crater-cli self-test
 ```
 
-Yay! Now you can test some crates.
+If it says 'self-test succeeded' you've authenticated. Now you can
+cause some havok.
 
 There are three steps to running crater:
 
-1) Build two custom toolchains (optional).
-2) Build crates against two toolchains.
-3) Run a 'comparison' report.
+1. Build two custom toolchains (optional).
+2. Build crates against two toolchains.
+3. Run a 'comparison' report.
 
-## Step 1
+## Step 1 - build two custom toolchains
 
+Skip this step if you are just testing a compiler from an official
+release channel.
 
+To test a revision of the compiler that has not yet been merged into
+master you will need to upload the branch to GitHub, then ask crater
+to build it for you. You will need two commit shas: the most recent
+commit on master that you are working off of, and the 'merge-base'
+with upstream master (the most recent commit your branch shares with
+master). Record these somewhere; you'll need them later.  In the
+remaining examples these will be refered to as `$SHA1` and `$SHA2`,
+and the repo address as `$REPO`.
+
+Build the toolchains:
+
+```sh
+$ cargo run --bin crater-cli custom-build $REPO $SHA1
+$ cargo run --bin crater-cli custom-build $REPO $SHA2
+```
+
+These will launch the builds, which will take an hour or two to
+complete. Each of the above commands will print an 'inspector link', a
+link to the TaskCluster page for that build. Check back on these links
+periodically until they are both finished. It will take 1-2 hours.
+
+Once these builds are done you can start testing crates.
+
+Note: if you are just testing official builds then identify the
+toolchains using multirust-style 'toolchain specs',
+e.g. 'nightly-2015-06-06'. Always test compilers from the archives and
+not straight from the release channel (e.g. 'nightly') since the
+release channel compilers change regularly and the results won't make
+sense down the road if we do historical analysis.
+
+# Step 2 - build lots of crates
+
+As before, we're going to ask Crater to run some builds, then wait
+a few hours while those builds complete.
+
+```sh
+$ cargo run --bin crater-cli crate-build $SHA1
+$ cargo run --bin crater-cli crate-build $SHA2
+```
+
+Both of these commands will print a ton of inspector links. You'll
+probably just want to ignore them since they are not worth monitoring
+individually. Instead, just wait two hours, then proceed to step 3.
+
+You might also watch the [status page for the TaskCluster AWS
+provisioner][prov], waiting for the number of builds on the 'crater'
+workers to drop back to zero before proceeding to step 3.
+
+[prov]: https://tools.taskcluster.net/aws-provisioner/
+
+# Step 3 - run the report
+
+Now you can ask for a 'comparison' report:
+
+```sh
+$ cargo run --bin crater-cli report comparison $SHA1 $SHA2
+```
+
+It will report statuses for some number of crates. Knowing whether the
+report is 'done' and the crates have built correctly is not simple -
+generally, if I see the number of known statuses is in the right
+ballpark and the number of unknown statuses is minimal (maybe 30-40)
+then I consider the coverage sufficient.
+
+If the numbers look wrong then either the builds are not finished,
+something went wrong internally to the cobbled-together distributed
+system that is Crater, or you've issued one of the commands
+incorrectly.
+
+If the numbers are weird then you might ask for a report on a single
+toolchain at a time, which can tell you if you got the commands for
+one or the other incorrect:
+
+```sh
+$ cargo run --bin crater-cli report toolchain $SHA1
+```
+
+OK, that's all I can tell you for now. Good luck. Sorry it's so rough.
 
 # Older docs
 
