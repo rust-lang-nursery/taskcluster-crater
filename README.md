@@ -19,7 +19,7 @@ In this directory create crater-cli-config.json. It looks like this:
 
 ```json
 {
-    "server_url": "https://TODO",
+    "server_url": "https://crater.rust-lang.org",
     "username": "your_username",
     "auth_token": "your_token"
 }
