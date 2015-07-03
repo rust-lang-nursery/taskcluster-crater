@@ -91,6 +91,9 @@ Both of these commands will print a ton of inspector links. You'll
 probably just want to ignore them since they are not worth monitoring
 individually. Instead, just wait two hours, then proceed to step 3.
 
+This command will take a long time to complete, displaying no
+progress. Give it a few minutes.
+
 You might also watch the [status page for the TaskCluster AWS
 provisioner][prov], waiting for the number of builds on the 'crater'
 workers to drop back to zero before proceeding to step 3.
