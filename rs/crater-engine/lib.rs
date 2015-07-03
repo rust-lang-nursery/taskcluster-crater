@@ -7,6 +7,7 @@ use std::error::Error as StdError;
 use std::fmt::{self, Display, Formatter};
 
 #[derive(RustcEncodable, RustcDecodable)]
+#[derive(Clone)]
 pub struct Config {
     bus_config: bus::Config
 }

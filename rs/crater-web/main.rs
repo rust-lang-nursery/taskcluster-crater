@@ -28,6 +28,8 @@ use std::thread;
 
 #[derive(RustcEncodable, RustcDecodable)]
 struct Config {
+    host: String,
+    port: u16,
     db: db::Config,
     engine: engine::Config,
     users: Vec<(String, String)>
@@ -44,10 +46,10 @@ fn run() -> Result<(), Error> {
 
     // Start the job engine that listens to the pulse server, creates
     // taskcluster tasks, and updates the database with results.
-    try!(start_engine(config.engine));
+    try!(start_engine(config.engine.clone()));
 
     // Blocks until the process is killed
-    run_web_server(config.users)
+    run_web_server(&config)
 }
 
 fn load_config() -> Result<Config, Error> {
@@ -74,15 +76,16 @@ fn start_engine(engine_config: engine::Config) -> Result<(), Error> {
     Ok(())
 }
 
-fn run_web_server(users: Vec<(String, String)>) -> Result<(), Error> {
+fn run_web_server(config: &Config) -> Result<(), Error> {
     let static_router = static_router();
-    let api_router_v1 = api_router_v1(users);
+    let api_router_v1 = api_router_v1(config.users.clone());
 
     let mut mount = Mount::new();
     mount.mount("/api/v1/", api_router_v1);
     mount.mount("/", static_router);
 
-    let _ = try!(Iron::new(mount).http("localhost:3000"));
+    let addr = format!("{}:{}", config.host, config.port);
+    let _ = try!(Iron::new(mount).http(&*addr));
 
     return Ok(());
 }

@@ -1,6 +1,7 @@
 extern crate rustc_serialize;
 
 #[derive(RustcEncodable, RustcDecodable)]
+#[derive(Clone)]
 pub struct Config;
 
 pub fn connect(config: Config) -> Result<Bus, Error> {
