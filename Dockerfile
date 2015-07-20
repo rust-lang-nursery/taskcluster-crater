@@ -17,5 +17,15 @@ RUN apt-get install -y libz-dev \
     libfreetype6-dev libgl1-mesa-dri libglib2.0-dev xorg-dev \
     gperf g++ cmake python-virtualenv \
     libssl-dev libbz2-dev libosmesa6-dev libxmu6 libxmu-dev
-# SDL
+
+# sdl2
 RUN apt-get install -y libsdl2-dev
+
+# rustqlite
+RUN apt-get install -y libsqlite3-dev
+
+# netlib-provider
+RUN apt-get install -y gfortran
+
+# gdk-sys
+RUN apt-get install -y libgtk-3-dev
