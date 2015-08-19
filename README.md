@@ -272,4 +272,8 @@ $ docker push brson/crater
 * Fix urls in pop report
 * Crate DAGs with stability coloring
 * Add analysis of feature usage
+* Toolchain build status
+* non-crates.io projects, focus on prod users
+  * https://github.com/witheve/Eve/
+  *
 
