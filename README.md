@@ -276,3 +276,8 @@ $ docker push brson/crater
 * non-crates.io projects, focus on prod users
   * https://github.com/witheve/Eve/
 * nightly breakage dashboard
+
+11:53 <nmatsakis> if we had a massive dashboard showing, for every crate in crates.io (and eventually other sources):
+11:54 <nmatsakis> - most recent stable release
+11:54 <nmatsakis> - most recent nightly release
+11:54 <nmatsakis> - when was it last tested
