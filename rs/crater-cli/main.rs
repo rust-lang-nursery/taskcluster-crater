@@ -14,10 +14,11 @@ use std::fs::File;
 use std::io::{self, Read};
 use api::v1;
 use std::io::Write;
+use std::num::ParseIntError;
 
 enum Opts {
     CustomBuild { repo_url: String, commit_sha: String },
-    CrateBuild { toolchain: String },
+    CrateBuild { toolchain: String, top: Option<u32> },
     Report { kind: v1::ReportKind },
     SelfTest
 }
@@ -68,7 +69,21 @@ fn parse_opts(args: &[String]) -> Result<Opts, Error> {
                                commit_sha: commit_sha.clone() })
     } else if args[1] == "crate-build" {
         let toolchain = try!(args.get(2).ok_or(Error::OptParse));
-        Ok(Opts::CrateBuild { toolchain: toolchain.clone() })
+        // Parse `--top N`
+        let top = if let Some(top_flag) = args.get(3) {
+            if top_flag == "--top" {
+                if let Some(top_num) = args.get(4) {
+                    Some(try!(top_num.parse()))
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+        Ok(Opts::CrateBuild { toolchain: toolchain.clone(), top: top })
     } else if args[1] == "report" {
         let ref kind = try!(args.get(2).ok_or(Error::OptParse));
         let kind = try!(parse_report_kind(kind, &args[3..]));
@@ -100,8 +115,8 @@ fn run_run(config: Config, opts: Opts) -> Result<(), Error> {
         Opts::CustomBuild { repo_url, commit_sha } => {
             client_v1.custom_build(repo_url, commit_sha)
         }
-        Opts::CrateBuild { toolchain } => {
-            client_v1.crate_build(toolchain)
+        Opts::CrateBuild { toolchain, top } => {
+            client_v1.crate_build(toolchain, top)
         }
         Opts::Report { kind } => {
             client_v1.report(kind)
@@ -194,6 +209,12 @@ impl From<v1::StdIoResponse> for Error {
     }
 }
 
+impl From<ParseIntError> for Error {
+    fn from(e: ParseIntError) -> Error {
+        Error::StdError(Box::new(e))
+    }
+}
+
 mod client_v1 {
     use super::{Config, Error};
     use hyper::Client;
@@ -220,10 +241,11 @@ mod client_v1 {
             stdio_req(&self.config, "custom_build", req)
         }
 
-        pub fn crate_build(&self, toolchain: String) -> Result<String, Error> {
+        pub fn crate_build(&self, toolchain: String, top: Option<u32>) -> Result<String, Error> {
             let req = v1::CrateBuildRequest {
                 auth: self.auth(),
-                toolchain: toolchain
+                toolchain: toolchain,
+                top: top
             };
             stdio_req(&self.config, "crate_build", req)
         }
@@ -257,7 +279,7 @@ mod client_v1 {
         info!("api endpoint: {}", api_url);
         let ref req_str = try!(json::encode(req));
 
-        let mut client = Client::new();
+        let client = Client::new();
         let mut http_res = try!(client.post(api_url).body(req_str).send());
         let ref mut res_str = String::new();
         try!(http_res.read_to_string(res_str));

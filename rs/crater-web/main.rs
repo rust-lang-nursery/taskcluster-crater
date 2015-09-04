@@ -302,8 +302,16 @@ mod api_v1 {
             try!(self.authorize(&req.auth));
 
             let script = "schedule-tasks.js";
-            let ref args = ["crate-build", &*req.toolchain, "--most-recent-only"];
-            let res = try!(node_exec(script, args));
+            let ref args = vec!["crate-build", &*req.toolchain, "--most-recent-only"];
+            let res = if let Some(n) = req.top {
+                let n = &n.to_string();
+                let ref mut args = args.clone();
+                args.push("--top");
+                args.push(n);
+                try!(node_exec(script, args))
+            } else {
+                try!(node_exec(script, args))
+            };
             Ok(res)
         }
 

@@ -30,7 +30,8 @@ pub mod v1 {
     #[derive(Debug)]
     pub struct CrateBuildRequest {
         pub auth: Auth,
-        pub toolchain: String
+        pub toolchain: String,
+        pub top: Option<u32>
     }
 
     #[derive(RustcEncodable, RustcDecodable)]
