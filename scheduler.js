@@ -291,7 +291,7 @@ function installerUrlsForToolchain(dbctx, toolchain, config) {
     debug(toolchain);
     assert(toolchain.customSha);
     return db.getCustomToolchain(dbctx, toolchain).then(function(custom) {
-      var stdUrl = custom.url.replace("rustc-", "rust-std");
+      var stdUrl = custom.url.replace("rustc-", "rust-std-");
       return {
 	rustInstallerUrl: custom.url,
         stdInstallerUrl: stdUrl,
