@@ -17,6 +17,7 @@ main() {
 
     if [ "$task_type" = "crate-build" ]; then
 	local rust_installer="${CRATER_RUST_INSTALLER-}"
+        local std_installer="${CRATER_STD_INSTALLER-}"
 	local cargo_installer="${CRATER_CARGO_INSTALLER-}"
 	local crate_file="${CRATER_CRATE_FILE-}"
 
@@ -35,6 +36,14 @@ main() {
 	mkdir ./rust-install
 	tar xzf installer.tar.gz -C ./rust-install --strip-components=1
 	./rust-install/install.sh
+
+	if [ -n "$std_installer" ]; then
+	    say "Installing std from $std_installer"
+	    curl --retry 5 -Lf "$std_installer" -o std-installer.tar.gz
+	    mkdir ./std-install
+	    tar xzf std-installer.tar.gz -C ./std-install --strip-components=1
+	    ./std-install/install.sh
+	fi
 
 	if [ -n "$cargo_installer" ]; then
 	    say "Installing Cargo from $cargo_installer"
@@ -123,6 +132,8 @@ main() {
 	say "Renaming installer"
 	mv rust/dist/rustc-*-x86_64-unknown-linux-gnu.tar.gz \
            rust/dist/rustc-dev-x86_64-unknown-linux-gnu.tar.gz
+	mv rust/dist/rust-std-*-x86_64-unknown-linux-gnu.tar.gz \
+           rust/dist/rustc-std-dev-x86_64-unknown-linux-gnu.tar.gz
 
     else
 	say "Unknown task type"

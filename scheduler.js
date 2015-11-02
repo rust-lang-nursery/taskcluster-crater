@@ -218,6 +218,9 @@ function createTaskDescriptorForCrateBuild(dbctx, schedule, config) {
       "CRATER_CRATE_FILE": crateUrl
     };
 
+    if (installerUrls.stdInstallerUrl) {
+      env["CRATER_STD_INSTALLER"] = installerUrls.stdInstallerUrl;
+    }
     if (installerUrls.cargoInstallerUrl) {
       env["CRATER_CARGO_INSTALLER"] = installerUrls.cargoInstallerUrl;
     }
@@ -280,6 +283,7 @@ function installerUrlsForToolchain(dbctx, toolchain, config) {
       .then(function(url) {
 	return {
 	  rustInstallerUrl: url,
+          stdInstallerUrl: null,
 	  cargoInstallerUrl: null
 	};
       });
@@ -287,8 +291,10 @@ function installerUrlsForToolchain(dbctx, toolchain, config) {
     debug(toolchain);
     assert(toolchain.customSha);
     return db.getCustomToolchain(dbctx, toolchain).then(function(custom) {
+      stdUrl = custom.url.replace("rustc-", "rust-std");
       return {
 	rustInstallerUrl: custom.url,
+        stdInstallerUrl: stdUrl,
 	cargoInstallerUrl: "https://static.rust-lang.org/cargo-dist/cargo-nightly-x86_64-unknown-linux-gnu.tar.gz"
       };
     });
@@ -343,6 +349,11 @@ function createTaskDescriptorForCustomBuild(gitRepo, commitSha) {
     "public/rustc-dev-x86_64-unknown-linux-gnu.tar.gz": {
       type: "file",
       path: "/home/rust/dist/rustc-dev-x86_64-unknown-linux-gnu.tar.gz",
+      expires: expiry
+    },
+    "public/rust-std-dev-x86_64-unknown-linux-gnu.tar.gz": {
+      type: "file",
+      path: "/home/rust/dist/rust-std-dev-x86_64-unknown-linux-gnu.tar.gz",
       expires: expiry
     }
   };
