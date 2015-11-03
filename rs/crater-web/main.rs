@@ -95,28 +95,28 @@ fn api_router_v1(users: Vec<(String, String)>) -> Router {
     let mut router = Router::new();
 
     let api_ctxt = api_ctxt_master.clone();
-    router.post("/custom_build/", move |r: &mut Request| {
+    router.post("/custom_build", move |r: &mut Request| {
         let mut body = String::new();
         try!(r.body.read_to_string(&mut body).map_err(|e| Error::from(e)));
         let payload = try!(api_ctxt.custom_build(&body));
         Ok(Response::with((status::Ok, payload)).set(known_mime_type("application/json")))
     });
     let api_ctxt = api_ctxt_master.clone();
-    router.post("/crate_build/", move |r: &mut Request| {
+    router.post("/crate_build", move |r: &mut Request| {
         let mut body = String::new();
         try!(r.body.read_to_string(&mut body).map_err(|e| Error::from(e)));
         let payload = try!(api_ctxt.crate_build(&body));
         Ok(Response::with((status::Ok, payload)).set(known_mime_type("application/json")))
     });
     let api_ctxt = api_ctxt_master.clone();
-    router.post("/report/", move |r: &mut Request| {
+    router.post("/report", move |r: &mut Request| {
         let mut body = String::new();
         try!(r.body.read_to_string(&mut body).map_err(|e| Error::from(e)));
         let payload = try!(api_ctxt.report(&body));
         Ok(Response::with((status::Ok, payload)).set(known_mime_type("application/json")))
     });
     let api_ctxt = api_ctxt_master.clone();
-    router.post("/self-test/", move |r: &mut Request| {
+    router.post("/self-test", move |r: &mut Request| {
         let mut body = String::new();
         try!(r.body.read_to_string(&mut body).map_err(|e| Error::from(e)));
         let payload = try!(api_ctxt.self_test(&body));
