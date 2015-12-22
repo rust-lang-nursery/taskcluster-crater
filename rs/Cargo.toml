@@ -18,9 +18,9 @@ path = "crater-cli/main.rs"
 # FIXME: I'd rather not mix the deps for them so that crater-cli can
 # be built without building iron.
 [dependencies]
-iron = "0.2.2"
-hyper = "0.6.15"
-router = "0.0.15"
+iron = "0.2.6"
+hyper = "0.7.1"
+router = "0.1.0"
 mount = "0.0.9"
 log = "0.3.2"
 env_logger = "0.3.1"

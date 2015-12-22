@@ -3,7 +3,7 @@
 extern crate postgres;
 extern crate rustc_serialize;
 
-use std::error::Error;
+use std::error::Error as StdError;
 
 use postgres::{Connection, SslMode};
 
@@ -38,7 +38,7 @@ pub struct Database {
 impl Database {
     /// Connects and updates the db to the correct scheme
     pub fn connect(credentials: &Config
-                   ) -> Result<Database, Box<Error>> {
+                   ) -> Result<Database, Box<StdError>> {
         let url = make_url(&credentials.dbname,
                            &credentials.username,
                            &credentials.password,
@@ -53,7 +53,7 @@ impl Database {
         Ok(db)
     }
 
-    fn create_or_upgrade_tables(&self) -> Result<(), Box<Error>> {
+    fn create_or_upgrade_tables(&self) -> Result<(), Box<StdError>> {
         let q = "create table if not exists \
                  build_results ( \
                  toolchain text not null, \
@@ -96,7 +96,7 @@ impl Database {
         Ok(())
     }
 
-    pub fn delete_tables_and_close(self) -> Result<(), Box<Error>> {
+    pub fn delete_tables_and_close(self) -> Result<(), Box<StdError>> {
         let q = "drop table if exists build_results";
         try!(self.conn.execute(q, &[]));
 
@@ -115,7 +115,7 @@ impl Database {
         Ok(())
     }
 
-    pub fn add_build_result(&self, build_result: &BuildResult) -> Result<(), Box<Error>> {
+    pub fn add_build_result(&self, build_result: &BuildResult) -> Result<(), Box<StdError>> {
         let upsert_retry_limit = 10;
         for _ in &[0 .. upsert_retry_limit] {
             let update_q = "update build_results set status = $4, task_id = $5 where \
@@ -144,10 +144,10 @@ impl Database {
             if r.is_ok() { return Ok(()) }
         }
 
-        Err(Box::from(String::from("upsert failure")))
+        Err(Box::from(Error::UpsertFailure))
     }
 
-    pub fn get_build_result(&self, key: &BuildResultKey) -> Result<BuildResult, Box<Error>> {
+    pub fn get_build_result(&self, key: &BuildResultKey) -> Result<BuildResult, Box<StdError>> {
         let q = "select * from build_results where \
                  toolchain = $1 and crate_name = $2 and crate_vers = $3";
         let stmt = try!(self.conn.prepare(q));
@@ -161,7 +161,29 @@ impl Database {
             })
         }
 
-        Err(Box::from(String::from("no results")))
+        Err(Box::from(Error::DbEmptyResultFailure))
+    }
+}
+
+#[derive(Debug)]
+enum Error {
+    UpsertFailure,
+    DbEmptyResultFailure
+}
+
+impl StdError for Error {
+    fn description(&self) -> &str {
+        match *self {
+            Error::UpsertFailure => "upsert failure",
+            Error::DbEmptyResultFailure => "no results",
+        }
+    }
+}
+
+impl ::std::fmt::Display for Error {
+    fn fmt(&self, f: &mut ::std::fmt::Formatter) -> Result<(), ::std::fmt::Error> {
+        try!(f.write_str(self.description()));
+        Ok(())
     }
 }
 

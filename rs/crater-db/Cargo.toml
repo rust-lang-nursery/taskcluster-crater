@@ -8,5 +8,5 @@ name = "crater_db"
 path = "lib.rs"
 
 [dependencies]
-postgres = "^0.8.7"
+postgres = "^0.10.2"
 rustc-serialize = "*"
