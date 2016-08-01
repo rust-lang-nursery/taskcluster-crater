@@ -1,4 +1,4 @@
-FROM ubuntu:14.10
+FROM ubuntu:16.04
 MAINTAINER Brian Anderson <banderson@mozilla.com>
 
 RUN apt-get update

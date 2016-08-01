@@ -259,7 +259,7 @@ function createTaskDescriptor(taskName, env, extra, taskType, maxRunTime, worker
       "crater.#"
     ],
     "payload": {
-      "image": "brson/crater:2",
+      "image": "brson/crater:3",
       "command": [ "/bin/bash", "-c", cmd ],
       "env": env,
       "maxRunTime": maxRunTime,
