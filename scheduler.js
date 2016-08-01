@@ -10,9 +10,10 @@ var tc = require('taskcluster-client');
 var assert = require('assert');
 var dist = require('./rust-dist');
 var db = require('./crater-db');
+var sleep = require('sleep');
 
 var customBuildMaxRunTimeInSeconds = 240 * 60;
-var crateBuildMaxRunTimeInSeconds = 5 * 60;
+var crateBuildMaxRunTimeInSeconds = 10 * 60;
 
 /**
  * Create a schedule of tasks for execution by `scheduleBuilds`.
@@ -168,7 +169,7 @@ function scheduleBuilds(dbctx, schedule, config) {
   var total = schedule.length;
   var i = 1;
 
-  return Promise.denodeify(async.mapLimit)(schedule, 100, function(schedule, cb) {
+  return Promise.denodeify(async.mapLimit)(schedule, 50, function(schedule, cb) {
     createTaskDescriptorForCrateBuild(dbctx, schedule, config).then(function(taskDesc) {
       debug("createTask payload: " + JSON.stringify(taskDesc));
 
@@ -233,7 +234,7 @@ function createTaskDescriptorForCrateBuild(dbctx, schedule, config) {
 
     return createTaskDescriptor(taskName, env, extra,
 				"crate-build", crateBuildMaxRunTimeInSeconds, "cratertest",
-				{ }, 120 /* deadline in minutes */);
+				{ }, 960 /* deadline in minutes */);
   });
 }
 
