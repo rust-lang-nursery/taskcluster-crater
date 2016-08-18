@@ -296,7 +296,7 @@ function installerUrlsForToolchain(dbctx, toolchain, config) {
       return {
 	rustInstallerUrl: custom.url,
         stdInstallerUrl: stdUrl,
-	cargoInstallerUrl: "https://static.rust-lang.org/cargo-dist/cargo-nightly-x86_64-unknown-linux-gnu.tar.gz"
+	cargoInstallerUrl: "http://static-rust-lang-org.s3-us-west-1.amazonaws.com/cargo-dist/cargo-nightly-x86_64-unknown-linux-gnu.tar.gz"
       };
     });
   }
