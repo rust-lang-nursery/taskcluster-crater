@@ -1,5 +1,3 @@
-#![feature(vec_push_all)]
-
 extern crate iron;
 extern crate hyper;
 extern crate router;
@@ -365,7 +363,7 @@ mod api_v1 {
 
         let script_slice: &[&str] = &[script];
         let ref mut real_args = Vec::from(script_slice);
-        real_args.push_all(args);
+        real_args.extend(args.into_iter());
 
         // Back up from the 'rs' directory to get to the js stuff
         let dir = "..";

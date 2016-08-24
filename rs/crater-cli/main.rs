@@ -128,7 +128,7 @@ fn run_run(config: Config, opts: Opts) -> Result<(), Error> {
 }
 
 #[derive(Debug)]
-enum Error {
+pub enum Error {
     OptParse,
     StdError(Box<StdError + Send>),
     StdIoError(v1::StdIoResponse)
