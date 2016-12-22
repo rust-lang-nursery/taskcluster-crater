@@ -130,10 +130,10 @@ main() {
 	(cd rust && make -j2 && make dist)
 
 	say "Renaming installer"
-	mv rust/dist/rustc-*-x86_64-unknown-linux-gnu.tar.gz \
-           rust/dist/rustc-dev-x86_64-unknown-linux-gnu.tar.gz
-	mv rust/dist/rust-std-*-x86_64-unknown-linux-gnu.tar.gz \
-           rust/dist/rust-std-dev-x86_64-unknown-linux-gnu.tar.gz
+	mv rust/build/dist/rustc-*-x86_64-unknown-linux-gnu.tar.gz \
+           rust/build/dist/rustc-dev-x86_64-unknown-linux-gnu.tar.gz
+	mv rust/build/dist/rust-std-*-x86_64-unknown-linux-gnu.tar.gz \
+           rust/build/dist/rust-std-dev-x86_64-unknown-linux-gnu.tar.gz
 
     else
 	say "Unknown task type"

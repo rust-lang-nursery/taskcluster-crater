@@ -11,6 +11,7 @@ var assert = require('assert');
 var dist = require('./rust-dist');
 var db = require('./crater-db');
 var sleep = require('sleep');
+var https = require('https');
 
 var customBuildMaxRunTimeInSeconds = 240 * 60;
 var crateBuildMaxRunTimeInSeconds = 10 * 60;
@@ -158,9 +159,9 @@ function scheduleBuilds(dbctx, schedule, config) {
   assert(tcCredentials != null);
 
   // FIXME: For testing, just schedule five builds instead of thousands
-  //if (schedule.length > 5) {
-  //  schedule = schedule.slice(0, 5)
-  //}
+  if (schedule.length > 5) {
+    //schedule = schedule.slice(0, 5)
+  }
 
   var queue = new tc.Queue({
     credentials: tcCredentials
@@ -291,15 +292,36 @@ function installerUrlsForToolchain(dbctx, toolchain, config) {
   } else {
     debug(toolchain);
     assert(toolchain.customSha);
+    var cargoBaseUrl = "https://s3.amazonaws.com/rust-lang-ci/cargo-builds/";
     return db.getCustomToolchain(dbctx, toolchain).then(function(custom) {
-      var stdUrl = custom.url.replace("rustc-", "rust-std-");
-      return {
-	rustInstallerUrl: custom.url,
-        stdInstallerUrl: stdUrl,
-	cargoInstallerUrl: "http://static-rust-lang-org.s3-us-west-1.amazonaws.com/cargo-dist/cargo-nightly-x86_64-unknown-linux-gnu.tar.gz"
-      };
+	console.log("about to get cargo url");
+	return getCargoNightlySha(dbctx).then(function(sha) {
+	    console.log(sha);
+	    var stdUrl = custom.url.replace("rustc-", "rust-std-");
+	    var cargoUrl = cargoBaseUrl + sha + "/cargo-nightly-x86_64-unknown-linux-gnu.tar.gz";
+	    console.log(cargoUrl);
+	    return {
+		rustInstallerUrl: custom.url,
+		stdInstallerUrl: stdUrl,
+		cargoInstallerUrl: url,
+	    };
+	});
     });
   }
+}
+
+var cargoNightlySha = null;
+
+function getCargoNightlySha(dbctx) {
+    if (cargoNightlySha) {
+	return cargoNightlySha;
+    }
+    // curl -H "Accept: application/vnd.github.3.sha" -sSf https://api.github.com/repos/rust-lang/cargo/commits/master
+    var url = "https://api.github.com/repos/rust-lang/cargo/commits/master";
+    cargoNightlySha = util.downloadToMem(url).then(function (data) {
+	return JSON.parse(data).sha;
+    });
+    return cargoNightlySha;
 }
 
 /**

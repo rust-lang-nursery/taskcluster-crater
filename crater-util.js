@@ -11,6 +11,7 @@ var http = require('http');
 var https = require('https');
 var assert = require('assert');
 var async = require('async');
+var url = require('url');
 
 var defaultRustDistAddr = "http://static-rust-lang-org.s3-us-west-1.amazonaws.com/dist";
 var defaultCrateIndexAddr = "https://github.com/rust-lang/crates.io-index";
@@ -64,9 +65,23 @@ function toolchainToString(toolchain) {
 }
 
 function downloadToMem(addr) {
+
+  var addr2 = url.parse(addr);
+  var opts = {
+    host: addr2.host,
+    hostname: addr2.host,
+    port: addr2.port,
+    path: addr2.pathname,
+    pathname: addr2.pathname,
+    method: 'GET',
+    headers: {
+      "User-Agent": "crater - the Rust crate tester"
+    }
+  };
+
   if (addr.lastIndexOf("https", 0) === 0) {
     return new Promise(function(resolve, reject) {
-      https.get(addr, function(res) {
+      https.get(opts, function(res) {
 	var data = '';
 
 	res.on('error', function(e) { reject(e); });
@@ -78,7 +93,7 @@ function downloadToMem(addr) {
     });
   } else if (addr.lastIndexOf("http", 0) === 0) {
     return new Promise(function(resolve, reject) {
-      http.get(addr, function(res) {
+      http.get(opts, function(res) {
 	var data = '';
 
 	res.on('error', function(e) { reject(e); });
