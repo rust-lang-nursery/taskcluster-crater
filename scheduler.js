@@ -294,16 +294,13 @@ function installerUrlsForToolchain(dbctx, toolchain, config) {
     assert(toolchain.customSha);
     var cargoBaseUrl = "https://s3.amazonaws.com/rust-lang-ci/cargo-builds/";
     return db.getCustomToolchain(dbctx, toolchain).then(function(custom) {
-	console.log("about to get cargo url");
 	return getCargoNightlySha(dbctx).then(function(sha) {
-	    console.log(sha);
 	    var stdUrl = custom.url.replace("rustc-", "rust-std-");
 	    var cargoUrl = cargoBaseUrl + sha + "/cargo-nightly-x86_64-unknown-linux-gnu.tar.gz";
-	    console.log(cargoUrl);
 	    return {
 		rustInstallerUrl: custom.url,
 		stdInstallerUrl: stdUrl,
-		cargoInstallerUrl: url,
+		cargoInstallerUrl: cargoUrl,
 	    };
 	});
     });
