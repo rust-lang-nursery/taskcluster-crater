@@ -371,12 +371,12 @@ function createTaskDescriptorForCustomBuild(gitRepo, commitSha) {
   var artifacts = {
     "public/rustc-dev-x86_64-unknown-linux-gnu.tar.gz": {
       type: "file",
-      path: "/home/rust/dist/rustc-dev-x86_64-unknown-linux-gnu.tar.gz",
+      path: "/home/rust/build/dist/rustc-dev-x86_64-unknown-linux-gnu.tar.gz",
       expires: expiry
     },
     "public/rust-std-dev-x86_64-unknown-linux-gnu.tar.gz": {
       type: "file",
-      path: "/home/rust/dist/rust-std-dev-x86_64-unknown-linux-gnu.tar.gz",
+      path: "/home/rust/build/dist/rust-std-dev-x86_64-unknown-linux-gnu.tar.gz",
       expires: expiry
     }
   };
