@@ -25,6 +25,7 @@ function main() {
     var tcQueue = new tc.Queue({ credentials: tcCredentials });
 
     var pulseListener = new tc.PulseListener({
+      prefetch: 50, // fetch 50 messages at a time
       credentials: pulseCredentials,
       queueName: "crater-monitor" // create a durable queue
     });
