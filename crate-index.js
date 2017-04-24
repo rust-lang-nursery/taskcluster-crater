@@ -144,6 +144,11 @@ function loadCrates(config) {
  */
 function getMostRecentRevs(crates) {
   var map = {};
+
+  // maps in js have a default key called "constructor" and there's a crate
+  // called "constructor"...
+  map["constructor"] = null;
+
   crates.forEach(function(c) {
     if (map[c.name] == null) {
       map[c.name] = c;
