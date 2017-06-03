@@ -294,15 +294,13 @@ function installerUrlsForToolchain(dbctx, toolchain, config) {
     assert(toolchain.customSha);
     var cargoBaseUrl = "https://s3.amazonaws.com/rust-lang-ci/cargo-builds/";
     return db.getCustomToolchain(dbctx, toolchain).then(function(custom) {
-	return getCargoNightlySha(dbctx).then(function(sha) {
-	    var stdUrl = custom.url.replace("rustc-", "rust-std-");
-	    var cargoUrl = cargoBaseUrl + sha + "/cargo-nightly-x86_64-unknown-linux-gnu.tar.gz";
-	    return {
-		rustInstallerUrl: custom.url,
-		stdInstallerUrl: stdUrl,
-		cargoInstallerUrl: cargoUrl,
-	    };
-	});
+	var stdUrl = custom.url.replace("rustc-", "rust-std-");
+	var cargoUrl = custom.url.replace("rustc-", "cargo-");
+	return {
+	    rustInstallerUrl: custom.url,
+	    stdInstallerUrl: stdUrl,
+	    cargoInstallerUrl: cargoUrl,
+	};
     });
   }
 }
@@ -374,6 +372,11 @@ function createTaskDescriptorForCustomBuild(gitRepo, commitSha) {
     "public/rust-std-dev-x86_64-unknown-linux-gnu.tar.gz": {
       type: "file",
       path: "/home/rust/build/dist/rust-std-dev-x86_64-unknown-linux-gnu.tar.gz",
+      expires: expiry
+    }
+    "public/cargo-dev-x86_64-unknown-linux-gnu.tar.gz": {
+      type: "file",
+      path: "/home/rust/build/dist/cargo-dev-x86_64-unknown-linux-gnu.tar.gz",
       expires: expiry
     }
   };
