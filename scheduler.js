@@ -373,7 +373,7 @@ function createTaskDescriptorForCustomBuild(gitRepo, commitSha) {
       type: "file",
       path: "/home/rust/build/dist/rust-std-dev-x86_64-unknown-linux-gnu.tar.gz",
       expires: expiry
-    }
+    },
     "public/cargo-dev-x86_64-unknown-linux-gnu.tar.gz": {
       type: "file",
       path: "/home/rust/build/dist/cargo-dev-x86_64-unknown-linux-gnu.tar.gz",
