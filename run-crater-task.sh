@@ -124,7 +124,7 @@ main() {
 	git clone "$git_repo" rust && (cd rust && git reset "$commit_sha" --hard)
 
 	say "Configuring"
-	(cd rust && ./configure --build=x86_64-unknown-linux-gnu --host=x86_64-unknown-linux-gnu --target=x86_64-unknown-linux-gnu)
+	(cd rust && ./configure --enable-extended --build=x86_64-unknown-linux-gnu --host=x86_64-unknown-linux-gnu --target=x86_64-unknown-linux-gnu)
 
 	say "Building"
 	(cd rust && make -j2 && make dist)
